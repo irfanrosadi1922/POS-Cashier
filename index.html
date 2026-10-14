@@ -2,23 +2,24 @@
 <html lang="id">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no">
 <meta name="theme-color" content="#2563eb">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="Sushi POS">
 <title>Sushi POS</title>
 <style>
 :root{--b:#2563eb;--b2:#1d4ed8;--bg:#eef3fb;--card:#fff;--tx:#111827;--mu:#6b7280;--ln:#e5e9f2;--ok:#16a34a;--warn:#f59e0b;--bad:#dc2626;--r:18px}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html{background:var(--bg)}
 html,body{margin:0;height:100%;overflow:hidden;overscroll-behavior:none;touch-action:pan-x pan-y;-webkit-text-size-adjust:100%;text-size-adjust:100%}
 body{position:fixed;inset:0;width:100%}
 body{font-family:'Lato','Segoe UI',system-ui,-apple-system,Roboto,sans-serif;color:var(--tx);background:linear-gradient(135deg,#f6f9ff 0%,#e8effc 60%,#dfe9fb 100%);background-attachment:fixed}
 button{font:inherit;cursor:pointer;border:0;background:none;color:inherit}
 input,select,textarea{font:inherit;color:inherit}
 .app{display:flex;height:100vh;height:100dvh;overflow:hidden}
-.main{flex:1;min-width:0;padding:max(16px,env(safe-area-inset-top,0px)) max(18px,env(safe-area-inset-right,0px)) 90px max(18px,env(safe-area-inset-left,0px));height:100%;overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;touch-action:pan-y;-webkit-overflow-scrolling:touch}
+.main{flex:1;min-width:0;padding:max(16px,env(safe-area-inset-top,0px)) max(18px,env(safe-area-inset-right,0px)) calc(90px + env(safe-area-inset-bottom,0px)) max(18px,env(safe-area-inset-left,0px));height:100%;overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;touch-action:pan-y;-webkit-overflow-scrolling:touch}
 /* header */
 .top{display:flex;gap:10px;align-items:center;margin-bottom:14px}
 .pill{background:var(--card);border-radius:999px;display:flex;align-items:center;gap:10px;padding:8px 16px;height:48px;white-space:nowrap;box-shadow:0 1px 2px rgba(20,40,90,.04)}
@@ -99,7 +100,7 @@ input,select,textarea{font:inherit;color:inherit}
 .fab{display:none}
 .sheet-x{display:none}
 /* drawer */
-.drawer{position:fixed;left:0;top:0;bottom:0;width:260px;background:#fff;z-index:60;transform:translateX(-105%);transition:.25s;padding:20px 14px;box-shadow:6px 0 30px rgba(0,0,0,.12)}
+.drawer{position:fixed;left:0;top:0;bottom:0;width:260px;background:#fff;z-index:60;transform:translateX(-105%);transition:.25s;padding:calc(20px + env(safe-area-inset-top,0px)) 14px calc(20px + env(safe-area-inset-bottom,0px));overflow-y:auto;box-shadow:6px 0 30px rgba(0,0,0,.12)}
 .drawer.open{transform:none}
 .drawer h3{margin:4px 10px 18px;color:var(--b)}
 .drawer button{display:flex;gap:12px;align-items:center;width:100%;padding:13px 14px;border-radius:14px;font-weight:600;margin-bottom:4px;text-align:left}
@@ -201,11 +202,11 @@ tr.dh td{background:#f1f6ff;font-size:12.5px;padding:8px 10px}
   .invoice{position:fixed;right:0;left:0;bottom:0;top:auto;width:100%;height:78vh;height:78dvh;z-index:45;overflow-y:auto;padding-bottom:calc(16px + env(safe-area-inset-bottom,0px));border-radius:24px 24px 0 0;transform:translateY(105%);transition:.3s;box-shadow:0 -10px 40px rgba(0,0,0,.2)}
   .invoice.open{transform:none}
   .sheet-x{display:block}
-  .fab{display:flex;position:fixed;left:14px;right:14px;bottom:14px;z-index:40;background:var(--b);color:#fff;border-radius:999px;padding:14px 20px;justify-content:space-between;align-items:center;font-weight:700;box-shadow:0 8px 24px rgba(37,99,235,.4)}
+  .fab{display:flex;position:fixed;left:max(14px,env(safe-area-inset-left,0px));right:max(14px,env(safe-area-inset-right,0px));bottom:max(14px,env(safe-area-inset-bottom,0px));z-index:40;background:var(--b);color:#fff;border-radius:999px;padding:14px 20px;justify-content:space-between;align-items:center;font-weight:700;box-shadow:0 8px 24px rgba(37,99,235,.4)}
   .fab.hide{display:none}
 }
 @media (max-width:700px){
-  .main{padding:max(12px,env(safe-area-inset-top,0px)) max(12px,env(safe-area-inset-right,0px)) 90px max(12px,env(safe-area-inset-left,0px))}
+  .main{padding:max(12px,env(safe-area-inset-top,0px)) max(12px,env(safe-area-inset-right,0px)) calc(90px + env(safe-area-inset-bottom,0px)) max(12px,env(safe-area-inset-left,0px))}
   .pill.date{display:none}
   .grid,.grid.fd{grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--gm,10px);--pd:var(--pdm,8px);--rad:var(--radm,18px)}
   .grid.fm{grid-template-columns:repeat(var(--cm),minmax(0,1fr))}
