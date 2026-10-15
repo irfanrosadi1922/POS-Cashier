@@ -1,0 +1,4 @@
+streetsateoriginal.my.id {
+	encode gzip
+	reverse_proxy pos:3000
+}
