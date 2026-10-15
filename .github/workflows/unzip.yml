@@ -1,9 +1,12 @@
-name: Auto Unzip ZIP
+
+name: Auto Unzip ZIP to Root
 
 on:
   push:
     paths:
-      - '*.zip'
+      - '**.zip'
+      - '**/*.zip'
+      - '.github/workflows/unzip.yml'
   workflow_dispatch:
 
 permissions:
@@ -14,24 +17,36 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
         with:
           ref: ${{ github.ref_name }}
 
-      - name: Extract ZIP files
+      - name: Extract ZIP files to root
         run: |
-          shopt -s nullglob
-          for f in *.zip; do
-            mkdir -p extracted
-            unzip -o "$f" -d extracted
+          shopt -s globstar nullglob
+
+          for f in **/*.zip; do
+            echo "Extracting: $f"
+            unzip -o "$f" -d .
           done
+
+      - name: Remove ZIP files
+        run: |
+          find . -type f -name "*.zip" \
+            -not -path "./.git/*" -delete
 
       - name: Commit extracted files
         run: |
           git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add extracted
+          git config user.email \
+            "41898282+github-actions[bot]@users.noreply.github.com"
+
+          git add -A
+
           if ! git diff --cached --quiet; then
-            git commit -m "Automatically extract ZIP files"
+            git commit -m "Auto extract ZIP files"
             git push
+          else
+            echo "No changes to commit"
           fi
