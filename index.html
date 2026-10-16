@@ -116,7 +116,8 @@ input,select,textarea{font:inherit;color:inherit}
 .fab{display:none}
 .sheet-x{display:none}
 /* drawer */
-.drawer{position:fixed;left:0;top:0;bottom:0;width:260px;background:#fff;z-index:60;transform:translateX(-105%);transition:.25s;padding:calc(20px + env(safe-area-inset-top,0px)) 14px calc(20px + env(safe-area-inset-bottom,0px));overflow-y:auto;border-radius:0 32px 32px 0;box-shadow:6px 0 30px rgba(0,0,0,.12)}
+.drawer{position:fixed;left:0;top:0;bottom:0;width:260px;background:#fff;z-index:60;transform:translateX(-105%);transition:.25s;padding:calc(20px + env(safe-area-inset-top,0px)) 14px calc(20px + env(safe-area-inset-bottom,0px));overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;display:flex;flex-direction:column;border-radius:0 32px 32px 0;box-shadow:6px 0 30px rgba(0,0,0,.12)}
+.drawer>*{flex:none}
 .drawer.open{transform:none}
 .drawer h3{margin:4px 10px 18px;color:var(--b)}
 .drawer button{display:flex;gap:12px;align-items:center;width:100%;padding:13px 14px;border-radius:14px;font-weight:600;margin-bottom:4px;text-align:left}
@@ -189,7 +190,8 @@ tr.dh td{background:#fff6ee;font-size:12.5px;padding:8px 10px}
 .cdot{position:absolute;top:9px;right:9px;width:10px;height:10px;border-radius:50%;border:2px solid #fff;display:none}
 .cdot.ok{display:block;background:#16a34a}.cdot.sync{display:block;background:#f59e0b}
 .cdot.offline,.cdot.err,.cdot.auth{display:block;background:#dc2626}
-.cloudst{position:absolute;left:14px;right:14px;bottom:calc(14px + env(safe-area-inset-bottom,0px));font-size:12px;color:var(--mu);padding:10px 12px;border-radius:12px;background:#f6f6f6;cursor:pointer}
+.acct[hidden]+.cloudst{margin-top:auto}
+.cloudst{margin-top:8px;font-size:12px;color:var(--mu);padding:10px 12px;border-radius:12px;background:#f6f6f6;cursor:pointer}
 .loginw{position:fixed;inset:0;z-index:200;background:var(--bg);display:grid;place-items:center;padding:20px}
 .loginw[hidden]{display:none}
 .loginc{width:100%;max-width:340px;background:#fff;border-radius:24px;padding:26px 22px;box-shadow:0 10px 40px rgba(0,0,0,.12);text-align:center}
@@ -305,6 +307,7 @@ button[hidden]{display:none!important}
 .qrbox svg{width:100%;max-width:280px;height:auto;border-radius:14px;border:1px solid var(--ln)}
 
 .loginw{background:radial-gradient(120% 60% at 50% 0%,#ffe9d6 0%,var(--bg) 60%)}
+.loginw{display:flex;overflow-y:auto;-webkit-overflow-scrolling:touch}.loginw>.loginc{margin:auto}
 .loginc{max-width:360px;text-align:left;padding:28px 24px}
 .loginc img{width:88px;height:88px;object-fit:cover;border-radius:50%;box-shadow:0 10px 26px rgba(255,106,0,.28)}
 .loginc h2{text-align:center;margin:0}
@@ -314,7 +317,8 @@ button[hidden]{display:none!important}
 .eye{position:absolute;right:6px;top:50%;transform:translateY(-50%);font-size:12px;font-weight:700;color:var(--b);padding:8px 10px;border-radius:10px}
 .lerr{color:var(--bad);font-size:13px;min-height:20px;margin:8px 0 0;text-align:center;font-weight:600}
 .lfoot{text-align:center;color:var(--mu);font-size:12px;margin:12px 0 0}
-.drawer button.acct{position:absolute;left:14px;right:14px;bottom:calc(64px + env(safe-area-inset-bottom,0px));width:auto;margin:0;padding:10px 12px;background:#fff0e3;gap:10px}
+.drawer button.acct{margin:auto 0 8px;padding:10px 12px;background:#fff0e3;gap:10px}
+.drawer>button:nth-last-of-type(1):not(.acct){margin-bottom:12px}
 .drawer button.acct[hidden]{display:none}
 .av{width:36px;height:36px;border-radius:50%;background:var(--b);color:#fff;display:inline-grid;place-items:center;font-weight:700;flex:none}
 .av.lg{width:52px;height:52px;font-size:22px}
@@ -1604,7 +1608,7 @@ async function renderDb(){
     FH?row('File database tertaut',FHST==='ok'?'Tertulis otomatis':FHST==='perm'?'Perlu izin <button class="chip" onclick="allowFile()">Izinkan</button>':'Gagal',FHST==='ok'?'ok':'warn')+'':row('File database tertaut','Belum ditautkan','warn');
   let srv=[];
   if(CL.on&&CL.tok){try{srv=(await (await api('/api/snapshots')).json()).snapshots||[]}catch(e){}}
-  const cloudRows=CL.on?row('Sinkron online',({ok:'Tersinkron',sync:'Menyinkronkan…',offline:'Offline',auth:'Perlu login',err:'Gagal sinkron'})[CL.st]+(CL.st==='ok'&&CL.last?' · '+new Date(CL.last).toLocaleTimeString(dloc(),{hour:'2-digit',minute:'2-digit'}):''),CL.st==='ok'?'ok':'warn')+row('Server','Database SQLite di server','ok'):'';
+  const cloudRows=CL.on?row('Sinkron online',({ok:'Tersinkron',sync:'Menyinkronkan…',offline:'Offline',auth:'Perlu login',err:'Gagal sinkron'})[CL.st]+(CL.st==='ok'&&CL.last?' · '+new Date(CL.last).toLocaleTimeString(dloc(),{hour:'2-digit',minute:'2-digit'}):''),CL.st==='ok'?'ok':'warn')+row('Server',(globalThis.POS_SB?'Database Supabase':'Database SQLite di server'),'ok'):'';
   const cloudBtns=CL.on?'<button class="btn sm" onclick="syncNow()">☁ Sinkron Sekarang</button><button class="btn sm sec" onclick="downloadServerExport()">⬇ Unduh dari Server</button><button class="btn sm sec" onclick="doLogout()">Keluar</button>':'';
   const srvSnaps=CL.on&&srv.length?'<label class="fl" style="margin-top:12px">Snapshot Server</label>'+srv.map(x=>`<div class="dbs"><span>${new Date(x.created_at).toLocaleString(dloc(),{day:'2-digit',month:'short',year:'numeric'})} · ${Math.round(x.size/1024)} KB</span><button class="chip" onclick="srvSnapRestore('${x.day}')">Pulihkan</button></div>`).join('')+'<p class="hint">Snapshot server dibuat sekali sehari (30 hari terakhir), berisi kondisi sebelum perubahan pertama hari itu.</p>':'';
   el.innerHTML=`<h3>Database & Penyimpanan</h3>
