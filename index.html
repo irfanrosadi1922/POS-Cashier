@@ -329,6 +329,24 @@ button[hidden]{display:none!important}
 .pchip.on{background:#fff0e3;color:var(--b);text-decoration:none}
 .coc.usr .coh .av{align-self:center}
 select.fi{appearance:auto}
+/* daftar ringkas (klik = detail) */
+.lst{display:flex;flex-direction:column}
+.li{display:flex;align-items:center;gap:10px;width:100%;text-align:left;padding:11px 4px;border-bottom:1px solid #f0f0f0;background:none;font:inherit;color:inherit}
+.li:last-child{border-bottom:0}.li:active{background:#fff6ee}
+.li .l{flex:1;min-width:0;display:flex;flex-direction:column;line-height:1.35}
+.li .l b{font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.li .l small{color:var(--mu);font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.li .r{display:flex;flex-direction:column;align-items:flex-end;line-height:1.35;flex:none;max-width:42%}
+.li .r b{font-size:14px;white-space:nowrap}.li .r small{font-size:11.5px;color:var(--mu);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%}
+.li .ch{color:#bbb;font-size:20px;flex:none;line-height:1}
+.dhd{padding:8px 10px;font-size:12.5px;background:#fff6ee;border-radius:10px;margin:10px 0 2px}.dhd:first-child{margin-top:0}
+.dl{width:100%;border-collapse:collapse;margin:8px 0}.dl td{padding:7px 0;border-bottom:1px dashed #eee;font-size:13.5px;vertical-align:top}.dl td:last-child{text-align:right;font-weight:700;white-space:nowrap;padding-left:10px}
+.dl small{color:var(--mu);font-weight:500}.dl tr.tt td{border-bottom:0;font-size:15px}
+.morebtn{margin-top:8px}
+#coDev>summary{font-weight:800;font-size:15px;cursor:pointer}
+#coDev[open]>summary{margin-bottom:10px}
+.hdates{display:grid;grid-template-columns:1fr 1fr;gap:8px;width:100%}.hdates label{display:flex;flex-direction:column;align-items:stretch;gap:2px;min-width:0}.hdates .fi{width:100%;min-width:0}
+.vdl{font-size:12.5px;color:var(--mu)}.vdl div{padding:5px 0;border-bottom:1px dashed #eee}
 </style>
 <link rel="manifest" href="manifest.webmanifest"><link rel="apple-touch-icon" href="icon-192.png"><link rel="icon" href="icon-192.png">
 <script src="config.js"></script><script src="sbapi.js"></script>
@@ -397,15 +415,16 @@ select.fi{appearance:auto}
       </div>
       <div class="stats" id="invStats"></div>
       <div class="panel"><div class="tw"><table><thead><tr><th><input type="checkbox" id="selAllCk" onchange="selAll(this.checked)"></th><th></th><th>Nama</th><th>Kategori</th><th>Harga</th><th>Modal</th><th>Stok</th><th>Status</th><th></th></tr></thead><tbody id="invBody"></tbody></table></div></div>
-      <div class="panel"><h3>Riwayat Perubahan Stok</h3><div class="tw"><table><thead><tr><th>Waktu</th><th>Item</th><th>Perubahan</th><th>Keterangan</th></tr></thead><tbody id="logBody"></tbody></table></div></div>
+      <div class="panel"><h3>Riwayat Perubahan Stok</h3><div class="lst" id="logBody"></div><button class="btn sec morebtn" id="logMore" hidden onclick="S.ln=(S.ln||15)+15;renderInv()">Tampilkan lebih banyak</button></div>
     </section>
 
     <section id="v-hist" hidden>
-      <div class="bar"><h2>📊 Riwayat Penjualan</h2></div>
+      <div class="bar"><h2>📊 Riwayat Penjualan</h2><button class="btn sm" style="width:auto;margin:0" onclick="exportXlsx()">⬇️ Excel</button></div>
       <div class="panel hfil"><div class="chips" id="hChips"></div>
         <div class="hdates"><label><span>Dari</span><input class="fi" type="date" id="hFrom" onchange="setHD()"></label><label><span>Sampai</span><input class="fi" type="date" id="hTo" onchange="setHD()"></label></div></div>
       <div class="stats" id="histStats"></div>
-      <div class="panel"><div class="tw"><table><thead><tr><th>No</th><th>Waktu</th><th>Tipe</th><th>Bayar</th><th>Total</th><th></th></tr></thead><tbody id="histBody"></tbody></table></div></div>
+      <div class="panel"><div class="lst" id="histBody"></div><button class="btn sec morebtn" id="histMore" hidden onclick="S.hn=(S.hn||25)+25;renderHist()">Tampilkan lebih banyak</button></div>
+      <div class="panel" id="voidBox" hidden></div>
     </section>
 
     <section id="v-rc" hidden>
@@ -421,10 +440,10 @@ select.fi{appearance:auto}
     </section>
 
     <section id="v-co" hidden>
-      <div class="bar"><h2>🔔 Pesanan Online</h2></div>
+      <div class="bar"><h2>🔔 Pesanan Online</h2><button class="btn sm" id="coGear" style="width:auto;margin:0" hidden onclick="go('set')">⚙️ Pengaturan QR</button></div>
       <div id="coStat"></div>
       <div id="coList"></div>
-      <div class="panel" id="coTop" style="margin-top:18px"></div>
+      <details class="panel" id="coDev" style="margin-top:18px"><summary>Pengaturan perangkat ini</summary><div id="coTop"></div></details>
     </section>
 
     <section id="v-usr" hidden>
@@ -437,6 +456,7 @@ select.fi{appearance:auto}
     <section id="v-set" hidden>
       <div class="bar"><h2>⚙️ Pengaturan</h2></div>
       <div class="panel" id="setForm"></div>
+      <div class="panel" id="coForm" hidden></div>
       <div class="panel" id="scrForm"></div>
       <div class="panel" id="logoForm"></div>
       <div class="panel" id="langForm"></div>
@@ -952,7 +972,20 @@ function renderInv(){
   const it=db.items,val=it.reduce((a,i)=>a+i.stock*(i.cost||0),0);
   $('#invStats').innerHTML=[['Total Item',it.length],['Nilai Stok (modal)',money(val)],['Stok Menipis',it.filter(i=>i.stock>0&&i.stock<=i.min).length],['Habis',it.filter(i=>i.stock<=0).length]].map(([a,b])=>`<div class="st"><small>${a}</small><b>${b}</b></div>`).join('');
   renderInvTable();
-  $('#logBody').innerHTML=db.log.slice(0,20).map(l=>`<tr><td>${new Date(l.t).toLocaleString(dloc(),{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'})}</td><td>${esc(l.name)}</td><td style="color:${l.d<0?'var(--bad)':'var(--ok)'};font-weight:700">${l.d>0?'+':''}${l.d}</td><td>${esc(l.note)}</td></tr>`).join('')||'<tr><td colspan="4" style="color:var(--mu)">Belum ada perubahan.</td></tr>';
+  {const n=S.ln||15,tm=t=>new Date(t).toLocaleString(dloc(),{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'});
+  $('#logBody').innerHTML=db.log.slice(0,n).map((l,i)=>`<button class="li" onclick="logOpen(${i})"><span class="l"><b>${esc(l.name)}</b><small>${tm(l.t)} · ${esc(l.note)}</small></span><span class="r"><b style="color:${l.d<0?'var(--bad)':'var(--ok)'}">${l.d>0?'+':''}${l.d}</b></span><span class="ch">›</span></button>`).join('')||'<div style="color:var(--mu);padding:6px 4px">Belum ada perubahan.</div>';
+  $('#logMore').hidden=db.log.length<=n;}
+}
+function logOpen(i){
+  const l=db.log[i];if(!l)return;
+  const m=/^(?:Penjualan|Hapus transaksi) (\S+)/.exec(l.note||''),o=m&&db.orders.find(x=>x.no===m[1]);
+  openModal(`<h3>Perubahan Stok</h3><table class="dl">
+  <tr><td>Item</td><td>${esc(l.name)}</td></tr>
+  <tr><td>Perubahan</td><td style="color:${l.d<0?'var(--bad)':'var(--ok)'}">${l.d>0?'+':''}${l.d}</td></tr>
+  <tr><td>Keterangan</td><td style="white-space:normal">${esc(l.note)}</td></tr>
+  <tr><td>Waktu</td><td style="white-space:normal">${new Date(l.t).toLocaleString(dloc(),{weekday:'long',day:'2-digit',month:'long',year:'numeric',hour:'2-digit',minute:'2-digit'})}</td></tr></table>
+  ${o?`<button class="btn" onclick="histOpen('${esc(o.no)}')">Lihat transaksi ${esc(o.no)}</button>`:''}
+  <button class="btn sec" onclick="closeModal()">Tutup</button>`);
 }
 function adj(id,d){const i=find(id);setStock(id,Math.max(0,i.stock+d))}
 function setStock(id,v){
@@ -1009,7 +1042,7 @@ const dkey=t=>{const d=new Date(t);return d.getFullYear()+'-'+String(d.getMonth(
 S.hr='all';S.hf='';S.ht='';
 function setHR(k){
   const now=new Date(),off=n=>{const d=new Date(now);d.setDate(d.getDate()-n);return dkey(d)};
-  S.hr=k;
+  S.hr=k;S.hn=25;
   if(k==='today'){S.hf=S.ht=off(0)}
   else if(k==='yest'){S.hf=S.ht=off(1)}
   else if(k==='7'){S.hf=off(6);S.ht=off(0)}
@@ -1017,7 +1050,44 @@ function setHR(k){
   else{S.hf=S.ht=''}
   renderHist();
 }
-function setHD(){S.hf=$('#hFrom').value;S.ht=$('#hTo').value;S.hr='custom';renderHist()}
+function histOpen(no){
+  const x=db.orders.find(o=>o.no===no);if(!x)return;
+  const cost=x.lines.reduce((a,l)=>a+(l.cost||0)*l.qty,0);
+  openModal(`<h3>${esc(x.no)}</h3>
+  <div class="hint" style="margin:-6px 0 6px">${new Date(x.t).toLocaleString(dloc(),{weekday:'long',day:'2-digit',month:'long',year:'numeric',hour:'2-digit',minute:'2-digit'})}</div>
+  <table class="dl">
+  <tr><td>Tipe</td><td>${esc(x.type)}</td></tr>
+  <tr><td>Metode bayar</td><td>${esc(x.method)}</td></tr>
+  ${x.cashier?`<tr><td>Kasir</td><td>${esc(x.cashier)}</td></tr>`:''}${x.cust?`<tr><td>Pelanggan</td><td style="white-space:normal">${esc(x.cust)}</td></tr>`:''}</table>
+  <table class="dl">${x.lines.map(l=>`<tr><td>${l.qty}× ${esc(l.name)}<br><small>${money(l.price)}</small></td><td>${money(l.price*l.qty)}</td></tr>`).join('')}</table>
+  <table class="dl">
+  <tr><td>Subtotal</td><td>${money(x.sub)}</td></tr>
+  ${x.disc?`<tr><td>Diskon</td><td>−${money(x.disc)}</td></tr>`:''}${x.tax?`<tr><td>Pajak</td><td>${money(x.tax)}</td></tr>`:''}
+  <tr class="tt"><td>Total</td><td>${money(x.total)}</td></tr>
+  ${x.method==='Tunai'?`<tr><td>Diterima</td><td>${money(x.paid)}</td></tr><tr><td>Kembalian</td><td>${money(x.change||0)}</td></tr>`:''}
+  ${isOwner()?`<tr><td>Estimasi laba</td><td>${money(x.total-x.tax-cost)}</td></tr>`:''}</table>
+  <button class="btn" onclick="showReceipt(db.orders.find(o=>o.no==='${esc(x.no)}'))">🖨️ Lihat / Cetak Struk</button>
+  ${isOwner()?`<button class="btn sec" style="color:var(--bad)" onclick="histDel('${esc(x.no)}')">🗑️ Hapus transaksi</button>`:''}
+  <button class="btn sec" onclick="closeModal()">Tutup</button>`);
+}
+function histDel(no){
+  const x=db.orders.find(o=>o.no===no);if(!x||!isOwner())return;
+  openModal(`<h3>Hapus transaksi?</h3>
+  <p class="hint" style="margin:0 0 10px"><b>${esc(x.no)}</b> · ${money(x.total)} · ${esc(x.method)}<br>Transaksi hilang dari riwayat dan laporan. Tindakan ini tidak bisa dibatalkan (catatan penghapusan tetap tersimpan untuk owner).</p>
+  <label class="tgl"><input type="checkbox" id="hdBack" checked><span>Kembalikan stok item ke inventori</span></label>
+  <button class="btn" style="background:var(--bad)" onclick="histDelDo('${esc(x.no)}')">Ya, hapus</button>
+  <button class="btn sec" onclick="histOpen('${esc(x.no)}')">Batal</button>`);
+}
+function histDelDo(no){
+  if(!isOwner())return;
+  const i=db.orders.findIndex(o=>o.no===no);if(i<0){closeModal();return}
+  const o=db.orders[i],back=!!($('#hdBack')||{}).checked,now=new Date().toISOString();
+  if(back)o.lines.forEach(l=>{const it=l.id&&find(l.id);if(it){it.stock+=l.qty;db.log.unshift({t:now,name:it.name,d:l.qty,note:'Hapus transaksi '+no})}});
+  db.log=db.log.slice(0,200);
+  db.voided=[{no,t:o.t,total:o.total,method:o.method,by:(CL.me&&CL.me.name)||'Owner',at:now,back},...(db.voided||[])].slice(0,200);
+  db.orders.splice(i,1);save();closeModal();toast('Transaksi dihapus');render();
+}
+function setHD(){S.hn=25;S.hf=$('#hFrom').value;S.ht=$('#hTo').value;S.hr='custom';renderHist()}
 function renderHist(){
   const o=db.orders,sum=l=>l.reduce((a,b)=>a+b.total,0),profit=l=>l.reduce((a,b)=>a+b.total-b.tax-b.lines.reduce((s,x)=>s+x.cost*x.qty,0),0);
   const rows=[];o.forEach((x,i)=>{const k=dkey(x.t);if((!S.hf||k>=S.hf)&&(!S.ht||k<=S.ht))rows.push({x,i,k})});
@@ -1025,16 +1095,20 @@ function renderHist(){
   $('#hChips').innerHTML=[['all','Semua'],['today','Hari ini'],['yest','Kemarin'],['7','7 Hari'],['month','Bulan ini']].map(([k,t])=>`<button class="chip ${S.hr===k?'on':''}" onclick="setHR('${k}')">${t}</button>`).join('');
   $('#hFrom').value=S.hf;$('#hTo').value=S.ht;
   $('#histStats').innerHTML=[['Penjualan',money(sum(l))],['Transaksi',l.length],['Estimasi Laba',money(profit(l))],['Total Semua',money(sum(o))]].map(([a,b])=>`<div class="st"><small>${a}</small><b>${b}</b></div>`).join('');
+  const n=S.hn||25,tm=t=>new Date(t).toLocaleTimeString(dloc(),{hour:'2-digit',minute:'2-digit'});
   let h='',cur='';
-  for(const r of rows.slice(0,500)){
+  for(const r of rows.slice(0,n)){
     if(r.k!==cur){
       cur=r.k;const g=rows.filter(z=>z.k===cur).map(z=>z.x);
-      h+=`<tr class="dh"><td colspan="6"><b>${new Date(r.x.t).toLocaleDateString(dloc(),{weekday:'long',day:'2-digit',month:'short',year:'numeric'})}</b> · <span>${g.length}</span> <span>Transaksi</span> · <b>${money(sum(g))}</b></td></tr>`;
+      h+=`<div class="dhd"><b>${new Date(r.x.t).toLocaleDateString(dloc(),{weekday:'long',day:'2-digit',month:'short',year:'numeric'})}</b> · ${g.length} Transaksi · <b>${money(sum(g))}</b></div>`;
     }
     const x=r.x;
-    h+=`<tr><td><b>${x.no}</b>${x.cashier?`<br><small style="color:var(--mu)">${esc(x.cashier)}</small>`:''}</td><td>${new Date(x.t).toLocaleTimeString(dloc(),{hour:'2-digit',minute:'2-digit'})}</td><td>${esc(x.type)}</td><td>${esc(x.method)}</td><td><b>${money(x.total)}</b></td><td><button class="ib" onclick="showReceipt(db.orders[${r.i}])">Struk</button></td></tr>`;
+    h+=`<button class="li" data-no="${esc(x.no)}" onclick="histOpen(this.dataset.no)"><span class="l"><b>${esc(x.no)}</b><small>${tm(x.t)} · ${esc(x.type)} · ${esc(x.method)}${x.cashier?' · '+esc(x.cashier):''}</small></span><span class="r"><b>${money(x.total)}</b>${x.cust?`<small>${esc(x.cust)}</small>`:''}</span><span class="ch">›</span></button>`;
   }
-  $('#histBody').innerHTML=h||'<tr><td colspan="6" style="color:var(--mu)">'+(o.length?'Tidak ada transaksi pada tanggal ini.':'Belum ada transaksi.')+'</td></tr>';
+  $('#histBody').innerHTML=h||'<div style="color:var(--mu);padding:6px 4px">'+(o.length?'Tidak ada transaksi pada tanggal ini.':'Belum ada transaksi.')+'</div>';
+  $('#histMore').hidden=rows.length<=n;
+  const vb=$('#voidBox'),vd=db.voided||[];
+  if(vb){vb.hidden=!(isOwner()&&vd.length);if(!vb.hidden)vb.innerHTML=`<details><summary style="font-weight:700;cursor:pointer">Transaksi yang dihapus (${vd.length})</summary><div class="vdl" style="margin-top:8px">${vd.slice(0,50).map(v=>`<div><b>${esc(v.no)}</b> · ${money(v.total)} · ${esc(v.method||'')}<br>Dihapus ${new Date(v.at).toLocaleString(dloc(),{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'})} oleh ${esc(v.by||'')}${v.back?' · stok dikembalikan':''}</div>`).join('')}</div></details>`}
 }
 
 /* ---------- settings ---------- */
@@ -1053,6 +1127,7 @@ function renderSet(){
   renderDb();
   renderLang();
   renderCur();
+  renderCoSet();
   $('#catMgr').innerHTML=db.cats.map(c=>`<span class="chip" style="display:inline-flex;gap:8px;margin:0 6px 6px 0">${esc(c)} <button style="color:var(--bad)" onclick="delCat('${esc(c).replace(/'/g,"\\'")}')">✕</button></span>`).join('')||'<span style="color:var(--mu)">Belum ada kategori</span>';
 }
 function saveSet(){
@@ -1064,6 +1139,71 @@ function delCat(c){
   const n=db.items.filter(i=>i.cat===c).length;
   if(n){toast(`Masih ada ${n} item di kategori ini`);return}
   db.cats=db.cats.filter(x=>x!==c);if(S.cat===c)S.cat='all';save();renderSet()
+}
+/* ---------- ekspor Excel (.xlsx dibuat langsung di perangkat) ---------- */
+function crc32(u){let t=crc32.t;if(!t){t=crc32.t=new Uint32Array(256);for(let n=0;n<256;n++){let c=n;for(let k=0;k<8;k++)c=c&1?0xEDB88320^(c>>>1):c>>>1;t[n]=c>>>0}}let r=0xFFFFFFFF;for(let i=0;i<u.length;i++)r=t[(r^u[i])&255]^(r>>>8);return(r^0xFFFFFFFF)>>>0}
+function zipStore(files){
+  const enc=new TextEncoder(),u16=n=>[n&255,(n>>8)&255],u32=n=>[n&255,(n>>8)&255,(n>>16)&255,(n>>>24)&255],parts=[],cd=[];let off=0;
+  for(const f of files){
+    const nm=enc.encode(f.name),d=enc.encode(f.text),crc=crc32(d),sz=d.length;
+    const lh=new Uint8Array([0x50,0x4b,3,4,...u16(20),...u16(0x0800),...u16(0),...u16(0),...u16(0x21),...u32(crc),...u32(sz),...u32(sz),...u16(nm.length),...u16(0),...nm]);
+    cd.push(new Uint8Array([0x50,0x4b,1,2,...u16(20),...u16(20),...u16(0x0800),...u16(0),...u16(0),...u16(0x21),...u32(crc),...u32(sz),...u32(sz),...u16(nm.length),...u16(0),...u16(0),...u16(0),...u16(0),...u32(0),...u32(off),...nm]));
+    parts.push(lh,d);off+=lh.length+sz;
+  }
+  const cdl=cd.reduce((a,x)=>a+x.length,0);
+  return new Blob([...parts,...cd,new Uint8Array([0x50,0x4b,5,6,0,0,0,0,...u16(files.length),...u16(files.length),...u32(cdl),...u32(off),0,0])],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+}
+function xlsxBuild(sheets,dec){
+  const X=v=>String(v).replace(/[\u0000-\u0008\u000b\u000c\u000e-\u001f]/g,'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  const col=n=>{let s='';n++;while(n>0){const m=(n-1)%26;s=String.fromCharCode(65+m)+s;n=(n-m-1)/26}return s};
+  const sheetXml=sh=>{
+    const rows=sh.rows.map((r,ri)=>`<row r="${ri+1}">`+r.map((c,ci)=>{
+      const ref=col(ci)+(ri+1);if(c==null||c==='')return'';
+      if(typeof c==='object'&&c.f)return`<c r="${ref}" s="3"><f>${X(c.f)}</f><v>${c.v}</v></c>`;
+      if(typeof c==='number')return`<c r="${ref}" s="2"><v>${c}</v></c>`;
+      const st=(sh.head&&ri===0)||(typeof c==='object'&&c.b)?' s="1"':'';
+      return`<c r="${ref}"${st} t="inlineStr"><is><t xml:space="preserve">${X(typeof c==='object'?c.t:c)}</t></is></c>`;
+    }).join('')+'</row>').join('');
+    return`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><sheetViews><sheetView workbookViewId="0">${sh.head?'<pane ySplit="1" topLeftCell="A2" activePane="bottomLeft" state="frozen"/>':''}</sheetView></sheetViews><cols>${sh.w.map((w,i)=>`<col min="${i+1}" max="${i+1}" width="${w}" customWidth="1"/>`).join('')}</cols><sheetData>${rows}</sheetData></worksheet>`;
+  };
+  const nf=dec>0?'#,##0.'+'0'.repeat(dec):'#,##0';
+  const styles=`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><numFmts count="1"><numFmt numFmtId="164" formatCode="${nf}"/></numFmts><fonts count="2"><font><sz val="11"/><name val="Calibri"/></font><font><b/><sz val="11"/><name val="Calibri"/></font></fonts><fills count="3"><fill><patternFill patternType="none"/></fill><fill><patternFill patternType="gray125"/></fill><fill><patternFill patternType="solid"><fgColor rgb="FFFFE9D6"/><bgColor indexed="64"/></patternFill></fill></fills><borders count="1"><border><left/><right/><top/><bottom/><diagonal/></border></borders><cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs><cellXfs count="4"><xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/><xf numFmtId="0" fontId="1" fillId="2" borderId="0" xfId="0" applyFont="1" applyFill="1"/><xf numFmtId="164" fontId="0" fillId="0" borderId="0" xfId="0" applyNumberFormat="1"/><xf numFmtId="164" fontId="1" fillId="0" borderId="0" xfId="0" applyNumberFormat="1" applyFont="1"/></cellXfs><cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles></styleSheet>`;
+  const H='<?xml version="1.0" encoding="UTF-8" standalone="yes"?>';
+  const files=[
+    {name:'[Content_Types].xml',text:H+'<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/>'+sheets.map((_,i)=>`<Override PartName="/xl/worksheets/sheet${i+1}.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>`).join('')+'</Types>'},
+    {name:'_rels/.rels',text:H+'<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/></Relationships>'},
+    {name:'xl/workbook.xml',text:H+'<workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets>'+sheets.map((sh,i)=>`<sheet name="${X(sh.name)}" sheetId="${i+1}" r:id="rId${i+1}"/>`).join('')+'</sheets></workbook>'},
+    {name:'xl/_rels/workbook.xml.rels',text:H+'<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">'+sheets.map((_,i)=>`<Relationship Id="rId${i+1}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet${i+1}.xml"/>`).join('')+`<Relationship Id="rId${sheets.length+1}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/></Relationships>`},
+    {name:'xl/styles.xml',text:styles},
+    ...sheets.map((sh,i)=>({name:`xl/worksheets/sheet${i+1}.xml`,text:sheetXml(sh)}))];
+  return zipStore(files);
+}
+function histExportData(){
+  const pad=n=>String(n).padStart(2,'0'),rows=db.orders.filter(x=>{const k=dkey(x.t);return(!S.hf||k>=S.hf)&&(!S.ht||k<=S.ht)}).slice().sort((a,b)=>a.t<b.t?-1:a.t>b.t?1:0);
+  const d=t=>{const x=new Date(t);return x.getFullYear()+'-'+pad(x.getMonth()+1)+'-'+pad(x.getDate())},h=t=>{const x=new Date(t);return pad(x.getHours())+':'+pad(x.getMinutes())};
+  const cost=x=>x.lines.reduce((a,l)=>a+(l.cost||0)*l.qty,0),n=rows.length;
+  const tx=[['No Invoice','Tanggal','Jam','Tipe','Kasir','Pelanggan','Metode','Subtotal','Diskon','Pajak','Total','Diterima','Kembalian','Modal (HPP)','Estimasi Laba']];
+  rows.forEach(x=>tx.push([x.no,d(x.t),h(x.t),x.type||'',x.cashier||'',x.cust||'',x.method||'',+x.sub||0,+x.disc||0,+x.tax||0,+x.total||0,+x.paid||0,+x.change||0,cost(x),(+x.total||0)-(+x.tax||0)-cost(x)]));
+  const sum=k=>rows.reduce((a,x)=>a+(+k(x)||0),0),C=i=>String.fromCharCode(65+i);
+  if(n){const r=['TOTAL','','','','','','',...[7,8,9,10].map(i=>({f:`SUM(${C(i)}2:${C(i)}${n+1})`,v:sum(x=>[x.sub,x.disc,x.tax,x.total][i-7])})),'','',{f:`SUM(N2:N${n+1})`,v:sum(cost)},{f:`SUM(O2:O${n+1})`,v:sum(x=>x.total-x.tax-cost(x))}];r[0]={t:'TOTAL',b:1};tx.push(r)}
+  const it=[['No Invoice','Tanggal','Item','Qty','Harga','Subtotal','Modal / unit','Total Modal']];
+  rows.forEach(x=>x.lines.forEach(l=>it.push([x.no,d(x.t),l.name,+l.qty||0,+l.price||0,(+l.price||0)*(+l.qty||0),+l.cost||0,(+l.cost||0)*(+l.qty||0)])));
+  const by={},pr={};
+  rows.forEach(x=>{const m=x.method||'-';(by[m]=by[m]||[0,0])[0]++;by[m][1]+=+x.total||0;x.lines.forEach(l=>{const p=pr[l.name]=pr[l.name]||[0,0];p[0]+=+l.qty||0;p[1]+=(+l.price||0)*(+l.qty||0)})});
+  const per=(S.hf||S.ht)?(S.hf||'…')+' s/d '+(S.ht||'…'):'Semua tanggal';
+  const sm=[[{t:'Ringkasan Penjualan',b:1},''],['Toko',db.set.store||''],['Periode',per],['Diekspor',d(new Date())+' '+h(new Date())],['Jumlah transaksi',n],['Penjualan (total)',sum(x=>x.total)],['Pajak',sum(x=>x.tax)],['Diskon',sum(x=>x.disc)],['Estimasi laba',sum(x=>x.total-x.tax-cost(x))],[''],
+    [{t:'Per metode bayar',b:1},{t:'Jumlah',b:1},{t:'Total',b:1}],...Object.entries(by).map(([m,v])=>[m,v[0],v[1]]),[''],
+    [{t:'Item terlaris',b:1},{t:'Qty',b:1},{t:'Omzet',b:1}],...Object.entries(pr).sort((a,b)=>b[1][0]-a[1][0]).slice(0,30).map(([m,v])=>[m,v[0],v[1]])];
+  return{n,sheets:[{name:'Ringkasan',rows:sm,w:[26,20,18]},{name:'Transaksi',rows:tx,head:1,w:[26,12,8,10,14,18,12,13,11,11,13,13,12,13,14]},{name:'Detail Item',rows:it,head:1,w:[26,12,28,7,12,13,13,13]}]};
+}
+function exportXlsx(){
+  if(!db.orders.length){toast('Belum ada transaksi');return}
+  const x=histExportData();if(!x.n){toast('Tidak ada transaksi pada tanggal ini');return}
+  const a=document.createElement('a'),dd=dkey(new Date());
+  a.href=URL.createObjectURL(xlsxBuild(x.sheets,dec()));
+  a.download='riwayat-penjualan-'+(S.hf||S.ht?(S.hf||'awal')+'_sd_'+(S.ht||dd):dd)+'.xlsx';
+  document.body.appendChild(a);a.click();setTimeout(()=>{a.remove();URL.revokeObjectURL(a.href)},4000);
+  toast('Excel diunduh ('+x.n+' transaksi)');
 }
 function backup(){
   const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(db)],{type:'application/json'}));
@@ -1802,12 +1942,15 @@ function merge3(base,L,S){
     const pos={};L.items.forEach((x,i)=>pos[x.id]=i);
     items=items.map((x,i)=>[x,i]).sort((a,b)=>((pos[a[0].id]??1e9)-(pos[b[0].id]??1e9))||a[1]-b[1]).map(z=>z[0]);
   }
-  const om=new Map();S.orders.forEach(o=>om.set(o.no,o));L.orders.forEach(o=>{if(!om.has(o.no))om.set(o.no,o)});
+  const om=new Map(),lo=new Set(L.orders.map(o=>o.no)),bo=new Map((B.orders||[]).map(o=>[o.no,o]));
+  S.orders.forEach(o=>{if(!lo.has(o.no)&&bo.has(o.no)&&eqv(o,bo.get(o.no)))return;om.set(o.no,o)});   // dihapus di sini & server tidak mengubahnya: hapus
+  L.orders.forEach(o=>{if(!om.has(o.no))om.set(o.no,o)});
   const orders=[...om.values()].sort((a,b)=>a.t<b.t?1:a.t>b.t?-1:0);
   const seen=new Set(),log=[...(S.log||[]),...(L.log||[])].filter(x=>{const k=sj(x);if(seen.has(k))return false;seen.add(k);return true}).sort((a,b)=>a.t<b.t?1:a.t>b.t?-1:0).slice(0,300);
   const bc=new Set(B.cats||[]),lc=new Set(L.cats||[]),sc=new Set(S.cats||[]);
   const cats=(S.cats||[]).filter(c=>!(bc.has(c)&&!lc.has(c)));(L.cats||[]).forEach(c=>{if(!sc.has(c)&&!bc.has(c))cats.push(c)});
-  return {...S,items,orders,log,cats,set:m3(B.set,L.set,S.set),seq:Math.max(+L.seq||0,+S.seq||0),_ts:Math.max(+L._ts||0,+S._ts||0)};
+  const vs=new Set(),voided=[...(S.voided||[]),...(L.voided||[])].filter(x=>{const k=sj(x);if(vs.has(k))return false;vs.add(k);return true}).sort((a,b)=>a.at<b.at?1:a.at>b.at?-1:0).slice(0,200);
+  return {...S,items,orders,log,voided,cats,set:m3(B.set,L.set,S.set),seq:Math.max(+L.seq||0,+S.seq||0),_ts:Math.max(+L._ts||0,+S._ts||0)};
 }
 /* ----- sinkron ----- */
 async function getBase(){try{const x=await idbGet('base');return x?JSON.parse(x):null}catch(e){return null}}
@@ -2069,6 +2212,7 @@ async function coLoop(){
 function coApply(j){
   const prev=new Map(CO.list.map(o=>[o.id,o]));
   CO.list=j.orders||[];CO.set=j.set||CO.set;
+  if(S.view==='set'&&!(document.activeElement&&document.activeElement.closest&&document.activeElement.closest('#coForm')))renderCoSet();
   const fresh=CO.list.filter(o=>o.status==='new'&&!CO.seen.has(o.id));
   fresh.forEach(o=>CO.seen.add(o.id));
   CO.list.forEach(o=>{const p=prev.get(o.id);if(p&&p.status!=='cancelled'&&o.status==='cancelled'&&!CO.mine.has(o.id))toast('Pesanan '+o.num+' ('+o.name+') dibatalkan pelanggan')});
@@ -2195,7 +2339,7 @@ async function coSetOpen(on){
   try{
     const r=await api('/api/co/settings',{method:'PUT',body:JSON.stringify({on,msg:($('#coMsg')||{}).value||''})});
     if(!r.ok)throw 0;CO.set=await r.json();toast(on?'Pemesanan QR dibuka':'Pemesanan QR ditutup');
-  }catch(e){toast('Gagal menyimpan');renderCo(true)}
+  }catch(e){toast('Gagal menyimpan');renderCoSet()}
 }
 
 /* QR */
@@ -2239,21 +2383,16 @@ function coReady(){
   return m==='browser'||m==='rawbt'||(m==='ble'&&PRN.dev&&PRN.dev.gatt.connected&&PRN.ch)||(m==='serial'&&PRN.writer);
 }
 function renderCo(full){
-  if(!$('#coTop'))return;
+  if(!$('#coList'))return;
   const st=CO.set||{on:true,msg:''};
-  if(full||!$('#coOn')){
+  if(full||!$('#coTop').innerHTML){
     const ck=(k,d,l,fn)=>`<label class="tgl"><input type="checkbox" ${coPref(k,d)?'checked':''} onchange="${fn||`coSetPref('${k}',this.checked)`}"><span>${l}</span></label>`;
-    $('#coTop').innerHTML=`<h3>Pesan lewat QR</h3>
-    <label class="tgl"><input type="checkbox" id="coOn" ${st.on?'checked':''} onchange="coSetOpen(this.checked)"><span>Terima pesanan dari pelanggan</span></label>
-    <label class="fl">Pesan saat ditutup (tampil ke pelanggan)</label>
-    <input class="fi" id="coMsg" value="${esc(st.msg||'')}" maxlength="200" placeholder="mis. Dapur tutup, silakan pesan ke kasir" onchange="coSetOpen($('#coOn').checked)">
-    <div class="cob"><button class="btn" onclick="coQr()">📱 Tampilkan / Cetak QR</button><button class="btn sec" onclick="coCopy()">📋 Salin tautan</button></div>
-    <h3 style="margin-top:18px">Perangkat ini</h3>
-    <div class="tgls">${ck('auto',true,'Cetak tiket otomatis')}${ck('sound',true,'Bunyi saat pesanan masuk')}${ck('notif',false,'Notifikasi sistem',"coSetNotif(this.checked)")}${ck('awake',true,'Layar tetap menyala',"coSetAwake(this.checked)")}</div>
+    $('#coTop').innerHTML=`<div class="tgls">${ck('auto',true,'Cetak tiket otomatis')}${ck('sound',true,'Bunyi saat pesanan masuk')}${ck('notif',false,'Notifikasi sistem',"coSetNotif(this.checked)")}${ck('awake',true,'Layar tetap menyala',"coSetAwake(this.checked)")}</div>
     <p class="hint">Matikan “Cetak tiket otomatis” di perangkat yang tidak terhubung ke printer. Bila beberapa perangkat terbuka sekaligus, satu pesanan hanya dicetak oleh satu perangkat.</p>
-    <div class="cob"><button class="btn sec" onclick="coBeep()">🔔 Tes bunyi</button><button class="btn sec" onclick="coTestPrint()">🖨️ Tes tiket</button><button class="btn sec" onclick="prnConnect().then(()=>renderCo(false))">🔌 Sambungkan printer</button></div>
-    `;
-  }else{const o=$('#coOn');if(o&&document.activeElement!==o)o.checked=!!st.on}
+    <div class="cob"><button class="btn sec" onclick="coBeep()">🔔 Tes bunyi</button><button class="btn sec" onclick="coTestPrint()">🖨️ Tes tiket</button><button class="btn sec" onclick="prnConnect().then(()=>renderCo(false))">🔌 Sambungkan printer</button></div>`;
+  }
+  const gear=$('#coGear');if(gear)gear.hidden=!can('set');
+  {const o=$('#coOn');if(o&&document.activeElement!==o)o.checked=!!st.on}
   const un=CO.list.filter(o=>(o.status==='new'||o.status==='accepted')&&o.printed===0).length,msgs=[];
   msgs.push(CO.err?['neg','⚠️ Server tidak terhubung, mencoba lagi…']:['','🟢 Terhubung. Pesanan baru muncul otomatis.']);
   if(!CO.aud||CO.aud.state!=='running')msgs.push(['neg','🔇 Ketuk layar sekali agar bunyi aktif.']);
@@ -2261,7 +2400,7 @@ function renderCo(full){
   if(un&&coPref('auto',true))msgs.push(['neg','⏳ '+un+' tiket menunggu dicetak.']);
   $('#coStat').innerHTML=msgs.map(m=>`<div class="chg ${m[0]}" style="margin:0 0 8px"><span>${m[1]}</span></div>`).join('');
   const L=CO.list,act=L.filter(o=>o.status==='new'||o.status==='accepted').sort((a,b)=>a.id-b.id),
-    fin=L.filter(o=>o.status==='done'||o.status==='cancelled').sort((a,b)=>b.id-a.id).slice(0,20);
+    fin=L.filter(o=>o.status==='done'||o.status==='cancelled').sort((a,b)=>b.id-a.id).slice(0,40);
   const card=o=>{
     const ps=o.printed===2?'<span class="pst ok">✓ tercetak</span>':o.printed===1?'<span class="pst w">mencetak…</span>':(o.status==='new'||o.status==='accepted')?'<span class="pst w">belum tercetak</span>':'';
     const btn=o.status==='new'?`<button class="btn" onclick="coAct(${o.id},'accept')">✓ Terima</button><button class="btn sec" onclick="coPay(${o.id})">💳 Bayar</button>`:o.status==='accepted'?`<button class="btn" onclick="coPay(${o.id})">💳 Bayar</button>`:'';
@@ -2273,8 +2412,36 @@ function renderCo(full){
     <div class="cof"><span>${money(o.total)}</span><span style="display:flex;gap:6px;flex-wrap:wrap">${tag}${ps}</span></div>
     ${act?`<div class="cob">${act}</div>`:''}</div>`;
   };
+  const finRow=o=>`<button class="li" onclick="coDet(${o.id})"><span class="l"><b>${esc(o.num)} · ${esc(o.name)}</b><small>${o.tbl?'Meja '+esc(o.tbl)+' · ':''}${o.type==='Dine In'?'Dine In':'Takeaway'} · ${ago(o.u||o.t)}</small></span><span class="r"><b>${money(o.total)}</b><small>${o.status==='cancelled'?'dibatalkan':'selesai'}</small></span><span class="ch">›</span></button>`;
   $('#coList').innerHTML=(act.length?`<div class="sech"><h3>Aktif (${act.length})</h3></div>${act.map(card).join('')}`:'<div class="empty" style="padding:30px 10px">Belum ada pesanan aktif.<br><small>Pesanan dari QR akan muncul di sini.</small></div>')
-    +(fin.length?`<div class="sech" style="margin-top:14px"><h3>Selesai / batal</h3></div>${fin.map(card).join('')}`:'');
+    +(fin.length?`<div class="sech" style="margin-top:14px"><h3>Selesai / batal (${fin.length})</h3></div><div class="panel"><div class="lst">${fin.map(finRow).join('')}</div></div>`:'');
+}
+function coDet(id){
+  const o=CO.list.find(x=>x.id===id);if(!o)return;
+  const tm=t=>new Date(t).toLocaleString(dloc(),{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'});
+  openModal(`<h3>${esc(o.num)} · ${esc(o.name)}</h3>
+  <table class="dl"><tr><td>Status</td><td>${o.status==='cancelled'?'Dibatalkan':o.status==='done'?'Selesai':o.status==='accepted'?'Diterima':'Baru'}</td></tr>
+  <tr><td>Masuk</td><td>${tm(o.t)}</td></tr>${o.u&&o.u!==o.t?`<tr><td>Terakhir diubah</td><td>${tm(o.u)}</td></tr>`:''}
+  <tr><td>Tipe</td><td>${o.tbl?'Meja '+esc(o.tbl)+' · ':''}${o.type==='Dine In'?'Dine In':'Takeaway'}</td></tr>
+  ${o.saleNo?`<tr><td>Invoice</td><td>${esc(o.saleNo)}</td></tr>`:''}
+  <tr><td>Tiket</td><td>${o.printed===2?'tercetak':'belum tercetak'}</td></tr></table>
+  <table class="dl">${o.lines.map(l=>`<tr><td>${l.qty}× ${esc(l.name)}<br><small>${money(l.price)}</small></td><td>${money(l.price*l.qty)}</td></tr>`).join('')}
+  <tr><td>Subtotal</td><td>${money(o.sub)}</td></tr>${o.tax?`<tr><td>Pajak</td><td>${money(o.tax)}</td></tr>`:''}<tr class="tt"><td>Total</td><td>${money(o.total)}</td></tr></table>
+  ${o.note?`<div class="nt">📝 ${esc(o.note)}</div>`:''}
+  ${o.saleNo&&db.orders.some(x=>x.no===o.saleNo)?`<button class="btn" onclick="histOpen('${esc(o.saleNo)}')">Lihat transaksi ${esc(o.saleNo)}</button>`:''}
+  <button class="btn sec" onclick="coPrint(${o.id});closeModal()">🖨️ Cetak ulang tiket</button>
+  <button class="btn sec" onclick="closeModal()">Tutup</button>`);
+}
+function renderCoSet(){
+  const p=$('#coForm');if(!p)return;
+  if(!(CL.on&&can('co')&&can('set'))){p.hidden=true;return}
+  p.hidden=false;const st=CO.set||{on:true,msg:''};
+  p.innerHTML=`<h3>Pesan lewat QR</h3>
+    <label class="tgl"><input type="checkbox" id="coOn" ${st.on?'checked':''} onchange="coSetOpen(this.checked)"><span>Terima pesanan dari pelanggan</span></label>
+    <label class="fl">Pesan saat ditutup (tampil ke pelanggan)</label>
+    <input class="fi" id="coMsg" value="${esc(st.msg||'')}" maxlength="200" placeholder="mis. Dapur tutup, silakan pesan ke kasir" onchange="coSetOpen($('#coOn').checked)">
+    <div class="cob"><button class="btn" onclick="coQr()">📱 Tampilkan / Cetak QR</button><button class="btn sec" onclick="coCopy()">📋 Salin tautan</button></div>
+    <p class="hint">Bunyi, cetak tiket otomatis, dan notifikasi diatur per perangkat di halaman Pesanan Online.</p>`;
 }
 function coStart(){
   if(!CL.on)return;
