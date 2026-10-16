@@ -112,6 +112,16 @@ label.fl i{color:var(--bad);font-style:normal}
 .card .r{display:flex;justify-content:space-between;gap:12px;padding:5px 0;font-size:14px}
 .card .r span:first-child{overflow-wrap:anywhere}
 .card .tt{border-top:1px dashed #d9d9d9;margin-top:6px;padding-top:10px;font-weight:700;font-size:16px}
+.payc{background:#fff;border-radius:24px;padding:16px 18px;margin-top:20px;text-align:center;box-shadow:0 6px 20px rgba(0,0,0,.05);border:2px solid var(--cr)}
+.payc h3{margin:0 0 4px;font-size:16px}
+.payc .qr{display:block;width:min(100%,280px);aspect-ratio:1;object-fit:contain;margin:10px auto;background:#fff;border-radius:12px;image-rendering:pixelated}
+.payc .amt{font-size:26px;font-weight:800;color:var(--pr)}
+.payc .rcp{font-size:13px;color:var(--mu)}
+.payc ol{text-align:left;font-size:13px;color:#444;margin:12px 0 0;padding-left:20px}
+.payc ol li{margin:3px 0}
+.payc .ok{color:var(--ok);font-weight:700}
+.payc .wt{color:#7a4a00;font-weight:600;font-size:14px;margin:10px 0 0}
+.payc a.dl{display:inline-block;margin-top:6px;font-size:13px;font-weight:600;color:var(--bd)}
 .closed{text-align:center;padding:60px 10px;color:var(--mu)}
 .closed b{display:block;color:var(--tx);font-size:20px;margin-bottom:8px}
 .toast{position:fixed;left:50%;bottom:calc(96px + env(safe-area-inset-bottom));transform:translate(-50%,20px);background:#222;color:#fff;border-radius:14px;padding:10px 18px;font-size:14px;z-index:60;opacity:0;pointer-events:none;transition:.2s;max-width:90vw;text-align:center}
@@ -151,7 +161,7 @@ const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;'
 const LS={g(k){try{return localStorage.getItem(k)}catch(e){return null}},s(k,v){try{localStorage.setItem(k,v)}catch(e){}},d(k){try{localStorage.removeItem(k)}catch(e){}}};
 const U=new URLSearchParams(location.search);
 const TBL=(U.get('t')||U.get('meja')||'').replace(/[^\w\- ]/g,'').slice(0,12);
-let M=null,cart={},cat='all',q='',type=TBL?'Dine In':'Takeaway',sending=false,poll=null,cur=null;
+let payM='cash',M=null,cart={},cat='all',q='',type=TBL?'Dine In':'Takeaway',sending=false,poll=null,cur=null;
 try{const c=JSON.parse(LS.g('co_cart')||'{}');if(c&&typeof c==='object')cart=c}catch(e){}
 
 /* uang */
@@ -217,6 +227,7 @@ function openCart(){renderCart();$('#scrim').classList.add('on');$('#sheet').cla
 function closeCart(){$('#scrim').classList.remove('on');$('#sheet').classList.remove('on');document.documentElement.classList.remove('lock')}
 document.addEventListener('keydown',e=>{if(e.key==='Escape')closeCart()});
 function renderCart(){
+  if(!payOn())payM='cash';
   const ids=Object.keys(cart).filter(find),t=totals();
   const keep={name:($('#cName')||{}).value,tbl:($('#cTbl')||{}).value,note:($('#cNote')||{}).value};
   if(!ids.length){closeCart();return}
@@ -229,9 +240,12 @@ function renderCart(){
   <label class="fl" for="cNote">Catatan</label><textarea class="fi" id="cNote" rows="2" maxlength="200" placeholder="Mis. tidak pedas, tanpa bawang">${esc(nt)}</textarea>
   <input id="hp" name="website" tabindex="-1" autocomplete="off" style="position:absolute;left:-9999px;width:1px;height:1px" aria-hidden="true">
   <div class="sum"><div><span>Subtotal</span><span>${money(t.sub)}</span></div>${M.tax?`<div><span>Pajak (${M.tax}%)</span><span>${money(t.tax)}</span></div>`:''}<div class="t"><span>Total</span><span>${money(t.total)}</span></div></div>
-  <div class="note">Pembayaran dilakukan di kasir. Pesanan Anda akan langsung diterima oleh dapur/kasir.</div>`;
+  ${payOn()?`<label class="fl" id="pyL">Pembayaran</label><div class="seg" role="group" aria-labelledby="pyL"><button type="button" class="${payM==='cash'?'on':''}" onclick="setPayM('cash')">Bayar di kasir</button><button type="button" class="${payM==='duitnow'?'on':''}" onclick="setPayM('duitnow')">Bayar online</button></div>
+  <div class="note">${payM==='duitnow'?'Setelah pesanan terkirim, Anda akan melihat <b>QR DuitNow</b> (bisa dibayar lewat Touch \'n Go eWallet atau aplikasi bank). Scan, bayar sesuai total, lalu tekan “Saya sudah bayar”.':'Pembayaran dilakukan di kasir. Pesanan Anda akan langsung diterima oleh dapur/kasir.'}</div>`:'<div class="note">Pembayaran dilakukan di kasir. Pesanan Anda akan langsung diterima oleh dapur/kasir.</div>'}`;
   $('#sendBtn').textContent='Kirim Pesanan · '+money(t.total);
 }
+const payOn=()=>!!(M&&M.pay&&M.pay.on&&M.pay.qr);
+function setPayM(m){payM=m;renderCart()}
 function setType(t){type=t;const b=document.querySelectorAll('.seg button');b[0].classList.toggle('on',t==='Dine In');b[1].classList.toggle('on',t==='Takeaway')}
 
 let idem=null;
@@ -245,7 +259,7 @@ async function send(){
   if(!idem)idem=(crypto.randomUUID?crypto.randomUUID():Date.now()+'-'+Math.random().toString(36).slice(2));
   sending=true;const btn=$('#sendBtn'),old=btn.textContent;btn.disabled=true;btn.textContent='Mengirim…';
   try{
-    const r=await fetch('/api/public/order',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name,table:$('#cTbl').value.trim(),type,note:$('#cNote').value.trim(),items,key:idem,website:$('#hp').value})});
+    const r=await fetch('/api/public/order',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name,table:$('#cTbl').value.trim(),type,note:$('#cNote').value.trim(),items,key:idem,pay:payOn()&&payM==='duitnow'?'duitnow':'',website:$('#hp').value})});
     const j=await r.json().catch(()=>({}));
     if(!r.ok){
       if(r.status===409){idem=null;await loadMenu().catch(()=>{});renderCart();$('#err').textContent=(j.error||'Stok berubah')+'. Jumlah sudah disesuaikan, silakan cek lagi.';}
@@ -262,23 +276,43 @@ async function send(){
 
 /* ---------- status pesanan ---------- */
 const STAT={new:['Pesanan terkirim','Menunggu kasir menerima pesanan Anda.'],accepted:['Sedang disiapkan','Pesanan Anda sedang diproses. Silakan bayar di kasir.'],done:['Pesanan selesai','Terima kasih! Selamat menikmati.'],cancelled:['Pesanan dibatalkan','Pesanan ini dibatalkan.']};
+function payCard(o){
+  if(o.pay!=='duitnow'||!(o.status==='new'||o.status==='accepted'))return '';
+  const y=(M&&M.pay)||{},rcp=y.name?`<div class="rcp">Penerima: <b>${esc(y.name)}</b></div>`:'';
+  if(o.pst===2)return `<div class="payc"><h3 class="ok">✓ Pembayaran diterima</h3><div class="rcp">Terima kasih, ${money(o.total)} sudah kami terima.</div></div>`;
+  const wait=o.pst===1?`<p class="wt">⏳ Terima kasih. Kasir sedang memastikan pembayaran Anda masuk…</p>`:`<button class="go" style="margin-top:12px" onclick="claimPaid()">Saya sudah bayar</button>`;
+  return `<div class="payc"><h3>Bayar dengan DuitNow / Touch 'n Go</h3>${rcp}
+  ${y.qr?`<img class="qr" src="${esc(y.qr)}" alt="QR DuitNow untuk pembayaran"><a class="dl" href="${esc(y.qr)}" download="qr-pembayaran.png">⬇ Simpan gambar QR</a>`:''}
+  <div class="amt">${money(o.total)}</div><div class="rcp">Masukkan jumlah <b>persis</b> sesuai total, dan cantumkan nomor pesanan <b>${esc(o.num)}</b> bila ada kolom catatan.</div>
+  <ol><li>Buka Touch 'n Go eWallet atau aplikasi bank Anda.</li><li>Pilih <b>Scan</b> lalu arahkan ke QR di atas (atau pilih gambar QR dari galeri).</li><li>Bayar sesuai total, lalu kembali ke sini dan tekan tombol di bawah.</li></ol>
+  ${y.note?`<div class="note">${esc(y.note)}</div>`:''}${wait}</div>`;
+}
+async function claimPaid(){
+  const t=LS.g('co_tok');if(!t)return;
+  try{
+    const r=await fetch('/api/public/order/'+encodeURIComponent(t)+'/paid',{method:'POST'});
+    const j=await r.json().catch(()=>({}));
+    if(r.ok){showStatus({...cur,...j});toast('Terima kasih, kasir akan memeriksa pembayaran Anda')}else toast(j.error||'Gagal, coba lagi');
+  }catch(e){toast('Tidak ada koneksi')}
+}
 function showStatus(o){
   cur=o;$('#vMenu').hidden=true;$('#vLoad').hidden=true;$('#vDone').hidden=false;$('#bar').hidden=true;
-  const st=o.status,s=STAT[st]||STAT.new,x=st==='cancelled',step=st==='new'?0:st==='accepted'?1:2;
+  const st=o.status,s=(STAT[st]||STAT.new).slice(),x=st==='cancelled',step=st==='new'?0:st==='accepted'?1:2;
   $('#vDone').innerHTML=`<div class="done ${x?'x':''}"><div class="ck" aria-hidden="true">${x?'✕':'✓'}</div><h2>${s[0]}</h2>
   <div class="no" aria-label="Nomor pesanan">${esc(o.num)}</div><div class="who">Atas nama <b>${esc(o.name)}</b>${o.tbl?' · Meja '+esc(o.tbl):''} · ${o.type==='Dine In'?'Makan di sini':'Bawa pulang'}</div>
-  <p style="color:var(--mu);margin:12px 0 0">${s[1]}</p>
+  <p style="color:var(--mu);margin:12px 0 0">${o.pay==='duitnow'&&st==='accepted'&&o.pst!==2?'Pesanan Anda sedang diproses. Selesaikan pembayaran online di bawah.':s[1]}</p>
+  ${payCard(o)}
   ${x?'':`<div class="trk" aria-hidden="true"><div class="${step>0?'dn':'on'}"><i></i>Terkirim</div><div class="${step>1?'dn':step===1?'on':''}"><i></i>Disiapkan</div><div class="${step===2?'on':''}"><i></i>Selesai</div></div>`}
   <div class="card">${o.lines.map(l=>`<div class="r"><span>${l.qty}× ${esc(l.name)}</span><span>${money(l.price*l.qty)}</span></div>`).join('')}${o.tax?`<div class="r" style="color:var(--mu)"><span>Pajak</span><span>${money(o.tax)}</span></div>`:''}<div class="r tt"><span>Total</span><span>${money(o.total)}</span></div></div>
   ${o.note?`<div class="card" style="margin-top:12px"><b style="font-size:13px">Catatan</b><div style="font-size:14px">${esc(o.note)}</div></div>`:''}
-  ${st==='new'?'<button class="ghost" onclick="cancelOrder()">Batalkan pesanan</button>':''}
+  ${st==='new'&&o.pst!==2?'<button class="ghost" onclick="cancelOrder()">Batalkan pesanan</button>':''}
   <button class="go" style="margin-top:14px" onclick="backToMenu()">${st==='done'||x?'Pesan lagi':'Tambah pesanan baru'}</button></div>`;
   window.scrollTo(0,0);
 }
 function backToMenu(){stopPoll();cur=null;$('#vDone').hidden=true;$('#vMenu').hidden=false;if(st(cur)!=='x')LS.d('co_tok');loadMenu().catch(()=>{});renderBar()}
 function st(){return 'x'}
 async function cancelOrder(){
-  if(!cur||!confirm('Batalkan pesanan ini?'))return;
+  if(!cur||!confirm('Batalkan pesanan ini?'+(cur.pay==='duitnow'&&cur.pst>=1?'\n\nBila Anda sudah transfer, hubungi kasir untuk pengembalian dana.':'')))return;
   try{
     const r=await fetch('/api/public/order/'+encodeURIComponent(LS.g('co_tok'))+'/cancel',{method:'POST'});
     const j=await r.json();
@@ -291,7 +325,7 @@ async function refresh(){
     const r=await fetch('/api/public/order/'+encodeURIComponent(t),{cache:'no-store'});
     if(r.status===404){LS.d('co_tok');backToMenu();return}
     if(!r.ok)return;const j=await r.json();
-    if(j.status!==cur.status){cur=j;showStatus(j);if(navigator.vibrate)try{navigator.vibrate(120)}catch(e){}}
+    if(j.status!==cur.status||j.pst!==cur.pst){cur=j;showStatus(j);if(navigator.vibrate)try{navigator.vibrate(120)}catch(e){}}
   }catch(e){}
 }
 function startPoll(){stopPoll();poll=setInterval(()=>{if(!document.hidden)refresh()},4000)}

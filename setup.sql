@@ -39,6 +39,8 @@ create table if not exists pos.co(
   lines jsonb not null, sub numeric not null, tax numeric not null, total numeric not null,
   status text not null default 'new', printed int not null default 0, claim_at bigint,
   sale_no text, created_at timestamptz not null default now(), updated_at timestamptz not null default now());
+alter table pos.co add column if not exists pay text not null default '';
+alter table pos.co add column if not exists pst int not null default 0;
 create index if not exists co_day on pos.co(day);
 create index if not exists co_status on pos.co(status, id);
 create table if not exists pos.meta(k text primary key, v jsonb not null);
@@ -129,11 +131,11 @@ end $$;
 -- ------------------------------------------------------------ pesanan: tampilan
 create or replace function pos.staff_view(r pos.co) returns jsonb language sql stable as $$
   select jsonb_build_object('id', r.id, 'num', r.num, 'name', r.name, 'tbl', r.tbl, 'type', r.type, 'note', r.note, 'lines', r.lines,
-    'sub', r.sub, 'tax', r.tax, 'total', r.total, 'status', r.status, 'printed', r.printed, 'saleNo', coalesce(r.sale_no, ''),
+    'sub', r.sub, 'tax', r.tax, 'total', r.total, 'status', r.status, 'printed', r.printed, 'saleNo', coalesce(r.sale_no, ''), 'pay', r.pay, 'pst', r.pst,
     't', pos.iso(r.created_at), 'u', pos.iso(r.updated_at)) $$;
 create or replace function pos.cust_view(r pos.co) returns jsonb language sql stable as $$
   select jsonb_build_object('num', r.num, 'name', r.name, 'tbl', r.tbl, 'type', r.type, 'note', r.note, 'lines', r.lines,
-    'total', r.total, 'sub', r.sub, 'tax', r.tax, 'status', r.status, 't', pos.iso(r.created_at)) $$;
+    'total', r.total, 'sub', r.sub, 'tax', r.tax, 'status', r.status, 'pay', r.pay, 'pst', r.pst, 't', pos.iso(r.created_at)) $$;
 create or replace function pos.co_set() returns jsonb language sql stable as $$
   select jsonb_build_object('on', coalesce((select v ->> 'on' from pos.meta where k = 'co'), 'true') <> 'false',
     'msg', left(coalesce((select v ->> 'msg' from pos.meta where k = 'co'), ''), 200)) $$;
@@ -192,6 +194,12 @@ begin
 end $$;
 
 -- ------------------------------------------------------------ menu & pesanan pelanggan
+create or replace function pos.pay_cfg(s jsonb) returns jsonb language sql immutable as $$
+  select jsonb_build_object(
+    'on', coalesce((s #>> '{pay,on}') = 'true', false) and coalesce((s #>> '{pay,qr}') ~ '^data:image/(jpeg|png|webp);base64,[A-Za-z0-9+/=]+$', false),
+    'qr', case when coalesce((s #>> '{pay,qr}') ~ '^data:image/(jpeg|png|webp);base64,[A-Za-z0-9+/=]+$', false) then s #>> '{pay,qr}' else '' end,
+    'name', left(coalesce(s #>> '{pay,name}', ''), 60), 'note', left(coalesce(s #>> '{pay,note}', ''), 300)) $$;
+
 create or replace function pos.pub_menu(q jsonb) returns jsonb language plpgsql stable as $$
 declare d jsonb; v int; s jsonb; st jsonb := pos.co_set(); items jsonb; ucats text[]; ccats text[]; res text[] := '{}'; x text;
 begin
@@ -215,13 +223,13 @@ begin
     'logo', case when (s ->> 'logo') ~ '^data:image/(jpeg|png|webp|gif);base64,[A-Za-z0-9+/=]+$' then s ->> 'logo' else 'icon-192.png' end,
     'cur', coalesce(nullif(s ->> 'cur', ''), 'Rp'), 'curPos', case when s ->> 'curPos' = 'after' then 'after' else 'before' end,
     'dec', greatest(0, least(4, pos.num(s -> 'dec'))), 'loc', coalesce(nullif(s ->> 'loc', ''), 'id-ID'),
-    'tax', pos.num(s -> 'tax'), 'cats', to_jsonb(res), 'items', items, 'open', st -> 'on', 'msg', st -> 'msg'));
+    'tax', pos.num(s -> 'tax'), 'pay', pos.pay_cfg(s), 'cats', to_jsonb(res), 'items', items, 'open', st -> 'on', 'msg', st -> 'msg'));
 end $$;
 
 create or replace function pos.create_order(b jsonb, v_ip text) returns jsonb language plpgsql as $$
 declare st jsonb := pos.co_set(); d jsonb; s jsonb; nm text; kk text; ex pos.co; lim int; ids text[] := '{}'; qts int[] := '{}';
   it jsonb; iid text; qty int; ix int; item jsonb; dec int; sub numeric := 0; tx numeric; tot numeric; lines jsonb := '[]'; stock numeric;
-  tk text; n int; v_day date; r pos.co; tp text; tx_pct numeric;
+  tk text; n int; v_day date; r pos.co; tp text; tx_pct numeric; v_pay text := '';
 begin
   perform pg_advisory_xact_lock(7001);
   if not (st ->> 'on')::boolean then return pos.r(403, jsonb_build_object('error', 'closed', 'msg', st -> 'msg')); end if;
@@ -269,10 +277,14 @@ begin
   tx := round(sub * tx_pct / 100, dec); tot := round(sub + tx, dec);
   v_day := (now() at time zone pos.tz())::date;
   select count(*) + 1 into n from pos.co where co.day = v_day;
+  if b ->> 'pay' = 'duitnow' then
+    if not (pos.pay_cfg(s) ->> 'on')::boolean then return pos.r(400, '{"error":"Pembayaran online sedang tidak tersedia. Silakan bayar di kasir."}'); end if;
+    v_pay := 'duitnow';
+  end if;
   tk := encode(extensions.gen_random_bytes(16), 'hex');
   tp := case when b ->> 'type' = 'Dine In' then 'Dine In' else 'Takeaway' end;
-  insert into pos.co(tok, idem, day, num, name, tbl, type, note, lines, sub, tax, total)
-    values (tk, kk, v_day, '#' || lpad(n::text, 3, '0'), nm, pos.clean(b ->> 'table', 12), tp, pos.clean(b ->> 'note', 200), lines, sub, tx, tot)
+  insert into pos.co(tok, idem, day, num, name, tbl, type, note, lines, sub, tax, total, pay)
+    values (tk, kk, v_day, '#' || lpad(n::text, 3, '0'), nm, pos.clean(b ->> 'table', 12), tp, pos.clean(b ->> 'note', 200), lines, sub, tx, tot, v_pay)
     returning * into r;
   if random() < 0.05 then delete from pos.co where status in ('done', 'cancelled') and updated_at < now() - interval '30 days'; end if;
   perform pos.bump();
@@ -314,12 +326,22 @@ begin
   if u = '/api/login' and m = 'POST' then return pos.login(b); end if;
   if u = '/api/public/menu' and m = 'GET' then return pos.pub_menu(q); end if;
   if u = '/api/public/order' and m = 'POST' then return pos.create_order(b, pos.client_ip()); end if;
-  mt := regexp_match(u, '^/api/public/order/([A-Za-z0-9_-]{10,40})(/cancel)?$');
+  mt := regexp_match(u, '^/api/public/order/([A-Za-z0-9_-]{10,40})(/cancel|/paid)?$');
   if mt is not null then
     select * into r from pos.co where tok = mt[1];
     if r.id is null then return pos.r(404, '{"error":"tidak ada"}'); end if;
+    if mt[2] = '/paid' then
+      if m <> 'POST' then return pos.r(405, '{"error":"method"}'); end if;
+      if r.pay <> 'duitnow' or r.status not in ('new', 'accepted') then return pos.r(409, '{"error":"Pesanan ini tidak bisa dibayar online."}'); end if;
+      if r.pst = 0 then
+        update pos.co set pst = 1, updated_at = now() where id = r.id returning * into r;
+        perform pos.bump();
+      end if;
+      return pos.r(200, pos.cust_view(r));
+    end if;
     if mt[2] is not null then
       if m <> 'POST' then return pos.r(405, '{"error":"method"}'); end if;
+      if r.pst = 2 then return pos.r(409, jsonb_build_object('error', 'Pembayaran sudah dikonfirmasi, hubungi kasir.', 'status', r.status)); end if;
       if r.status <> 'new' then return pos.r(409, jsonb_build_object('error', 'Pesanan sudah diproses, hubungi kasir.', 'status', r.status)); end if;
       update pos.co set status = 'cancelled', updated_at = now() where id = r.id returning * into r;
       perform pos.bump();
@@ -428,6 +450,13 @@ begin
       else return pos.r(400, '{"error":"aksi?"}'); end if;
       perform pos.bump();
       return pos.r(200, '{"ok":true}');
+    end if;
+    if b ->> 'action' in ('paid', 'unpaid') then
+      if r.pay <> 'duitnow' then return pos.r(400, '{"error":"bukan pesanan bayar online"}'); end if;
+      if r.status = 'cancelled' then return pos.r(409, jsonb_build_object('error', 'sudah selesai', 'status', r.status)); end if;
+      update pos.co set pst = case when b ->> 'action' = 'paid' then 2 else 0 end, updated_at = now() where id = r.id returning * into r;
+      perform pos.bump();
+      return pos.r(200, pos.staff_view(r));
     end if;
     nm := case b ->> 'action' when 'accept' then 'accepted' when 'cancel' then 'cancelled' when 'done' then 'done' end;
     if nm is null then return pos.r(400, '{"error":"aksi?"}'); end if;

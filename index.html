@@ -200,6 +200,7 @@ tr.dh td{background:#fff6ee;font-size:12.5px;padding:8px 10px}
 .loginc .fi{margin-bottom:12px;text-align:center}
 .up{display:flex;gap:12px;align-items:center}
 .pv.logo img{object-fit:contain;background:#fff}
+.pv.payqr{width:96px;height:96px;border-radius:12px}.pv.payqr img{object-fit:contain;background:#fff;image-rendering:pixelated}
 .pv{width:90px;height:90px;border-radius:14px;background:#fff6ee;display:grid;place-items:center;font-size:44px;overflow:hidden;flex:none;border:1.5px dashed #f0c9a8}
 .pv img{width:100%;height:100%;object-fit:cover}
 .chips{display:flex;gap:8px;flex-wrap:wrap;margin:6px 0}
@@ -345,7 +346,11 @@ select.fi{appearance:auto}
 .morebtn{margin-top:8px}
 #coDev>summary{font-weight:800;font-size:15px;cursor:pointer}
 #coDev[open]>summary{margin-bottom:10px}
-.hdates{display:grid;grid-template-columns:1fr 1fr;gap:8px;width:100%}.hdates label{display:flex;flex-direction:column;align-items:stretch;gap:2px;min-width:0}.hdates .fi{width:100%;min-width:0}
+.hdates{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px;width:100%}
+.hdates label{display:flex;flex-direction:column;align-items:stretch;gap:3px;min-width:0;overflow:hidden}
+.hdates .fi{display:block;width:100%;min-width:0;max-width:100%;box-sizing:border-box;-webkit-appearance:none;appearance:none;min-height:42px;padding:8px 10px;font-size:14px;line-height:1.2;text-align:left}
+.hdates .fi::-webkit-date-and-time-value{text-align:left;min-width:0;margin:0}
+.hdates .fi::-webkit-calendar-picker-indicator{margin:0 0 0 2px;padding:0}
 .vdl{font-size:12.5px;color:var(--mu)}.vdl div{padding:5px 0;border-bottom:1px dashed #eee}
 </style>
 <link rel="manifest" href="manifest.webmanifest"><link rel="apple-touch-icon" href="icon-192.png"><link rel="icon" href="icon-192.png">
@@ -457,6 +462,7 @@ select.fi{appearance:auto}
       <div class="bar"><h2>⚙️ Pengaturan</h2></div>
       <div class="panel" id="setForm"></div>
       <div class="panel" id="coForm" hidden></div>
+      <div class="panel" id="payForm" hidden></div>
       <div class="panel" id="scrForm"></div>
       <div class="panel" id="logoForm"></div>
       <div class="panel" id="langForm"></div>
@@ -528,7 +534,7 @@ const RC_DEF={logo:'',showLogo:true,logoW:160,align:'center',font:'normal',divid
 const PRN_DEF={mode:'browser',auto:false,autoNew:true,cut:true,drawer:false,baud:9600,chunk:100,delay:15,uuid:''};
 const DEF_LOGO='data:image/jpeg;base64,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';
 const GV_DEF={mode:'grid',colsD:0,colsM:2,stock:true,cats:true,tap:'add'};
-function fixDb(d){d.set=d.set||{};if(d.set.fsAuto==null)d.set.fsAuto=true;if(d.set.logoApp==null)d.set.logoApp=true;if(d.set.rc&&d.set.rc.logo&&!d.set.logo){d.set.logo=d.set.rc.logo;d.set.rc.logo=''}d.set.logo=d.set.logo||'';d.set.gv={...GV_DEF,...(d.set.gv||{})};delete d.set.gv.size;d.set.lang=d.set.lang||'id';if(d.set.dec==null)d.set.dec=0;d.set.loc=d.set.loc||'id-ID';d.set.curPos=d.set.curPos||'before';d.set.cur=d.set.cur||'Rp';d.set.curCode=d.set.curCode||(d.set.cur==='Rp'?'IDR':'CUSTOM');d.set.rc={...RC_DEF,...(d.set.rc||{})};d.set.prn={...PRN_DEF,...(d.set.prn||{})};d.set.paper=d.set.paper||'80';d.log=d.log||[];d.orders=d.orders||[];d.cats=d.cats||[];
+function fixDb(d){d.set=d.set||{};if(d.set.fsAuto==null)d.set.fsAuto=true;if(d.set.logoApp==null)d.set.logoApp=true;if(d.set.rc&&d.set.rc.logo&&!d.set.logo){d.set.logo=d.set.rc.logo;d.set.rc.logo=''}d.set.logo=d.set.logo||'';d.set.gv={...GV_DEF,...(d.set.gv||{})};delete d.set.gv.size;d.set.lang=d.set.lang||'id';if(d.set.dec==null)d.set.dec=0;d.set.loc=d.set.loc||'id-ID';d.set.curPos=d.set.curPos||'before';d.set.cur=d.set.cur||'Rp';d.set.curCode=d.set.curCode||(d.set.cur==='Rp'?'IDR':'CUSTOM');d.set.rc={...RC_DEF,...(d.set.rc||{})};d.set.pay={on:false,qr:'',name:'',note:'',...(d.set.pay&&typeof d.set.pay==='object'?d.set.pay:{})};d.set.prn={...PRN_DEF,...(d.set.prn||{})};d.set.paper=d.set.paper||'80';d.log=d.log||[];d.orders=d.orders||[];d.cats=d.cats||[];
   if(d.set.store==='Sushi POS')d.set.store='POS SATE';
   if(!d.set.logo){d.set.logo=DEF_LOGO;if(!d.set.logoInit)d.set.rc.showLogo=false}
   d.set.logoInit=true;
@@ -674,11 +680,12 @@ function clearCart(){S.cart={};S.dVal=0;renderGrid();renderInvoice()}
 
 /* ---------- payment & receipt ---------- */
 function payForm(){
-  const c=calc();S.pay={m:'Tunai',paid:c.total};
+  const c=calc(),co=S.coId?CO.list.find(x=>x.id===S.coId):null,pre=co&&co.pay==='duitnow'?'DuitNow':'Tunai';S.pay={m:pre,paid:c.total};
   openModal(`<h3>Pembayaran</h3><div class="big" id="pTot">${money(c.total)}</div>
   <label class="fl">Nama pelanggan / meja (opsional)</label><input class="fi" id="pCust">
-  <label class="fl">Metode</label><div class="chips" id="pM">${['Tunai','Kartu','QRIS','E-Wallet'].map(m=>`<button class="chip ${m==='Tunai'?'on':''}" data-m="${m}" onclick="setM('${m}')">${m}</button>`).join('')}</div>
-  <div id="cashBox"><label class="fl">Uang diterima</label><input class="fi" id="pPaid" type="number" step="any" min="0" value="${c.total}" oninput="calcChange()">
+  <label class="fl">Metode</label><div class="chips" id="pM">${['Tunai','Kartu','QRIS','DuitNow','E-Wallet'].map(m=>`<button class="chip ${m===pre?'on':''}" data-m="${m}" onclick="setM('${m}')">${m}</button>`).join('')}</div>
+  ${co&&co.pay==='duitnow'?`<div class="chg ${co.pst===2?'':'neg'}" style="margin:8px 0"><span>${co.pst===2?'💳 Pelanggan membayar lewat DuitNow, sudah Anda konfirmasi.':co.pst===1?'💳 Pelanggan mengaku sudah bayar lewat DuitNow. Cek mutasi dulu sebelum lanjut.':'💳 Pelanggan memilih DuitNow tetapi belum menandai sudah bayar.'}</span></div>`:''}
+  <div id="cashBox" style="${pre==='Tunai'?'':'display:none'}"><label class="fl">Uang diterima</label><input class="fi" id="pPaid" type="number" step="any" min="0" value="${c.total}" oninput="calcChange()">
   <div class="chips"><button class="chip" onclick="quick(${c.total})">Uang Pas</button>${quickAmts().filter(v=>v>=c.total/2).map(v=>`<button class="chip" onclick="quick(${v})">${amtLbl(v)}</button>`).join('')}</div>
   <div class="chg" id="pChg"><span>Kembalian</span><span>${money(0)}</span></div></div>
   <button class="btn" id="payOk" onclick="checkout()">Bayar & Cetak Struk</button>
@@ -1127,7 +1134,7 @@ function renderSet(){
   renderDb();
   renderLang();
   renderCur();
-  renderCoSet();
+  renderCoSet();renderPay();
   $('#catMgr').innerHTML=db.cats.map(c=>`<span class="chip" style="display:inline-flex;gap:8px;margin:0 6px 6px 0">${esc(c)} <button style="color:var(--bad)" onclick="delCat('${esc(c).replace(/'/g,"\\'")}')">✕</button></span>`).join('')||'<span style="color:var(--mu)">Belum ada kategori</span>';
 }
 function saveSet(){
@@ -2306,7 +2313,11 @@ async function coAct(id,action,extra){
     return true;
   }catch(e){toast('Gagal menghubungi server');return false}
 }
-function coCancel(id){const o=CO.list.find(x=>x.id===id);if(o&&confirm('Batalkan pesanan '+o.num+' atas nama '+o.name+'?'))coAct(id,'cancel')}
+function coConfirmPay(id){
+  const o=CO.list.find(x=>x.id===id);if(!o)return;
+  if(confirm('Sudah cek mutasi/notifikasi bank atau TNG? Pembayaran '+money(o.total)+' dari '+o.name+' benar-benar masuk?'))coAct(id,'paid');
+}
+function coCancel(id){const o=CO.list.find(x=>x.id===id);if(o&&confirm('Batalkan pesanan '+o.num+' atas nama '+o.name+'?'+(o.pay==='duitnow'&&o.pst>=1?'\n\nPelanggan sudah membayar lewat DuitNow. Kembalikan uangnya secara manual.':'')))coAct(id,'cancel')}
 function coPay(id){
   const o=CO.list.find(x=>x.id===id);if(!o)return;
   if(Object.keys(S.cart).length&&!confirm('Keranjang kasir saat ini akan diganti dengan pesanan '+o.num+'. Lanjutkan?'))return;
@@ -2405,14 +2416,16 @@ function renderCo(full){
     const ps=o.printed===2?'<span class="pst ok">✓ tercetak</span>':o.printed===1?'<span class="pst w">mencetak…</span>':(o.status==='new'||o.status==='accepted')?'<span class="pst w">belum tercetak</span>':'';
     const btn=o.status==='new'?`<button class="btn" onclick="coAct(${o.id},'accept')">✓ Terima</button><button class="btn sec" onclick="coPay(${o.id})">💳 Bayar</button>`:o.status==='accepted'?`<button class="btn" onclick="coPay(${o.id})">💳 Bayar</button>`:'';
     const act=(o.status==='new'||o.status==='accepted')?`${btn}<button class="btn sec" onclick="coPrint(${o.id})">🖨️ Cetak</button><button class="btn sec" onclick="coCancel(${o.id})">✕ Batal</button>`:'';
+    const pb=o.pay==='duitnow'?(o.pst===2?'<span class="pst ok">💳 DuitNow · diterima</span>':o.pst===1?'<span class="pst w">💳 DuitNow · pelanggan klaim sudah bayar</span>':'<span class="pst w">💳 DuitNow · belum dibayar</span>'):'';
+    const pbtn=(o.pay==='duitnow'&&(o.status==='new'||o.status==='accepted'))?(o.pst===2?`<button class="btn sec" onclick="coAct(${o.id},'unpaid')">↩ Batalkan konfirmasi bayar</button>`:`<button class="btn" onclick="coConfirmPay(${o.id})">✓ Pembayaran diterima</button>`):'';
     const tag=o.status==='cancelled'?'<span class="pst">dibatalkan</span>':o.status==='done'?`<span class="pst ok">selesai${o.saleNo?' · '+esc(o.saleNo):''}</span>`:o.status==='accepted'?'<span class="pst ok">diterima</span>':'<span class="pst w">baru</span>';
     return`<div class="coc ${o.status}"><div class="coh"><span class="no">${esc(o.num)}</span><span class="cn">${esc(o.name)}</span><span class="ct">${o.tbl?'Meja '+esc(o.tbl)+' · ':''}${esc(o.type==='Dine In'?'Dine In':'Takeaway')}</span><time>${ago(o.t)}</time></div>
     <ul>${o.lines.map(l=>`<li><b>${l.qty}x</b><span>${esc(l.name)}</span></li>`).join('')}</ul>
     ${o.note?`<div class="nt">📝 ${esc(o.note)}</div>`:''}
-    <div class="cof"><span>${money(o.total)}</span><span style="display:flex;gap:6px;flex-wrap:wrap">${tag}${ps}</span></div>
-    ${act?`<div class="cob">${act}</div>`:''}</div>`;
+    <div class="cof"><span>${money(o.total)}</span><span style="display:flex;gap:6px;flex-wrap:wrap">${tag}${pb}${ps}</span></div>
+    ${act?`<div class="cob">${pbtn}${act}</div>`:''}</div>`;
   };
-  const finRow=o=>`<button class="li" onclick="coDet(${o.id})"><span class="l"><b>${esc(o.num)} · ${esc(o.name)}</b><small>${o.tbl?'Meja '+esc(o.tbl)+' · ':''}${o.type==='Dine In'?'Dine In':'Takeaway'} · ${ago(o.u||o.t)}</small></span><span class="r"><b>${money(o.total)}</b><small>${o.status==='cancelled'?'dibatalkan':'selesai'}</small></span><span class="ch">›</span></button>`;
+  const finRow=o=>`<button class="li" onclick="coDet(${o.id})"><span class="l"><b>${esc(o.num)} · ${esc(o.name)}</b><small>${o.tbl?'Meja '+esc(o.tbl)+' · ':''}${o.type==='Dine In'?'Dine In':'Takeaway'} · ${ago(o.u||o.t)}</small></span><span class="r"><b>${money(o.total)}</b><small>${o.status==='cancelled'?'dibatalkan':'selesai'}${o.pay==='duitnow'?' · DuitNow'+(o.pst===2?' ✓':''):''}</small></span><span class="ch">›</span></button>`;
   $('#coList').innerHTML=(act.length?`<div class="sech"><h3>Aktif (${act.length})</h3></div>${act.map(card).join('')}`:'<div class="empty" style="padding:30px 10px">Belum ada pesanan aktif.<br><small>Pesanan dari QR akan muncul di sini.</small></div>')
     +(fin.length?`<div class="sech" style="margin-top:14px"><h3>Selesai / batal (${fin.length})</h3></div><div class="panel"><div class="lst">${fin.map(finRow).join('')}</div></div>`:'');
 }
@@ -2424,6 +2437,7 @@ function coDet(id){
   <tr><td>Masuk</td><td>${tm(o.t)}</td></tr>${o.u&&o.u!==o.t?`<tr><td>Terakhir diubah</td><td>${tm(o.u)}</td></tr>`:''}
   <tr><td>Tipe</td><td>${o.tbl?'Meja '+esc(o.tbl)+' · ':''}${o.type==='Dine In'?'Dine In':'Takeaway'}</td></tr>
   ${o.saleNo?`<tr><td>Invoice</td><td>${esc(o.saleNo)}</td></tr>`:''}
+  <tr><td>Pembayaran</td><td>${o.pay==='duitnow'?'DuitNow / Touch \'n Go · '+(o.pst===2?'diterima':o.pst===1?'pelanggan klaim sudah bayar':'belum dibayar'):'Bayar di kasir'}</td></tr>
   <tr><td>Tiket</td><td>${o.printed===2?'tercetak':'belum tercetak'}</td></tr></table>
   <table class="dl">${o.lines.map(l=>`<tr><td>${l.qty}× ${esc(l.name)}<br><small>${money(l.price)}</small></td><td>${money(l.price*l.qty)}</td></tr>`).join('')}
   <tr><td>Subtotal</td><td>${money(o.sub)}</td></tr>${o.tax?`<tr><td>Pajak</td><td>${money(o.tax)}</td></tr>`:''}<tr class="tt"><td>Total</td><td>${money(o.total)}</td></tr></table>
@@ -2431,6 +2445,40 @@ function coDet(id){
   ${o.saleNo&&db.orders.some(x=>x.no===o.saleNo)?`<button class="btn" onclick="histOpen('${esc(o.saleNo)}')">Lihat transaksi ${esc(o.saleNo)}</button>`:''}
   <button class="btn sec" onclick="coPrint(${o.id});closeModal()">🖨️ Cetak ulang tiket</button>
   <button class="btn sec" onclick="closeModal()">Tutup</button>`);
+}
+function setPay(k,v){db.set.pay[k]=v;save();renderPay()}
+function pickPayQr(inp){
+  const f=inp.files[0];if(!f)return;
+  const rd=new FileReader();
+  rd.onload=e=>{
+    const im=new Image();
+    im.onload=()=>{
+      const k=Math.min(1,720/Math.max(im.width,im.height)),c=document.createElement('canvas');
+      c.width=Math.max(1,Math.round(im.width*k));c.height=Math.max(1,Math.round(im.height*k));
+      const x=c.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,c.width,c.height);x.imageSmoothingEnabled=false;x.drawImage(im,0,0,c.width,c.height);
+      let d=c.toDataURL('image/png');if(d.length>400000)d=c.toDataURL('image/jpeg',.92);
+      if(d.length>600000){toast('Gambar QR terlalu besar');return}
+      db.set.pay.qr=d;if(!db.set.pay.name)db.set.pay.name=db.set.store||'';save();renderPay();toast('QR pembayaran disimpan');
+    };
+    im.onerror=()=>toast('Gambar tidak valid');
+    im.src=e.target.result;
+  };
+  rd.readAsDataURL(f);inp.value='';
+}
+function renderPay(){
+  const p=$('#payForm');if(!p)return;
+  if(!(CL.on&&can('co')&&can('set'))){p.hidden=true;return}
+  p.hidden=false;const y=db.set.pay;
+  p.innerHTML=`<h3>Pembayaran Online (DuitNow / Touch 'n Go)</h3>
+    <label class="tgl"><input type="checkbox" ${y.on&&y.qr?'checked':''} ${y.qr?'':'disabled'} onchange="setPay('on',this.checked)"><span>Tawarkan bayar online saat pelanggan memesan lewat QR</span></label>
+    <div class="up"><div class="pv payqr">${y.qr?`<img src="${y.qr}" alt="QR pembayaran">`:'🏦'}</div>
+    <div><button class="btn sm sec" onclick="$('#pqF').click()">${y.qr?'Ganti gambar QR':'Upload gambar QR'}</button> ${y.qr?`<button class="mini" style="color:var(--b)" onclick="setPay('qr','');setPay('on',false)">Hapus</button>`:''}
+    <input type="file" id="pqF" accept="image/*" hidden onchange="pickPayQr(this)"></div></div>
+    <label class="fl">Nama penerima (tampil ke pelanggan)</label>
+    <input class="fi" value="${esc(y.name||'')}" maxlength="60" placeholder="mis. Street Sate Original" onchange="setPay('name',this.value.trim())">
+    <label class="fl">Petunjuk tambahan (opsional)</label>
+    <textarea class="fi" rows="2" maxlength="300" placeholder="mis. Tulis nomor pesanan di kolom catatan transfer" onchange="setPay('note',this.value.trim())">${esc(y.note||'')}</textarea>
+    <p class="hint">Upload gambar QR DuitNow milik toko (dari aplikasi Touch 'n Go eWallet: Receive &gt; DuitNow QR &gt; simpan gambar, atau tangkapan layar QR merchant dari bank). Pelanggan membayar sendiri lewat aplikasi bank/TNG, lalu menekan "Saya sudah bayar". <b>Uang tidak diperiksa otomatis</b>: kasir wajib mengecek mutasi/notifikasi lalu menekan "Pembayaran diterima" di halaman Pesanan Online.</p>`;
 }
 function renderCoSet(){
   const p=$('#coForm');if(!p)return;
