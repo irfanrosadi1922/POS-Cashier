@@ -766,7 +766,7 @@ function showReceipt(o,fresh){
   S.rcOrder=o;S.rcFresh=!!fresh;setPageSize();
   openModal(`<h3>Struk</h3><div class="rc-wrap">${receiptHTML(o)}</div>
   <button class="btn" onclick="printReceipt(S.rcOrder)">🖨️ Cetak Struk</button>
-  <button class="btn sec" onclick="${fresh?'newTx()':'closeModal()'}">${fresh?'Transaksi Baru':'Tutup'}</button>`);
+  <button class="btn sec" onclick="${fresh?'newTx()':'closeModal()'}">${fresh?'Selesai':'Tutup'}</button>`);
   if(fresh&&db.set.prn.auto)setTimeout(()=>printReceipt(o),250);
 }
 function setPageSize(){$('#pageStyle').textContent=`@media print{@page{size:${db.set.paper}mm auto;margin:0}}`}
