@@ -336,9 +336,17 @@ function showStatus(o){
   ${x?'':`<div class="trk" aria-hidden="true"><div class="${step>0?'dn':'on'}"><i></i>Terkirim</div><div class="${step>1?'dn':step===1?'on':''}"><i></i>Disiapkan</div><div class="${step===2?'on':''}"><i></i>Selesai</div></div>`}
   <div class="card">${o.lines.map(l=>`<div class="r"><span>${l.qty}× ${esc(l.name)}</span><span>${money(l.price*l.qty)}</span></div>`).join('')}${o.tax?`<div class="r" style="color:var(--mu)"><span>Pajak</span><span>${money(o.tax)}</span></div>`:''}<div class="r tt"><span>Total</span><span>${money(o.total)}</span></div></div>
   ${o.note?`<div class="card" style="margin-top:12px"><b style="font-size:13px">Catatan</b><div style="font-size:14px">${esc(o.note)}</div></div>`:''}
+  ${x?'':'<button class="ghost" onclick="shareOrder()">Pantau di perangkat lain</button>'}
   ${st==='new'&&o.pst!==2?'<button class="ghost" onclick="cancelOrder()">Batalkan pesanan</button>':''}
   <button class="go" style="margin-top:14px" onclick="backToMenu()">${st==='done'||x?'Pesan lagi':'Tambah pesanan baru'}</button></div>`;
   window.scrollTo(0,0);
+}
+function orderLink(){const t=LS.g('co_tok');if(!t)return '';const u=new URL(location.href);u.search='';if(TBL)u.searchParams.set('t',TBL);u.searchParams.set('o',t);u.hash='';return u.toString()}
+async function shareOrder(){
+  const l=orderLink();if(!l)return;
+  try{if(navigator.share){await navigator.share({title:'Pesanan '+(cur&&cur.num||''),text:'Pantau pesanan saya',url:l});return}}catch(e){if(e&&e.name==='AbortError')return}
+  try{await navigator.clipboard.writeText(l);toast('Link disalin. Buka di perangkat lain untuk memantau pesanan ini.')}
+  catch(e){prompt('Salin link ini lalu buka di perangkat lain:',l)}
 }
 function backToMenu(){stopPoll();cur=null;$('#vDone').hidden=true;$('#vMenu').hidden=false;if(st(cur)!=='x')LS.d('co_tok');loadMenu().catch(()=>{});renderBar()}
 function st(){return 'x'}
@@ -372,6 +380,9 @@ document.addEventListener('visibilitychange',()=>{if(!document.hidden)refresh()}
       $('#grid').hidden=true;$('#cats').hidden=true;document.querySelector('.search').hidden=true;
       const c=$('#closed');c.hidden=false;c.innerHTML='<b>Pemesanan sedang ditutup</b>'+esc(M.msg||'Silakan pesan langsung ke kasir.');
     }
+    // link pantau dari perangkat lain (?o=kode pesanan)
+    const lo=U.get('o');
+    if(lo&&/^[\w-]{10,40}$/.test(lo)){LS.s('co_tok',lo);try{const nu=new URL(location.href);nu.searchParams.delete('o');history.replaceState(null,'',nu.pathname+nu.search)}catch(e){}}
     // lanjutkan pesanan yang masih aktif
     const t=LS.g('co_tok');
     if(t){
