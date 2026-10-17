@@ -23,6 +23,7 @@
     u.searchParams.forEach(function (v, k) { q[k] = v; });
     if (typeof o.body === 'string' && o.body) { try { b = JSON.parse(o.body); } catch (e) { return Promise.resolve(res(400, { error: 'bad json' })); } }
     var cache = isMenu ? lsGet(MK) : null;
+    if (cache && cache.menu && cache.menu.pay === undefined) { cache = null; try { localStorage.removeItem(MK); } catch (e) {} } // cache dari versi lama
     if (cache && cache.ver != null) q.since = String(cache.ver);
     return orig(ep, { method: 'POST', headers: HDR, body: JSON.stringify({ p: { m: o.method || 'GET', u: u.pathname, q: q, b: b, t: bearer(o) } }), signal: o.signal, cache: 'no-store' })
       .then(function (r) { return r.json().catch(function () { return null; }); })
