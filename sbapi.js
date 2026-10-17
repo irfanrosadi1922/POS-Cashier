@@ -9,7 +9,7 @@
   var ep = String(C.url).replace(/\/+$/, '') + '/rest/v1/rpc/pos_api', orig = window.fetch.bind(window);
   var HDR = { 'Content-Type': 'application/json', apikey: C.key };
   if (/^eyJ/.test(C.key)) HDR.Authorization = 'Bearer ' + C.key; // kunci anon lama (JWT); kunci sb_publishable_ tidak memakai header ini
-  var MK = 'pos_menu_c';
+  var MK = 'pos_menu_c2'; // naik tiap bentuk menu berubah, agar cache lama (tanpa data pembayaran) tidak terpakai
   function res(s, b) { return new Response(JSON.stringify(b), { status: s, headers: { 'Content-Type': 'application/json' } }); }
   function lsGet(k) { try { return JSON.parse(localStorage.getItem(k)); } catch (e) { return null; } }
   function lsSet(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} }
