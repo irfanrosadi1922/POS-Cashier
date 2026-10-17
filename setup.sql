@@ -164,7 +164,7 @@ create or replace function pos.valid_doc(d jsonb) returns boolean language sql i
      and jsonb_typeof(d -> 'set') = 'object' $$;
 
 create or replace function pos.guard(me pos.users, cur jsonb, nxt jsonb) returns text language plpgsql as $$
-declare pm jsonb; k text; c jsonb; n jsonb; ci int; ni int; cs jsonb; ns jsonb;
+declare pm jsonb; k text; c jsonb; n jsonb; ci int; ni int; cs jsonb; ns jsonb; a int;
 begin
   if me.role = 'owner' then return null; end if;
   if cur is null then return 'Hanya owner yang boleh menyiapkan data awal'; end if;
@@ -173,23 +173,34 @@ begin
              except select x ->> 'no', x from jsonb_array_elements(coalesce(nxt -> 'orders', '[]')) x) then
     return 'Riwayat penjualan hanya bisa ditambah, tidak boleh diubah atau dihapus (khusus owner)';
   end if;
-  if not (pm ? 'inv') then
-    select count(distinct i ->> 'id') into ci from jsonb_array_elements(cur -> 'items') i;
-    select count(distinct i ->> 'id') into ni from jsonb_array_elements(nxt -> 'items') i;
-    if ci <> ni then return 'Anda tidak punya izin menambah/menghapus menu'; end if;
-    for c in select i from jsonb_array_elements(cur -> 'items') i loop
-      n := null;
-      select x into n from jsonb_array_elements(nxt -> 'items') x where x ->> 'id' = c ->> 'id' limit 1;
-      if n is null then return 'Anda tidak punya izin menghapus menu'; end if;
-      for k in select jsonb_object_keys(c) loop
-        if k <> 'stock' and not coalesce(pos.additive(c -> k, n -> k), false) then
-          return 'Anda tidak punya izin mengubah menu/harga: ' || coalesce(c ->> 'name', c ->> 'id');
-        end if;
-      end loop;
+  -- karyawan (izin Inventori pun) hanya boleh mengubah stok; menu, harga, modal, kategori khusus owner
+  select count(distinct i ->> 'id') into ci from jsonb_array_elements(cur -> 'items') i;
+  select count(distinct i ->> 'id') into ni from jsonb_array_elements(nxt -> 'items') i;
+  if ci <> ni then return 'Hanya owner yang boleh menambah/menghapus menu'; end if;
+  for c in select i from jsonb_array_elements(cur -> 'items') i loop
+    n := null;
+    select x into n from jsonb_array_elements(nxt -> 'items') x where x ->> 'id' = c ->> 'id' limit 1;
+    if n is null then return 'Hanya owner yang boleh menghapus menu'; end if;
+    for k in select jsonb_object_keys(c) loop
+      if k <> 'stock' and not coalesce(pos.additive(c -> k, n -> k), false) then
+        return 'Hanya owner yang boleh mengubah menu/harga: ' || coalesce(c ->> 'name', c ->> 'id');
+      end if;
     end loop;
-    select coalesce(jsonb_agg(x order by x), '[]') into cs from jsonb_array_elements(coalesce(cur -> 'cats', '[]')) x;
-    select coalesce(jsonb_agg(x order by x), '[]') into ns from jsonb_array_elements(coalesce(nxt -> 'cats', '[]')) x;
-    if cs <> ns then return 'Anda tidak punya izin mengubah kategori'; end if;
+  end loop;
+  select coalesce(jsonb_agg(x order by x), '[]') into cs from jsonb_array_elements(coalesce(cur -> 'cats', '[]')) x;
+  select coalesce(jsonb_agg(x order by x), '[]') into ns from jsonb_array_elements(coalesce(nxt -> 'cats', '[]')) x;
+  if cs <> ns then return 'Hanya owner yang boleh mengubah kategori'; end if;
+  -- riwayat stok: catatan baru harus atas nama pengguna itu sendiri, catatan lama tidak boleh dihapus
+  select count(*) into a from (select x from jsonb_array_elements(coalesce(nxt -> 'log', '[]')) x
+    except select y from jsonb_array_elements(coalesce(cur -> 'log', '[]')) y) t;
+  if exists (select 1 from (select x from jsonb_array_elements(coalesce(nxt -> 'log', '[]')) x
+      except select y from jsonb_array_elements(coalesce(cur -> 'log', '[]')) y) t
+      where coalesce(x ->> 'u', '') <> me.username or jsonb_typeof(x) <> 'object') then
+    return 'Catatan riwayat stok harus atas nama Anda. Muat ulang aplikasi bila ini versi lama.';
+  end if;
+  if exists (select 1 from (select e from jsonb_array_elements(coalesce(cur -> 'log', '[]')) with ordinality c(e, i) where i <= greatest(0, 1000 - a)
+      except select x from jsonb_array_elements(coalesce(nxt -> 'log', '[]')) x) t) then
+    return 'Riwayat perubahan stok tidak boleh dihapus (khusus owner)';
   end if;
   for k in select jsonb_object_keys(coalesce(cur -> 'set', '{}')) loop
     if (nxt -> 'set') ? k and coalesce(pos.additive(cur -> 'set' -> k, nxt -> 'set' -> k), false) then continue; end if;
