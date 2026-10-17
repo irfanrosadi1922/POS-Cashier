@@ -43,6 +43,7 @@ create table if not exists pos.co(
   sale_no text, created_at timestamptz not null default now(), updated_at timestamptz not null default now());
 alter table pos.co add column if not exists pay text not null default '';
 alter table pos.co add column if not exists pst int not null default 0;
+alter table pos.co add column if not exists proof text not null default '';
 create index if not exists co_day on pos.co(day);
 create index if not exists co_status on pos.co(status, id);
 create table if not exists pos.meta(k text primary key, v jsonb not null);
@@ -136,11 +137,11 @@ end $$;
 -- ------------------------------------------------------------ pesanan: tampilan
 create or replace function pos.staff_view(r pos.co) returns jsonb language sql stable as $$
   select jsonb_build_object('id', r.id, 'num', r.num, 'name', r.name, 'tbl', r.tbl, 'type', r.type, 'note', r.note, 'lines', r.lines,
-    'sub', r.sub, 'tax', r.tax, 'total', r.total, 'status', r.status, 'printed', r.printed, 'saleNo', coalesce(r.sale_no, ''), 'pay', r.pay, 'pst', r.pst,
+    'sub', r.sub, 'tax', r.tax, 'total', r.total, 'status', r.status, 'printed', r.printed, 'saleNo', coalesce(r.sale_no, ''), 'pay', r.pay, 'pst', r.pst, 'hp', r.proof <> '',
     't', pos.iso(r.created_at), 'u', pos.iso(r.updated_at)) $$;
 create or replace function pos.cust_view(r pos.co) returns jsonb language sql stable as $$
   select jsonb_build_object('num', r.num, 'name', r.name, 'tbl', r.tbl, 'type', r.type, 'note', r.note, 'lines', r.lines,
-    'total', r.total, 'sub', r.sub, 'tax', r.tax, 'status', r.status, 'pay', r.pay, 'pst', r.pst, 't', pos.iso(r.created_at)) $$;
+    'total', r.total, 'sub', r.sub, 'tax', r.tax, 'status', r.status, 'pay', r.pay, 'pst', r.pst, 'hp', r.proof <> '', 't', pos.iso(r.created_at)) $$;
 create or replace function pos.co_set() returns jsonb language sql stable as $$
   select jsonb_build_object('on', coalesce((select v ->> 'on' from pos.meta where k = 'co'), 'true') <> 'false',
     'msg', left(coalesce((select v ->> 'msg' from pos.meta where k = 'co'), ''), 200)) $$;
@@ -330,7 +331,7 @@ end $$;
 -- ------------------------------------------------------------ router utama
 create or replace function pos.route(m text, u text, q jsonb, b jsonb, t text) returns jsonb language plpgsql as $$
 declare me pos.users; mt text[]; r pos.co; tu pos.users; own boolean; nrole text; act boolean; nm text; nperms jsonb; un text; nsingle boolean;
-  d pos.doc; gerr text; nv int; cnt int; rv bigint; wt numeric; ms bigint; x jsonb;
+  d pos.doc; gerr text; nv int; cnt int; rv bigint; wt numeric; ms bigint; x jsonb; v_proof text;
 begin
   if u = '/api/health' then return pos.r(200, '{"ok":true,"pos":true,"sb":true}'); end if;
   if u = '/api/login' and m = 'POST' then return pos.login(b); end if;
@@ -343,8 +344,13 @@ begin
     if mt[2] = '/paid' then
       if m <> 'POST' then return pos.r(405, '{"error":"method"}'); end if;
       if r.pay <> 'duitnow' or r.status not in ('new', 'accepted') then return pos.r(409, '{"error":"Pesanan ini tidak bisa dibayar online."}'); end if;
-      if r.pst = 0 then
-        update pos.co set pst = 1, updated_at = now() where id = r.id returning * into r;
+      if r.pst = 2 then return pos.r(200, pos.cust_view(r)); end if;
+      v_proof := coalesce(b ->> 'proof', '');
+      if v_proof <> '' and (length(v_proof) > 700000 or v_proof !~ '^data:image/(jpeg|png|webp);base64,[A-Za-z0-9+/=]+$') then
+        return pos.r(400, '{"error":"Bukti pembayaran harus berupa foto (JPG/PNG) dan tidak terlalu besar."}');
+      end if;
+      if v_proof <> '' or r.pst in (0, 3) then
+        update pos.co set pst = 1, proof = case when v_proof <> '' then v_proof else proof end, updated_at = now() where id = r.id returning * into r;
         perform pos.bump();
       end if;
       return pos.r(200, pos.cust_view(r));
@@ -446,6 +452,12 @@ begin
     perform pos.bump();
     return pos.r(200, pos.co_set());
   end if;
+  mt := regexp_match(u, '^/api/co/(\d{1,15})/proof$');
+  if mt is not null and m = 'GET' then
+    select * into r from pos.co where id = mt[1]::bigint;
+    if r.id is null then return pos.r(404, '{"error":"tidak ada"}'); end if;
+    return pos.r(200, jsonb_build_object('proof', r.proof));
+  end if;
   mt := regexp_match(u, '^/api/co/(\d{1,15})(?:/(print))?$');
   if mt is not null and m = 'POST' then
     select * into r from pos.co where id = mt[1]::bigint;
@@ -463,10 +475,11 @@ begin
       perform pos.bump();
       return pos.r(200, '{"ok":true}');
     end if;
-    if b ->> 'action' in ('paid', 'unpaid') then
+    if b ->> 'action' in ('paid', 'unpaid', 'reject') then
       if r.pay <> 'duitnow' then return pos.r(400, '{"error":"bukan pesanan bayar online"}'); end if;
       if r.status = 'cancelled' then return pos.r(409, jsonb_build_object('error', 'sudah selesai', 'status', r.status)); end if;
-      update pos.co set pst = case when b ->> 'action' = 'paid' then 2 else 0 end, updated_at = now() where id = r.id returning * into r;
+      update pos.co set pst = case b ->> 'action' when 'paid' then 2 when 'reject' then 3 else 0 end,
+        proof = case when b ->> 'action' = 'reject' then '' else proof end, updated_at = now() where id = r.id returning * into r;
       perform pos.bump();
       return pos.r(200, pos.staff_view(r));
     end if;

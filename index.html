@@ -348,6 +348,7 @@ select.fi{appearance:auto}
 .ic[data-ic=dot]{background:#16a34a}
 .ic[data-ic=food]{color:#e3b48f}
 .ic[data-ic=cart]{--m:url("data:image/svg+xml,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20viewBox=%220%200%2024%2024%22%20fill=%22none%22%20stroke=%22%23000%22%20stroke-width=%222%22%20stroke-linecap=%22round%22%20stroke-linejoin=%22round%22%3E%3Ccircle%20cx=%229%22%20cy=%2220%22%20r=%221.5%22/%3E%3Ccircle%20cx=%2218%22%20cy=%2220%22%20r=%221.5%22/%3E%3Cpath%20d=%22M3%204h2.5l2.2%2011h10.6l1.7-8H6.3%22/%3E%3C/svg%3E")}
+.ic[data-ic=image]{--m:url("data:image/svg+xml,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20viewBox=%220%200%2024%2024%22%20fill=%22none%22%20stroke=%22%23000%22%20stroke-width=%222%22%20stroke-linecap=%22round%22%20stroke-linejoin=%22round%22%3E%3Crect%20x=%223%22%20y=%225%22%20width=%2218%22%20height=%2214%22%20rx=%222%22/%3E%3Ccircle%20cx=%228.5%22%20cy=%2210.5%22%20r=%221.5%22/%3E%3Cpath%20d=%22m21%2015-5-5L5%2019%22/%3E%3C/svg%3E")}
 .ic[data-ic=box]{--m:url("data:image/svg+xml,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20viewBox=%220%200%2024%2024%22%20fill=%22none%22%20stroke=%22%23000%22%20stroke-width=%222%22%20stroke-linecap=%22round%22%20stroke-linejoin=%22round%22%3E%3Cpath%20d=%22M21%208%2012%203%203%208v8l9%205%209-5z%22/%3E%3Cpath%20d=%22m3%208%209%205%209-5M12%2013v8%22/%3E%3C/svg%3E")}
 .ic[data-ic=chart]{--m:url("data:image/svg+xml,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20viewBox=%220%200%2024%2024%22%20fill=%22none%22%20stroke=%22%23000%22%20stroke-width=%222%22%20stroke-linecap=%22round%22%20stroke-linejoin=%22round%22%3E%3Cpath%20d=%22M5%2020V11M12%2020V4M19%2020v-6%22/%3E%3C/svg%3E")}
 .ic[data-ic=bell]{--m:url("data:image/svg+xml,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20viewBox=%220%200%2024%2024%22%20fill=%22none%22%20stroke=%22%23000%22%20stroke-width=%222%22%20stroke-linecap=%22round%22%20stroke-linejoin=%22round%22%3E%3Cpath%20d=%22M18%208a6%206%200%200%200-12%200c0%207-3%208-3%208h18s-3-1-3-8%22/%3E%3Cpath%20d=%22M10.3%2020a1.9%201.9%200%200%200%203.4%200%22/%3E%3C/svg%3E")}
@@ -2377,7 +2378,20 @@ function coConfirmPay(id){
   const o=CO.list.find(x=>x.id===id);if(!o)return;
   if(confirm('Sudah cek mutasi/notifikasi bank atau TNG? Pembayaran '+money(o.total)+' dari '+o.name+' benar-benar masuk?'))coAct(id,'paid');
 }
-function coCancel(id){const o=CO.list.find(x=>x.id===id);if(o&&confirm('Batalkan pesanan '+o.num+' atas nama '+o.name+'?'+(o.pay==='duitnow'&&o.pst>=1?'\n\nPelanggan sudah membayar lewat DuitNow. Kembalikan uangnya secara manual.':'')))coAct(id,'cancel')}
+async function coProof(id){
+  const o=CO.list.find(x=>x.id===id);if(!o)return;
+  openModal(`<h3>Bukti bayar · ${esc(o.num)}</h3><p style="color:#666" id="pfInfo">Memuat foto…</p>`);
+  let d='';
+  try{const r=await api('/api/co/'+id+'/proof');d=r.ok?((await r.json()).proof||''):''}catch(e){}
+  const open=o.status==='new'||o.status==='accepted';
+  openModal(`<h3>Bukti bayar · ${esc(o.num)}</h3>
+  <p style="color:#666;margin:0 0 8px">${esc(o.name)} · tagihan <b>${money(o.total)}</b>. Cocokkan jumlah dan waktu di foto dengan mutasi bank/TNG Anda.</p>
+  ${d?`<a href="${d}" target="_blank" rel="noopener"><img src="${d}" alt="Bukti pembayaran pelanggan" style="display:block;max-width:100%;max-height:55vh;margin:0 auto 12px;border-radius:12px;border:1px solid #ddd"></a>`:'<p style="color:#666">Foto tidak tersedia.</p>'}
+  ${o.pst===2?'<div class="chg"><span><i class="ic" data-ic="check"></i>Sudah Anda setujui.</span></div>':open?`<button class="btn" onclick="closeModal();coConfirmPay(${o.id})"><i class="ic" data-ic="check"></i>Setujui, pembayaran diterima</button><button class="btn sec" onclick="coRejectPay(${o.id})"><i class="ic" data-ic="x"></i>Tolak bukti</button>`:''}
+  <button class="btn sec" onclick="closeModal()">Tutup</button>`);
+}
+function coRejectPay(id){if(confirm('Tolak bukti ini? Pelanggan akan diminta mengunggah ulang.')){closeModal();coAct(id,'reject')}}
+function coCancel(id){const o=CO.list.find(x=>x.id===id);if(o&&confirm('Batalkan pesanan '+o.num+' atas nama '+o.name+'?'+(o.pay==='duitnow'&&(o.pst===1||o.pst===2)?'\n\nPelanggan sudah membayar lewat DuitNow. Kembalikan uangnya secara manual.':'')))coAct(id,'cancel')}
 function coPay(id){
   const o=CO.list.find(x=>x.id===id);if(!o)return;
   if(Object.keys(S.cart).length&&!confirm('Keranjang kasir saat ini akan diganti dengan pesanan '+o.num+'. Lanjutkan?'))return;
@@ -2476,8 +2490,8 @@ function renderCo(full){
     const ps=o.printed===2?'<span class="pst ok"><i class="ic" data-ic="check"></i>tercetak</span>':o.printed===1?'<span class="pst w">mencetak…</span>':(o.status==='new'||o.status==='accepted')?'<span class="pst w">belum tercetak</span>':'';
     const btn=o.status==='new'?`<button class="btn" onclick="coAct(${o.id},'accept')"><i class="ic" data-ic="check"></i>Terima</button><button class="btn sec" onclick="coPay(${o.id})"><i class="ic" data-ic="card"></i>Bayar</button>`:o.status==='accepted'?`<button class="btn" onclick="coPay(${o.id})"><i class="ic" data-ic="card"></i>Bayar</button>`:'';
     const act=(o.status==='new'||o.status==='accepted')?`${btn}<button class="btn sec" onclick="coPrint(${o.id})"><i class="ic" data-ic="print"></i>Cetak</button><button class="btn sec" onclick="coCancel(${o.id})"><i class="ic" data-ic="x"></i>Batal</button>`:'';
-    const pb=o.pay==='duitnow'?(o.pst===2?'<span class="pst ok"><i class="ic" data-ic="card"></i>DuitNow · diterima</span>':o.pst===1?'<span class="pst w"><i class="ic" data-ic="card"></i>DuitNow · pelanggan klaim sudah bayar</span>':'<span class="pst w"><i class="ic" data-ic="card"></i>DuitNow · belum dibayar</span>'):'';
-    const pbtn=(o.pay==='duitnow'&&(o.status==='new'||o.status==='accepted'))?(o.pst===2?`<button class="btn sec" onclick="coAct(${o.id},'unpaid')"><i class="ic" data-ic="undo"></i>Batalkan konfirmasi bayar</button>`:`<button class="btn" onclick="coConfirmPay(${o.id})"><i class="ic" data-ic="check"></i>Pembayaran diterima</button>`):'';
+    const pb=o.pay==='duitnow'?(o.pst===2?'<span class="pst ok"><i class="ic" data-ic="card"></i>DuitNow · diterima</span>':o.pst===1?'<span class="pst w"><i class="ic" data-ic="card"></i>DuitNow · '+(o.hp?'bukti masuk, perlu dicek':'pelanggan klaim sudah bayar')+'</span>':o.pst===3?'<span class="pst"><i class="ic" data-ic="card"></i>DuitNow · bukti ditolak</span>':'<span class="pst w"><i class="ic" data-ic="card"></i>DuitNow · belum dibayar</span>'):'';
+    const pbtn=(o.pay==='duitnow'&&(o.status==='new'||o.status==='accepted'))?(o.pst===1&&o.hp?`<button class="btn" onclick="coProof(${o.id})"><i class="ic" data-ic="image"></i>Lihat bukti bayar</button>`:o.pst===2?`<button class="btn sec" onclick="coAct(${o.id},'unpaid')"><i class="ic" data-ic="undo"></i>Batalkan konfirmasi bayar</button>`:`<button class="btn" onclick="coConfirmPay(${o.id})"><i class="ic" data-ic="check"></i>Pembayaran diterima</button>`):'';
     const tag=o.status==='cancelled'?'<span class="pst">dibatalkan</span>':o.status==='done'?`<span class="pst ok">selesai${o.saleNo?' · '+esc(o.saleNo):''}</span>`:o.status==='accepted'?'<span class="pst ok">diterima</span>':'<span class="pst w">baru</span>';
     return`<div class="coc ${o.status}"><div class="coh"><span class="no">${esc(o.num)}</span><span class="cn">${esc(o.name)}</span><span class="ct">${o.tbl?'Meja '+esc(o.tbl)+' · ':''}${esc(o.type==='Dine In'?'Dine In':'Takeaway')}</span><time>${ago(o.t)}</time></div>
     <ul>${o.lines.map(l=>`<li><b>${l.qty}x</b><span>${esc(l.name)}</span></li>`).join('')}</ul>
@@ -2497,12 +2511,13 @@ function coDet(id){
   <tr><td>Masuk</td><td>${tm(o.t)}</td></tr>${o.u&&o.u!==o.t?`<tr><td>Terakhir diubah</td><td>${tm(o.u)}</td></tr>`:''}
   <tr><td>Tipe</td><td>${o.tbl?'Meja '+esc(o.tbl)+' · ':''}${o.type==='Dine In'?'Dine In':'Takeaway'}</td></tr>
   ${o.saleNo?`<tr><td>Invoice</td><td>${esc(o.saleNo)}</td></tr>`:''}
-  <tr><td>Pembayaran</td><td>${o.pay==='duitnow'?'DuitNow / Touch \'n Go · '+(o.pst===2?'diterima':o.pst===1?'pelanggan klaim sudah bayar':'belum dibayar'):'Bayar di kasir'}</td></tr>
+  <tr><td>Pembayaran</td><td>${o.pay==='duitnow'?'DuitNow / Touch \'n Go · '+(o.pst===2?'diterima':o.pst===1?(o.hp?'bukti masuk, menunggu persetujuan':'pelanggan klaim sudah bayar'):o.pst===3?'bukti ditolak':'belum dibayar'):'Bayar di kasir'}</td></tr>
   <tr><td>Tiket</td><td>${o.printed===2?'tercetak':'belum tercetak'}</td></tr></table>
   <table class="dl">${o.lines.map(l=>`<tr><td>${l.qty}× ${esc(l.name)}<br><small>${money(l.price)}</small></td><td>${money(l.price*l.qty)}</td></tr>`).join('')}
   <tr><td>Subtotal</td><td>${money(o.sub)}</td></tr>${o.tax?`<tr><td>Pajak</td><td>${money(o.tax)}</td></tr>`:''}<tr class="tt"><td>Total</td><td>${money(o.total)}</td></tr></table>
   ${o.note?`<div class="nt"><i class="ic" data-ic="note"></i>${esc(o.note)}</div>`:''}
   ${o.saleNo&&db.orders.some(x=>x.no===o.saleNo)?`<button class="btn" onclick="histOpen('${esc(o.saleNo)}')">Lihat transaksi ${esc(o.saleNo)}</button>`:''}
+  ${o.hp?`<button class="btn" onclick="coProof(${o.id})"><i class="ic" data-ic="image"></i>Lihat bukti bayar</button>`:''}
   <button class="btn sec" onclick="coPrint(${o.id});closeModal()"><i class="ic" data-ic="print"></i>Cetak ulang tiket</button>
   <button class="btn sec" onclick="closeModal()">Tutup</button>`);
 }
