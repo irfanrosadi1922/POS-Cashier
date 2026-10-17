@@ -1909,7 +1909,9 @@ function setSt(s){
 async function api(p,o){
   o=o||{};const h={'Content-Type':'application/json'};if(CL.tok)h.Authorization='Bearer '+CL.tok;
   const r=await fetch(p,{...o,headers:h,cache:'no-store'});
-  if(r.status===401){CL.tok='';setMe(null);try{localStorage.removeItem('pos_tok')}catch(e){}setSt('auth');applyAccess();showLogin();throw new Error('auth')}
+  if(r.status===401){
+    let kicked=false;try{kicked=((await r.clone().json())||{}).error==='kicked'}catch(e){}
+    CL.tok='';setMe(null);try{localStorage.removeItem('pos_tok')}catch(e){}setSt('auth');applyAccess();showLogin(kicked?'Akun ini baru saja login di perangkat lain, jadi Anda dikeluarkan dari perangkat ini. Masuk lagi bila perlu.':'');throw new Error('auth')}
   return r;
 }
 /* ----- penggabungan 3 arah (dasar = salinan terakhir yang tersinkron) ----- */
@@ -2536,11 +2538,11 @@ function renderAcct(){
 
 /* ----- halaman login ----- */
 function togglePw(){const i=$('#loginPw'),b=$('#loginEye');const s=i.type==='password';i.type=s?'text':'password';b.textContent=s?'Sembunyikan':'Tampilkan'}
-function showLogin(){
+function showLogin(msg){
   const w=$('#login');if(!w)return;
   closeModal&&closeModal();
   $('#loginLogo').src=db.set.logo||DEF_LOGO;$('#loginName').textContent=db.set.store||'POS SATE';
-  $('#loginErr').textContent='';$('#loginPw').value='';$('#loginPw').type='password';$('#loginEye').textContent='Tampilkan';
+  $('#loginErr').textContent=msg||'';$('#loginPw').value='';$('#loginPw').type='password';$('#loginEye').textContent='Tampilkan';
   let u='';try{u=localStorage.getItem('pos_user')||''}catch(e){}
   $('#loginUser').value=u;w.hidden=false;
   setTimeout(()=>{const i=u?$('#loginPw'):$('#loginUser');if(i)i.focus()},60);
@@ -2635,14 +2637,14 @@ async function renderUsr(){
   const me=CL.me?CL.me.id:0;
   el.innerHTML=USR.list.map(u=>`<div class="coc usr ${u.active?'':'cancelled'}" style="border-left-color:${u.role==='owner'?'var(--b)':'#d4d4d4'}">
     <div class="coh"><span class="av">${esc((u.name||'?').trim().charAt(0).toUpperCase())}</span><span class="cn">${esc(u.name)}</span><span class="ct">@${esc(u.username)}${u.id===me?' · Anda':''}</span><time>${esc(fmtLast(u.lastLogin))}</time></div>
-    <div class="cof" style="justify-content:flex-start;gap:6px;flex-wrap:wrap;margin-top:8px"><span class="pst ${u.role==='owner'?'w':'ok'}">${u.role==='owner'?'Owner':'Karyawan'}</span>${u.active?'':'<span class="pst">nonaktif</span>'}
+    <div class="cof" style="justify-content:flex-start;gap:6px;flex-wrap:wrap;margin-top:8px"><span class="pst ${u.role==='owner'?'w':'ok'}">${u.role==='owner'?'Owner':'Karyawan'}</span>${u.active?'':'<span class="pst">nonaktif</span>'}${u.single?'<span class="pst">1 perangkat</span>':''}
       ${u.role==='owner'?'<span class="pchip">Semua fitur</span>':'<span class="pchip on">Kasir</span>'+Object.keys(PERM_SHORT).map(p=>`<span class="pchip ${u.perms.includes(p)?'on':''}">${PERM_SHORT[p]}</span>`).join('')}</div>
     <div class="cob"><button class="btn sec" onclick="usrForm(${u.id})">✎ Ubah</button><button class="btn sec" onclick="usrPw(${u.id})">🔑 Reset sandi</button>
       ${u.id!==me?`<button class="btn sec" onclick="usrToggle(${u.id})">${u.active?'⏸ Nonaktifkan':'▶ Aktifkan'}</button><button class="btn sec" onclick="usrDel(${u.id})">🗑 Hapus</button>`:''}</div></div>`).join('')||'<div class="empty">Belum ada pengguna</div>';
   $('#usrLog').innerHTML=USR.log.length?USR.log.slice(0,40).map(x=>`<div class="dbs"><span><b>${esc(ACT_LBL[x.action]||x.action)}</b>${x.uname?' · @'+esc(x.uname):''}${x.detail?' · <span style="color:var(--mu)">'+esc(x.detail)+'</span>':''}</span><span style="color:var(--mu);white-space:nowrap">${esc(fmtLast(x.t))}</span></div>`).join(''):'<div class="hint">Belum ada aktivitas.</div>';
 }
 function permBoxes(sel){return Object.keys(PERM_LBL).map(p=>`<label class="tgl"><input type="checkbox" class="upm" value="${p}" ${sel.includes(p)?'checked':''}><span>${PERM_LBL[p]}</span></label>`).join('')}
-function usrRoleSw(){const o=$('#uRole').value==='owner';$('#uPerms').style.display=o?'none':'';$('#uOwnerHint').style.display=o?'':'none'}
+function usrRoleSw(){const o=$('#uRole').value==='owner';const sg=$('#uSingle');if(sg&&sg.dataset.t!=='1')sg.checked=!o;$('#uPerms').style.display=o?'none':'';$('#uOwnerHint').style.display=o?'':'none'}
 function usrForm(id){
   const u=id?USR.list.find(x=>x.id===id):null;
   openModal(`<h3>${u?'Ubah Pengguna':'Tambah Pengguna'}</h3>
@@ -2652,13 +2654,15 @@ function usrForm(id){
   <label class="fl">Peran</label>
   <select class="fi" id="uRole" onchange="usrRoleSw()" ${u&&u.id===(CL.me||{}).id?'disabled':''}><option value="staff" ${!u||u.role==='staff'?'selected':''}>Karyawan: kasir + izin yang dipilih</option><option value="owner" ${u&&u.role==='owner'?'selected':''}>Owner: akses penuh + kelola pengguna</option></select>
   <div id="uPerms"><label class="fl">Izin tambahan karyawan</label><div class="hint" style="margin:0 0 4px">Kasir (berjualan) selalu boleh.</div>${permBoxes(u?u.perms:['co','prn'])}</div>
+  <label class="tgl" style="margin-top:10px"><input type="checkbox" id="uSingle" data-t="${u?'1':''}" ${u?(u.single?'checked':''):'checked'} onchange="this.dataset.t='1'"><span>Hanya boleh login di satu perangkat</span></label>
+  <p class="hint" style="margin:0">Bila aktif, login di perangkat baru otomatis mengeluarkan akun ini dari perangkat sebelumnya.</p>
   <p class="hint" id="uOwnerHint" style="display:none">Owner bisa mengubah harga, riwayat, pengaturan, backup, dan mengelola pengguna.</p>
   <p class="hint" id="uErr" style="color:var(--bad);min-height:16px"></p>
   <button class="btn" onclick="usrSave(${id||0})">Simpan</button><button class="btn sec" onclick="closeModal()">Batal</button>`);
   usrRoleSw();
 }
 async function usrSave(id){
-  const body={name:$('#uName').value.trim(),role:$('#uRole').value,perms:[...document.querySelectorAll('.upm:checked')].map(x=>x.value)};
+  const body={name:$('#uName').value.trim(),role:$('#uRole').value,perms:[...document.querySelectorAll('.upm:checked')].map(x=>x.value),single:$('#uSingle').checked};
   if(!id){body.username=$('#uUser').value.trim().toLowerCase();body.password=$('#uPw').value}
   if(!body.name){$('#uErr').textContent='Nama wajib diisi';return}
   try{

@@ -22,6 +22,8 @@ create table if not exists pos.sessions(
   th text primary key,                    -- sha256 dari token; token asli tidak disimpan
   uid bigint not null references pos.users(id) on delete cascade,
   exp timestamptz not null);
+alter table pos.users add column if not exists single boolean;            -- null = otomatis (karyawan: ya, owner: tidak)
+alter table pos.sessions add column if not exists kicked_at timestamptz;   -- diisi saat perangkat ini dikeluarkan karena login di perangkat lain
 create index if not exists sessions_uid on pos.sessions(uid);
 create table if not exists pos.audit(
   id bigint generated always as identity primary key,
@@ -109,22 +111,25 @@ $$ select u.role = 'owner' or pos.perms_of(u) ? k $$;
 
 create or replace function pos.me_view(u pos.users) returns jsonb language sql stable as $$
   select jsonb_build_object('id', u.id, 'username', u.username, 'name', u.name, 'role', u.role, 'perms', pos.perms_of(u),
-    'active', u.active, 'lastLogin', coalesce(pos.iso(u.last_login), ''), 'createdAt', pos.iso(u.created_at)) $$;
+    'single', coalesce(u.single, u.role <> 'owner'), 'active', u.active, 'lastLogin', coalesce(pos.iso(u.last_login), ''), 'createdAt', pos.iso(u.created_at)) $$;
 
 create or replace function pos.auth(tok text) returns pos.users language plpgsql as $$
 declare u pos.users;
 begin
   if tok is null or length(tok) < 20 or length(tok) > 200 then return null; end if;
   select us.* into u from pos.sessions s join pos.users us on us.id = s.uid
-   where s.th = encode(extensions.digest(tok, 'sha256'), 'hex') and s.exp > now() and us.active;
+   where s.th = encode(extensions.digest(tok, 'sha256'), 'hex') and s.exp > now() and s.kicked_at is null and us.active;
   return u;
 end $$;
+create or replace function pos.kicked(tok text) returns boolean language sql stable as $$
+  select tok is not null and length(tok) between 20 and 200 and exists (select 1 from pos.sessions s
+    where s.th = encode(extensions.digest(tok, 'sha256'), 'hex') and s.exp > now() and s.kicked_at is not null) $$;
 
 create or replace function pos.new_session(uid bigint) returns text language plpgsql as $$
 declare t text := 'ps' || encode(extensions.gen_random_bytes(24), 'hex');
 begin
   insert into pos.sessions(th, uid, exp) values (encode(extensions.digest(t, 'sha256'), 'hex'), uid, now() + interval '90 days');
-  if random() < 0.1 then delete from pos.sessions where exp < now(); end if;
+  if random() < 0.1 then delete from pos.sessions where exp < now() or kicked_at < now() - interval '7 days'; end if;
   return t;
 end $$;
 
@@ -293,7 +298,7 @@ end $$;
 
 -- ------------------------------------------------------------ login
 create or replace function pos.login(b jsonb) returns jsonb language plpgsql as $$
-declare v_ip text := pos.client_ip(); lu timestamptz; un text; u pos.users; pw text; good boolean := false;
+declare v_ip text := pos.client_ip(); lu timestamptz; un text; u pos.users; pw text; good boolean := false; v_out int;
 begin
   select until into lu from pos.fails where ip = v_ip;
   if lu is not null and lu > now() then return pos.r(429, '{"error":"terlalu banyak percobaan"}'); end if;
@@ -312,14 +317,19 @@ begin
   delete from pos.fails where ip = v_ip;
   if not u.active then return pos.r(403, '{"error":"Akun dinonaktifkan. Hubungi owner."}'); end if;
   update pos.users set last_login = now() where id = u.id;
-  perform pos.audit(u.id, u.username, 'login', v_ip);
+  v_out := 0;
+  if coalesce(u.single, u.role <> 'owner') then
+    update pos.sessions set kicked_at = now() where uid = u.id and kicked_at is null;
+    get diagnostics v_out = row_count;
+  end if;
+  perform pos.audit(u.id, u.username, 'login', v_ip || case when v_out > 0 then ' (perangkat lama dikeluarkan)' else '' end);
   select * into u from pos.users where id = u.id;
   return pos.r(200, jsonb_build_object('token', pos.new_session(u.id), 'days', 90, 'me', pos.me_view(u)));
 end $$;
 
 -- ------------------------------------------------------------ router utama
 create or replace function pos.route(m text, u text, q jsonb, b jsonb, t text) returns jsonb language plpgsql as $$
-declare me pos.users; mt text[]; r pos.co; tu pos.users; own boolean; nrole text; act boolean; nm text; nperms jsonb; un text;
+declare me pos.users; mt text[]; r pos.co; tu pos.users; own boolean; nrole text; act boolean; nm text; nperms jsonb; un text; nsingle boolean;
   d pos.doc; gerr text; nv int; cnt int; rv bigint; wt numeric; ms bigint; x jsonb;
 begin
   if u = '/api/health' then return pos.r(200, '{"ok":true,"pos":true,"sb":true}'); end if;
@@ -351,7 +361,7 @@ begin
   end if;
 
   me := pos.auth(t);
-  if me.id is null then return pos.r(401, '{"error":"unauthorized"}'); end if;
+  if me.id is null then return pos.r(401, case when pos.kicked(t) then '{"error":"kicked"}'::jsonb else '{"error":"unauthorized"}'::jsonb end); end if;
   own := me.role = 'owner';
 
   if u = '/api/me' and m = 'GET' then return pos.r(200, pos.me_view(me)); end if;
@@ -378,7 +388,8 @@ begin
     nrole := case when b ->> 'role' = 'owner' then 'owner' else 'staff' end;
     nperms := case when nrole = 'owner' then '[]'::jsonb
       else pos.clean_perms(case when b -> 'perms' is null or jsonb_typeof(b -> 'perms') = 'null' then '["co","prn"]'::jsonb else b -> 'perms' end) end;
-    insert into pos.users(username, name, role, perms, pw) values (un, nm, nrole, nperms, extensions.crypt(b ->> 'password', extensions.gen_salt('bf', 10))) returning * into tu;
+    insert into pos.users(username, name, role, perms, pw, single) values (un, nm, nrole, nperms, extensions.crypt(b ->> 'password', extensions.gen_salt('bf', 10)),
+      case when jsonb_typeof(b -> 'single') = 'boolean' then (b ->> 'single')::boolean end) returning * into tu;
     perform pos.audit(me.id, me.username, 'tambah-user', un || ' (' || nrole || ')');
     return pos.r(200, pos.me_view(tu));
   end if;
@@ -402,7 +413,8 @@ begin
     if tu.role = 'owner' and tu.active and (nrole <> 'owner' or not act) and cnt <= 1 then return pos.r(400, '{"error":"Harus ada minimal satu owner aktif"}'); end if;
     if tu.id = me.id and (nrole <> 'owner' or not act) then return pos.r(400, '{"error":"Tidak bisa menurunkan/menonaktifkan akun sendiri"}'); end if;
     if b ? 'password' and (coalesce(jsonb_typeof(b -> 'password'), '') <> 'string' or length(b ->> 'password') < 6) then return pos.r(400, '{"error":"Sandi minimal 6 karakter"}'); end if;
-    update pos.users set name = nm, role = nrole, perms = nperms, active = act where id = tu.id;
+    nsingle := case when b ? 'single' then (case jsonb_typeof(b -> 'single') when 'boolean' then (b ->> 'single')::boolean when 'null' then null else tu.single end) else tu.single end;
+    update pos.users set name = nm, role = nrole, perms = nperms, active = act, single = nsingle where id = tu.id;
     if nrole <> tu.role or (not act and tu.active) then delete from pos.sessions where uid = tu.id; end if;
     if b ? 'password' then
       update pos.users set pw = extensions.crypt(b ->> 'password', extensions.gen_salt('bf', 10)) where id = tu.id;
