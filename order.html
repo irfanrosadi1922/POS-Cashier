@@ -122,6 +122,7 @@ label.fl i{color:var(--bad);font-style:normal}
 .payc .ok{color:var(--ok);font-weight:700}
 .payc .wt{color:#7a4a00;font-weight:600;font-size:14px;margin:10px 0 0}
 .payc a.dl{display:inline-block;margin-top:6px;font-size:13px;font-weight:600;color:var(--bd)}
+.ic-food{display:inline-block;width:1em;height:1em;background:#e3b48f;-webkit-mask:url("data:image/svg+xml,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20viewBox=%220%200%2024%2024%22%20fill=%22none%22%20stroke=%22%23000%22%20stroke-width=%222%22%20stroke-linecap=%22round%22%20stroke-linejoin=%22round%22%3E%3Cpath%20d=%22M7%203v6a2%202%200%200%200%204%200V3M9%2011v10M17%203c-2.2%201.6-3%204-3%207h3v11%22/%3E%3C/svg%3E") center/contain no-repeat;mask:url("data:image/svg+xml,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20viewBox=%220%200%2024%2024%22%20fill=%22none%22%20stroke=%22%23000%22%20stroke-width=%222%22%20stroke-linecap=%22round%22%20stroke-linejoin=%22round%22%3E%3Cpath%20d=%22M7%203v6a2%202%200%200%200%204%200V3M9%2011v10M17%203c-2.2%201.6-3%204-3%207h3v11%22/%3E%3C/svg%3E") center/contain no-repeat}
 .closed{text-align:center;padding:60px 10px;color:var(--mu)}
 .closed b{display:block;color:var(--tx);font-size:20px;margin-bottom:8px}
 .toast{position:fixed;left:50%;bottom:calc(96px + env(safe-area-inset-bottom));transform:translate(-50%,20px);background:#222;color:#fff;border-radius:14px;padding:10px 18px;font-size:14px;z-index:60;opacity:0;pointer-events:none;transition:.2s;max-width:90vw;text-align:center}
@@ -171,7 +172,7 @@ function money(v){
 }
 function toast(m){const t=$('#toast');t.textContent=m;t.classList.add('on');clearTimeout(toast.t);toast.t=setTimeout(()=>t.classList.remove('on'),2600)}
 const find=id=>M.items.find(i=>i.id===id);
-const thumb=i=>i.img?`<img src="${esc(i.img)}" alt="" loading="lazy">`:esc(i.emoji||'🍽️');
+const thumb=i=>i.img?`<img src="${esc(i.img)}" alt="" loading="lazy">`:(i.emoji&&i.emoji!=='🍽️'?esc(i.emoji):'<i class="ic-food"></i>');
 
 /* ---------- menu ---------- */
 async function loadMenu(first){

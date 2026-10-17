@@ -37,7 +37,6 @@ input,select,textarea{font:inherit;color:inherit}
 #fsBtn{background:var(--b);color:#fff;box-shadow:0 8px 18px rgba(255,106,0,.32)}
 .search{flex:1;min-width:0}
 .search input{border:0;outline:0;background:none;width:100%;min-width:0}
-.pill .mu{color:var(--mu)}
 /* categories */
 .cats{display:flex;gap:8px;overflow-x:auto;padding:4px 2px 10px;scrollbar-width:none;touch-action:pan-x pan-y;overscroll-behavior-x:contain}
 .cats::-webkit-scrollbar{display:none}
@@ -146,7 +145,7 @@ td .th img{width:100%;height:100%;object-fit:cover}
 .ib.d{background:#fee2e2;color:var(--bad)}
 .bar{display:flex;gap:10px;margin-bottom:12px;flex-wrap:wrap;align-items:center}
 .bar .pill{flex:1;min-width:180px}
-.bar h2{margin:0;flex:1 1 100%;font-size:20px}
+.bar h2{margin:0;flex:1 1 auto;font-size:20px}
 /* modal */
 .mw{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:100;display:none;align-items:center;justify-content:center;padding:14px}
 .mw.on{display:flex}
@@ -159,10 +158,6 @@ td .th img{width:100%;height:100%;object-fit:cover}
 #brand{display:flex;align-items:center;gap:8px;min-height:32px}
 .blogo{height:32px;max-width:120px;object-fit:contain;border-radius:6px;flex:none}
 .hfil{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;margin-bottom:12px}
-.hdates{display:flex;gap:10px;flex-wrap:wrap}
-.hdates label{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--mu)}
-.hdates .fi{width:auto;padding:7px 10px}
-tr.dh td{background:#fff6ee;font-size:12.5px;padding:8px 10px}
 .im.tap{cursor:pointer;-webkit-tap-highlight-color:transparent;transition:transform .1s}
 .im.tap:active{transform:scale(.96)}
 .pop-im{width:min(72%,260px);aspect-ratio:1/1;border-radius:50%;overflow:hidden;background:#fff6ee;display:grid;place-items:center;font-size:92px;margin:4px auto 0;box-shadow:0 16px 36px rgba(255,106,0,.22)}
@@ -192,12 +187,7 @@ tr.dh td{background:#fff6ee;font-size:12.5px;padding:8px 10px}
 .cdot.offline,.cdot.err,.cdot.auth{display:block;background:#dc2626}
 .acct[hidden]+.cloudst{margin-top:auto}
 .cloudst{margin-top:8px;font-size:12px;color:var(--mu);padding:10px 12px;border-radius:12px;background:#f6f6f6;cursor:pointer}
-.loginw{position:fixed;inset:0;z-index:200;background:var(--bg);display:grid;place-items:center;padding:20px}
 .loginw[hidden]{display:none}
-.loginc{width:100%;max-width:340px;background:#fff;border-radius:24px;padding:26px 22px;box-shadow:0 10px 40px rgba(0,0,0,.12);text-align:center}
-.loginc img{width:84px;height:auto;border-radius:20px;display:block;margin:0 auto 10px}
-.loginc h2{margin:0 0 16px}
-.loginc .fi{margin-bottom:12px;text-align:center}
 .up{display:flex;gap:12px;align-items:center}
 .pv.logo img{object-fit:contain;background:#fff}
 .pv.payqr{width:96px;height:96px;border-radius:12px}.pv.payqr img{object-fit:contain;background:#fff;image-rendering:pixelated}
@@ -209,6 +199,7 @@ tr.dh td{background:#fff6ee;font-size:12.5px;padding:8px 10px}
 .big{font-size:28px;font-weight:800;color:var(--b);text-align:center;margin:6px 0 4px}
 .chg{display:flex;justify-content:space-between;background:#f0fdf4;border-radius:12px;padding:10px 14px;margin-top:10px;font-weight:700}
 .chg.neg{background:#fef2f2;color:var(--bad)}
+.chg{gap:12px}.chg>span:first-child{flex:none}.chg>span:last-child{text-align:right}
 .acts{display:flex;gap:10px}
 .toast{position:fixed;left:50%;bottom:90px;transform:translateX(-50%) translateY(30px);background:#111827;color:#fff;padding:10px 18px;border-radius:999px;font-size:13px;opacity:0;pointer-events:none;transition:.25s;z-index:200;max-width:90vw;text-align:center}
 .toast.on{opacity:1;transform:translateX(-50%)}
@@ -307,10 +298,9 @@ button[hidden]{display:none!important}
 .qrbox{display:grid;place-items:center;margin:4px 0 8px}
 .qrbox svg{width:100%;max-width:280px;height:auto;border-radius:14px;border:1px solid var(--ln)}
 
-.loginw{background:radial-gradient(120% 60% at 50% 0%,#ffe9d6 0%,var(--bg) 60%)}
-.loginw{display:flex;overflow-y:auto;-webkit-overflow-scrolling:touch}.loginw>.loginc{margin:auto}
-.loginc{max-width:360px;text-align:left;padding:28px 24px}
-.loginc img{width:88px;height:88px;object-fit:cover;border-radius:50%;box-shadow:0 10px 26px rgba(255,106,0,.28)}
+.loginw{position:fixed;inset:0;z-index:200;background:radial-gradient(120% 60% at 50% 0%,#ffe9d6 0%,var(--bg) 60%);display:flex;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:20px}.loginw>.loginc{margin:auto}
+.loginc{width:100%;max-width:360px;background:#fff;border-radius:24px;padding:28px 24px;box-shadow:0 10px 40px rgba(0,0,0,.12);text-align:left}
+.loginc img{width:88px;height:88px;object-fit:cover;border-radius:50%;box-shadow:0 10px 26px rgba(255,106,0,.28);display:block;margin:0 auto 10px}
 .loginc h2{text-align:center;margin:0}
 .loginc .lsub{text-align:center;color:var(--mu);font-size:13px;margin:4px 0 14px}
 .loginc .fi{text-align:left;margin-bottom:2px}
@@ -347,11 +337,65 @@ select.fi{appearance:auto}
 #coDev>summary{font-weight:800;font-size:15px;cursor:pointer}
 #coDev[open]>summary{margin-bottom:10px}
 .hdates{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px;width:100%}
-.hdates label{display:flex;flex-direction:column;align-items:stretch;gap:3px;min-width:0;overflow:hidden}
+.hdates label{display:flex;flex-direction:column;align-items:stretch;gap:3px;min-width:0;overflow:hidden;font-size:12px;color:var(--mu)}
 .hdates .fi{display:block;width:100%;min-width:0;max-width:100%;box-sizing:border-box;-webkit-appearance:none;appearance:none;min-height:42px;padding:8px 10px;font-size:14px;line-height:1.2;text-align:left}
 .hdates .fi::-webkit-date-and-time-value{text-align:left;min-width:0;margin:0}
 .hdates .fi::-webkit-calendar-picker-indicator{margin:0 0 0 2px;padding:0}
 .vdl{font-size:12.5px;color:var(--mu)}.vdl div{padding:5px 0;border-bottom:1px dashed #eee}
+/* ikon: satu gaya garis (24px, tebal 2, ujung bulat). Dipakai lewat <i class="ic" data-ic="nama"></i>, warna mengikuti teks */
+.ic{display:inline-block;width:1.15em;height:1.15em;vertical-align:-.2em;margin-right:.5em;flex:none;background:currentColor;-webkit-mask:var(--m) center/contain no-repeat;mask:var(--m) center/contain no-repeat}
+.ic.solo,.drawer button .ic{margin-right:0}
+.ic[data-ic=dot]{background:#16a34a}
+.ic[data-ic=food]{color:#e3b48f}
+.ic[data-ic=cart]{--m:url("data:image/svg+xml,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20viewBox=%220%200%2024%2024%22%20fill=%22none%22%20stroke=%22%23000%22%20stroke-width=%222%22%20stroke-linecap=%22round%22%20stroke-linejoin=%22round%22%3E%3Ccircle%20cx=%229%22%20cy=%2220%22%20r=%221.5%22/%3E%3Ccircle%20cx=%2218%22%20cy=%2220%22%20r=%221.5%22/%3E%3Cpath%20d=%22M3%204h2.5l2.2%2011h10.6l1.7-8H6.3%22/%3E%3C/svg%3E")}
+.ic[data-ic=box]{--m:url("data:image/svg+xml,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20viewBox=%220%200%2024%2024%22%20fill=%22none%22%20stroke=%22%23000%22%20stroke-width=%222%22%20stroke-linecap=%22round%22%20stroke-linejoin=%22round%22%3E%3Cpath%20d=%22M21%208%2012%203%203%208v8l9%205%209-5z%22/%3E%3Cpath%20d=%22m3%208%209%205%209-5M12%2013v8%22/%3E%3C/svg%3E")}
+.ic[data-ic=chart]{--m:url("data:image/svg+xml,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20viewBox=%220%200%2024%2024%22%20fill=%22none%22%20stroke=%22%23000%22%20stroke-width=%222%22%20stroke-linecap=%22round%22%20stroke-linejoin=%22round%22%3E%3Cpath%20d=%22M5%2020V11M12%2020V4M19%2020v-6%22/%3E%3C/svg%3E")}
+.ic[data-ic=bell]{--m:url("data:image/svg+xml,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20viewBox=%220%200%2024%2024%22%20fill=%22none%22%20stroke=%22%23000%22%20stroke-width=%222%22%20stroke-linecap=%22round%22%20stroke-linejoin=%22round%22%3E%3Cpath%20d=%22M18%208a6%206%200%200%200-12%200c0%207-3%208-3%208h18s-3-1-3-8%22/%3E%3Cpath%20d=%22M10.3%2020a1.9%201.9%200%200%200%203.4%200%22/%3E%3C/svg%3E")}
+.ic[data-ic=receipt]{--m:url("data:image/svg+xml,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20viewBox=%220%200%2024%2024%22%20fill=%22none%22%20stroke=%22%23000%22%20stroke-width=%222%22%20stroke-linecap=%22round%22%20stroke-linejoin=%22round%22%3E%3Cpath%20d=%22M5%203h14v18l-3-2-2%202-2-2-2%202-2-2-3%202z%22/%3E%3Cpath%20d=%22M9%208h6M9%2012h6%22/%3E%3C/svg%3E")}
+.ic[data-ic=print]{--m:url("data:image/svg+xml,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20viewBox=%220%200%2024%2024%22%20fill=%22none%22%20stroke=%22%23000%22%20stroke-width=%222%22%20stroke-linecap=%22round%22%20stroke-linejoin=%22round%22%3E%3Cpath%20d=%22M7%209V3h10v6%22/%3E%3Cpath%20d=%22M7%2017H5a2%202%200%200%201-2-2v-4a2%202%200%200%201%202-2h14a2%202%200%200%201%202%202v4a2%202%200%200%201-2%202h-2%22/%3E%3Crect%20x=%227%22%20y=%2214%22%20width=%2210%22%20height=%227%22%20rx=%221%22/%3E%3C/svg%3E")}
+.ic[data-ic=sliders]{--m:url("data:image/svg+xml,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20viewBox=%220%200%2024%2024%22%20fill=%22none%22%20stroke=%22%23000%22%20stroke-width=%222%22%20stroke-linecap=%22round%22%20stroke-linejoin=%22round%22%3E%3Cpath%20d=%22M4%206h9M17%206h3M4%2012h3M11%2012h9M4%2018h11M19%2018h1%22/%3E%3Ccircle%20cx=%2215%22%20cy=%226%22%20r=%222%22/%3E%3Ccircle%20cx=%229%22%20cy=%2212%22%20r=%222%22/%3E%3Ccircle%20cx=%2217%22%20cy=%2218%22%20r=%222%22/%3E%3C/svg%3E")}
+.ic[data-ic=users]{--m:url("data:image/svg+xml,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20viewBox=%220%200%2024%2024%22%20fill=%22none%22%20stroke=%22%23000%22%20stroke-width=%222%22%20stroke-linecap=%22round%22%20stroke-linejoin=%22round%22%3E%3Ccircle%20cx=%229%22%20cy=%228%22%20r=%223.5%22/%3E%3Cpath%20d=%22M2.5%2020a6.5%206.5%200%200%201%2013%200%22/%3E%3Cpath%20d=%22M16%204.5a3.5%203.5%200%200%201%200%207M18%2014a6.5%206.5%200%200%201%203.5%206%22/%3E%3C/svg%3E")}
+.ic[data-ic=cloud]{--m:url("data:image/svg+xml,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20viewBox=%220%200%2024%2024%22%20fill=%22none%22%20stroke=%22%23000%22%20stroke-width=%222%22%20stroke-linecap=%22round%22%20stroke-linejoin=%22round%22%3E%3Cpath%20d=%22M7%2018a4.5%204.5%200%200%201-.6-8.96A6%206%200%200%201%2018%209a4.5%204.5%200%200%201%200%209z%22/%3E%3C/svg%3E")}
+.ic[data-ic=download]{--m:url("data:image/svg+xml,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20viewBox=%220%200%2024%2024%22%20fill=%22none%22%20stroke=%22%23000%22%20stroke-width=%222%22%20stroke-linecap=%22round%22%20stroke-linejoin=%22round%22%3E%3Cpath%20d=%22M12%204v11m0%200-4-4m4%204%204-4M5%2020h14%22/%3E%3C/svg%3E")}
+.ic[data-ic=upload]{--m:url("data:image/svg+xml,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20viewBox=%220%200%2024%2024%22%20fill=%22none%22%20stroke=%22%23000%22%20stroke-width=%222%22%20stroke-linecap=%22round%22%20stroke-linejoin=%22round%22%3E%3Cpath%20d=%22M12%2016V5m0%200-4%204m4-4%204%204M5%2020h14%22/%3E%3C/svg%3E")}
+.ic[data-ic=link]{--m:url("data:image/svg+xml,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20viewBox=%220%200%2024%2024%22%20fill=%22none%22%20stroke=%22%23000%22%20stroke-width=%222%22%20stroke-linecap=%22round%22%20stroke-linejoin=%22round%22%3E%3Cpath%20d=%22M10%2014a4%204%200%200%200%205.7%200l3-3a4%204%200%200%200-5.7-5.7l-1%201%22/%3E%3Cpath%20d=%22M14%2010a4%204%200%200%200-5.7%200l-3%203a4%204%200%200%200%205.7%205.7l1-1%22/%3E%3C/svg%3E")}
+.ic[data-ic=expand]{--m:url("data:image/svg+xml,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20viewBox=%220%200%2024%2024%22%20fill=%22none%22%20stroke=%22%23000%22%20stroke-width=%222%22%20stroke-linecap=%22round%22%20stroke-linejoin=%22round%22%3E%3Cpath%20d=%22M4%209V4h5M20%209V4h-5M4%2015v5h5M20%2015v5h-5%22/%3E%3C/svg%3E")}
+.ic[data-ic=search]{--m:url("data:image/svg+xml,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20viewBox=%220%200%2024%2024%22%20fill=%22none%22%20stroke=%22%23000%22%20stroke-width=%222%22%20stroke-linecap=%22round%22%20stroke-linejoin=%22round%22%3E%3Ccircle%20cx=%2211%22%20cy=%2211%22%20r=%227%22/%3E%3Cpath%20d=%22m20%2020-3.5-3.5%22/%3E%3C/svg%3E")}
+.ic[data-ic=trash]{--m:url("data:image/svg+xml,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20viewBox=%220%200%2024%2024%22%20fill=%22none%22%20stroke=%22%23000%22%20stroke-width=%222%22%20stroke-linecap=%22round%22%20stroke-linejoin=%22round%22%3E%3Cpath%20d=%22M4%207h16M10%2011v6M14%2011v6M6%207l1%2013h10l1-13M9%207V4h6v3%22/%3E%3C/svg%3E")}
+.ic[data-ic=reorder]{--m:url("data:image/svg+xml,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20viewBox=%220%200%2024%2024%22%20fill=%22none%22%20stroke=%22%23000%22%20stroke-width=%222%22%20stroke-linecap=%22round%22%20stroke-linejoin=%22round%22%3E%3Cpath%20d=%22M8%204v16M8%204%205%207m3-3%203%203M16%2020V4m0%2016-3-3m3%203%203-3%22/%3E%3C/svg%3E")}
+.ic[data-ic=bolt]{--m:url("data:image/svg+xml,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20viewBox=%220%200%2024%2024%22%20fill=%22none%22%20stroke=%22%23000%22%20stroke-width=%222%22%20stroke-linecap=%22round%22%20stroke-linejoin=%22round%22%3E%3Cpath%20d=%22M13%203%205%2014h6l-1%207%208-11h-6z%22/%3E%3C/svg%3E")}
+.ic[data-ic=hash]{--m:url("data:image/svg+xml,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20viewBox=%220%200%2024%2024%22%20fill=%22none%22%20stroke=%22%23000%22%20stroke-width=%222%22%20stroke-linecap=%22round%22%20stroke-linejoin=%22round%22%3E%3Cpath%20d=%22M5%209h14M5%2015h14M10%204%208%2020M16%204l-2%2016%22/%3E%3C/svg%3E")}
+.ic[data-ic=ban]{--m:url("data:image/svg+xml,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20viewBox=%220%200%2024%2024%22%20fill=%22none%22%20stroke=%22%23000%22%20stroke-width=%222%22%20stroke-linecap=%22round%22%20stroke-linejoin=%22round%22%3E%3Ccircle%20cx=%2212%22%20cy=%2212%22%20r=%229%22/%3E%3Cpath%20d=%22m5.6%205.6%2012.8%2012.8%22/%3E%3C/svg%3E")}
+.ic[data-ic=card]{--m:url("data:image/svg+xml,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20viewBox=%220%200%2024%2024%22%20fill=%22none%22%20stroke=%22%23000%22%20stroke-width=%222%22%20stroke-linecap=%22round%22%20stroke-linejoin=%22round%22%3E%3Crect%20x=%223%22%20y=%225%22%20width=%2218%22%20height=%2214%22%20rx=%222.5%22/%3E%3Cpath%20d=%22M3%2010h18M7%2015h3%22/%3E%3C/svg%3E")}
+.ic[data-ic=image]{--m:url("data:image/svg+xml,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20viewBox=%220%200%2024%2024%22%20fill=%22none%22%20stroke=%22%23000%22%20stroke-width=%222%22%20stroke-linecap=%22round%22%20stroke-linejoin=%22round%22%3E%3Crect%20x=%223%22%20y=%224%22%20width=%2218%22%20height=%2216%22%20rx=%223%22/%3E%3Ccircle%20cx=%229%22%20cy=%2210%22%20r=%221.7%22/%3E%3Cpath%20d=%22m21%2016-5-5-8%208%22/%3E%3C/svg%3E")}
+.ic[data-ic=camera]{--m:url("data:image/svg+xml,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20viewBox=%220%200%2024%2024%22%20fill=%22none%22%20stroke=%22%23000%22%20stroke-width=%222%22%20stroke-linecap=%22round%22%20stroke-linejoin=%22round%22%3E%3Cpath%20d=%22M4%208h3l2-3h6l2%203h3v11H4z%22/%3E%3Ccircle%20cx=%2212%22%20cy=%2213%22%20r=%223.5%22/%3E%3C/svg%3E")}
+.ic[data-ic=note]{--m:url("data:image/svg+xml,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20viewBox=%220%200%2024%2024%22%20fill=%22none%22%20stroke=%22%23000%22%20stroke-width=%222%22%20stroke-linecap=%22round%22%20stroke-linejoin=%22round%22%3E%3Cpath%20d=%22M5%204h14v16H5z%22/%3E%3Cpath%20d=%22M8%209h8M8%2013h8M8%2017h4%22/%3E%3C/svg%3E")}
+.ic[data-ic=copy]{--m:url("data:image/svg+xml,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20viewBox=%220%200%2024%2024%22%20fill=%22none%22%20stroke=%22%23000%22%20stroke-width=%222%22%20stroke-linecap=%22round%22%20stroke-linejoin=%22round%22%3E%3Crect%20x=%228%22%20y=%228%22%20width=%2212%22%20height=%2212%22%20rx=%222%22/%3E%3Cpath%20d=%22M16%208V6a2%202%200%200%200-2-2H6a2%202%200%200%200-2%202v8a2%202%200%200%200%202%202h2%22/%3E%3C/svg%3E")}
+.ic[data-ic=plug]{--m:url("data:image/svg+xml,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20viewBox=%220%200%2024%2024%22%20fill=%22none%22%20stroke=%22%23000%22%20stroke-width=%222%22%20stroke-linecap=%22round%22%20stroke-linejoin=%22round%22%3E%3Cpath%20d=%22M9%203v5M15%203v5M6%208h12v3a6%206%200%200%201-12%200zM12%2017v4%22/%3E%3C/svg%3E")}
+.ic[data-ic=alert]{--m:url("data:image/svg+xml,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20viewBox=%220%200%2024%2024%22%20fill=%22none%22%20stroke=%22%23000%22%20stroke-width=%222%22%20stroke-linecap=%22round%22%20stroke-linejoin=%22round%22%3E%3Cpath%20d=%22M12%204%202.5%2020h19z%22/%3E%3Cpath%20d=%22M12%2010v4M12%2017.2v.1%22/%3E%3C/svg%3E")}
+.ic[data-ic=dot]{--m:url("data:image/svg+xml,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20viewBox=%220%200%2024%2024%22%20fill=%22none%22%20stroke=%22%23000%22%20stroke-width=%222%22%20stroke-linecap=%22round%22%20stroke-linejoin=%22round%22%3E%3Cpath%20d=%22M12%2012h.01%22%20stroke-width=%2210%22/%3E%3C/svg%3E")}
+.ic[data-ic=mute]{--m:url("data:image/svg+xml,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20viewBox=%220%200%2024%2024%22%20fill=%22none%22%20stroke=%22%23000%22%20stroke-width=%222%22%20stroke-linecap=%22round%22%20stroke-linejoin=%22round%22%3E%3Cpath%20d=%22M4%209v6h4l5%204V5L8%209z%22/%3E%3Cpath%20d=%22m17%209%204%206m0-6-4%206%22/%3E%3C/svg%3E")}
+.ic[data-ic=clock]{--m:url("data:image/svg+xml,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20viewBox=%220%200%2024%2024%22%20fill=%22none%22%20stroke=%22%23000%22%20stroke-width=%222%22%20stroke-linecap=%22round%22%20stroke-linejoin=%22round%22%3E%3Ccircle%20cx=%2212%22%20cy=%2212%22%20r=%229%22/%3E%3Cpath%20d=%22M12%207v5l3%202%22/%3E%3C/svg%3E")}
+.ic[data-ic=undo]{--m:url("data:image/svg+xml,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20viewBox=%220%200%2024%2024%22%20fill=%22none%22%20stroke=%22%23000%22%20stroke-width=%222%22%20stroke-linecap=%22round%22%20stroke-linejoin=%22round%22%3E%3Cpath%20d=%22M9%2014%204%209l5-5%22/%3E%3Cpath%20d=%22M4%209h10a6%206%200%200%201%200%2012h-3%22/%3E%3C/svg%3E")}
+.ic[data-ic=bank]{--m:url("data:image/svg+xml,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20viewBox=%220%200%2024%2024%22%20fill=%22none%22%20stroke=%22%23000%22%20stroke-width=%222%22%20stroke-linecap=%22round%22%20stroke-linejoin=%22round%22%3E%3Cpath%20d=%22M3%2010%2012%204l9%206M5%2010v8M9.5%2010v8M14.5%2010v8M19%2010v8M3%2020h18%22/%3E%3C/svg%3E")}
+.ic[data-ic=qr]{--m:url("data:image/svg+xml,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20viewBox=%220%200%2024%2024%22%20fill=%22none%22%20stroke=%22%23000%22%20stroke-width=%222%22%20stroke-linecap=%22round%22%20stroke-linejoin=%22round%22%3E%3Crect%20x=%223%22%20y=%223%22%20width=%227%22%20height=%227%22%20rx=%221%22/%3E%3Crect%20x=%2214%22%20y=%223%22%20width=%227%22%20height=%227%22%20rx=%221%22/%3E%3Crect%20x=%223%22%20y=%2214%22%20width=%227%22%20height=%227%22%20rx=%221%22/%3E%3Cpath%20d=%22M14%2014h3v3m4-3v7h-4m-3%200v-3%22/%3E%3C/svg%3E")}
+.ic[data-ic=edit]{--m:url("data:image/svg+xml,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20viewBox=%220%200%2024%2024%22%20fill=%22none%22%20stroke=%22%23000%22%20stroke-width=%222%22%20stroke-linecap=%22round%22%20stroke-linejoin=%22round%22%3E%3Cpath%20d=%22M4%2020h4L19%209a2.8%202.8%200%200%200-4-4L4%2016z%22/%3E%3Cpath%20d=%22m13.5%206.5%204%204%22/%3E%3C/svg%3E")}
+.ic[data-ic=key]{--m:url("data:image/svg+xml,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20viewBox=%220%200%2024%2024%22%20fill=%22none%22%20stroke=%22%23000%22%20stroke-width=%222%22%20stroke-linecap=%22round%22%20stroke-linejoin=%22round%22%3E%3Ccircle%20cx=%228%22%20cy=%2215%22%20r=%224%22/%3E%3Cpath%20d=%22m11%2012%209-9M16%207l3%203%22/%3E%3C/svg%3E")}
+.ic[data-ic=pause]{--m:url("data:image/svg+xml,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20viewBox=%220%200%2024%2024%22%20fill=%22none%22%20stroke=%22%23000%22%20stroke-width=%222%22%20stroke-linecap=%22round%22%20stroke-linejoin=%22round%22%3E%3Cpath%20d=%22M8%205v14M16%205v14%22/%3E%3C/svg%3E")}
+.ic[data-ic=play]{--m:url("data:image/svg+xml,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20viewBox=%220%200%2024%2024%22%20fill=%22none%22%20stroke=%22%23000%22%20stroke-width=%222%22%20stroke-linecap=%22round%22%20stroke-linejoin=%22round%22%3E%3Cpath%20d=%22M7%204v16l13-8z%22/%3E%3C/svg%3E")}
+.ic[data-ic=check]{--m:url("data:image/svg+xml,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20viewBox=%220%200%2024%2024%22%20fill=%22none%22%20stroke=%22%23000%22%20stroke-width=%222%22%20stroke-linecap=%22round%22%20stroke-linejoin=%22round%22%3E%3Cpath%20d=%22m5%2012.5%204.5%204.5L19%207%22/%3E%3C/svg%3E")}
+.ic[data-ic=x]{--m:url("data:image/svg+xml,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20viewBox=%220%200%2024%2024%22%20fill=%22none%22%20stroke=%22%23000%22%20stroke-width=%222%22%20stroke-linecap=%22round%22%20stroke-linejoin=%22round%22%3E%3Cpath%20d=%22M6%206l12%2012M18%206%206%2018%22/%3E%3C/svg%3E")}
+.ic[data-ic=plus]{--m:url("data:image/svg+xml,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20viewBox=%220%200%2024%2024%22%20fill=%22none%22%20stroke=%22%23000%22%20stroke-width=%222%22%20stroke-linecap=%22round%22%20stroke-linejoin=%22round%22%3E%3Cpath%20d=%22M12%205v14M5%2012h14%22/%3E%3C/svg%3E")}
+.ic[data-ic=grid]{--m:url("data:image/svg+xml,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20viewBox=%220%200%2024%2024%22%20fill=%22none%22%20stroke=%22%23000%22%20stroke-width=%222%22%20stroke-linecap=%22round%22%20stroke-linejoin=%22round%22%3E%3Crect%20x=%224%22%20y=%224%22%20width=%227%22%20height=%227%22%20rx=%221.5%22/%3E%3Crect%20x=%2213%22%20y=%224%22%20width=%227%22%20height=%227%22%20rx=%221.5%22/%3E%3Crect%20x=%224%22%20y=%2213%22%20width=%227%22%20height=%227%22%20rx=%221.5%22/%3E%3Crect%20x=%2213%22%20y=%2213%22%20width=%227%22%20height=%227%22%20rx=%221.5%22/%3E%3C/svg%3E")}
+.ic[data-ic=list]{--m:url("data:image/svg+xml,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20viewBox=%220%200%2024%2024%22%20fill=%22none%22%20stroke=%22%23000%22%20stroke-width=%222%22%20stroke-linecap=%22round%22%20stroke-linejoin=%22round%22%3E%3Cpath%20d=%22M4%206h16M4%2012h16M4%2018h16%22/%3E%3C/svg%3E")}
+.ic[data-ic=food]{--m:url("data:image/svg+xml,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20viewBox=%220%200%2024%2024%22%20fill=%22none%22%20stroke=%22%23000%22%20stroke-width=%222%22%20stroke-linecap=%22round%22%20stroke-linejoin=%22round%22%3E%3Cpath%20d=%22M7%203v6a2%202%200%200%200%204%200V3M9%2011v10M17%203c-2.2%201.6-3%204-3%207h3v11%22/%3E%3C/svg%3E")}
+.bar h2 .ic{color:var(--b);margin-right:.4em}
+.drawer .ic{width:20px;height:20px}
+.dg{margin:16px 10px 6px;font-size:11px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--mu)}.dg:first-of-type{margin-top:0}
+.stabs{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 14px}
+.stabs button{padding:9px 16px;border-radius:999px;background:#fff;font-weight:700;font-size:13px;box-shadow:0 2px 8px rgba(0,0,0,.05)}
+.stabs button.on{background:var(--b);color:#fff;box-shadow:0 6px 14px rgba(255,106,0,.28)}
+.gh{display:none!important}
 </style>
 <link rel="manifest" href="manifest.webmanifest"><link rel="apple-touch-icon" href="icon-192.png"><link rel="icon" href="icon-192.png">
 <script src="config.js"></script><script src="sbapi.js"></script>
@@ -361,16 +405,18 @@ select.fi{appearance:auto}
 <div class="scrim" id="scrim" onclick="closeAll()"></div>
 <nav class="drawer" id="drawer">
   <h3 id="brand">POS SATE</h3>
-  <button data-v="pos" onclick="go('pos')">🧾 &nbsp;Kasir</button>
-  <button data-v="inv" onclick="go('inv')">📦 &nbsp;Inventori</button>
-  <button data-v="hist" onclick="go('hist')">📊 &nbsp;Riwayat Penjualan</button>
-  <button data-v="co" id="coNav" onclick="go('co')" hidden>🔔 &nbsp;Pesanan Online <span class="nb" id="coNavN" hidden></span></button>
-  <button data-v="rc" onclick="go('rc')">🧾 &nbsp;Desain Struk</button>
-  <button data-v="prn" onclick="go('prn')">🖨️ &nbsp;Printer</button>
-  <button data-v="set" onclick="go('set')">⚙️ &nbsp;Pengaturan</button>
-  <button data-v="usr" id="usrNav" onclick="go('usr')" hidden>👥 &nbsp;Pengguna</button>
+  <div class="dg">Operasional</div>
+  <button data-v="pos" onclick="go('pos')"><i class="ic" data-ic="cart"></i>Kasir</button>
+  <button data-v="co" id="coNav" onclick="go('co')" hidden><i class="ic" data-ic="bell"></i>Pesanan Online <span class="nb" id="coNavN" hidden></span></button>
+  <button data-v="inv" onclick="go('inv')"><i class="ic" data-ic="box"></i>Inventori</button>
+  <button data-v="hist" onclick="go('hist')"><i class="ic" data-ic="chart"></i>Riwayat Penjualan</button>
+  <div class="dg">Pengaturan</div>
+  <button data-v="set" onclick="go('set')"><i class="ic" data-ic="sliders"></i>Toko &amp; Sistem</button>
+  <button data-v="rc" onclick="go('rc')"><i class="ic" data-ic="receipt"></i>Desain Struk</button>
+  <button data-v="prn" onclick="go('prn')"><i class="ic" data-ic="print"></i>Printer</button>
+  <button data-v="usr" id="usrNav" onclick="go('usr')" hidden><i class="ic" data-ic="users"></i>Pengguna</button>
   <button class="acct" id="acct" onclick="openAcct()" hidden></button>
-  <div class="cloudst" id="cloudRow" hidden onclick="syncNow()">☁ <span id="cloudSt"></span> <span id="cloudT"></span></div>
+  <div class="cloudst" id="cloudRow" hidden onclick="syncNow()"><i class="ic" data-ic="cloud"></i><span id="cloudSt"></span> <span id="cloudT"></span></div>
 </nav>
 <div class="loginw" id="login" hidden><form class="loginc" onsubmit="doLogin();return false" autocomplete="on">
   <img id="loginLogo" alt=""><h2 id="loginName">POS SATE</h2><p class="lsub">Masuk untuk membuka kasir</p>
@@ -412,10 +458,10 @@ select.fi{appearance:auto}
     </section>
 
     <section id="v-inv" hidden>
-      <div class="bar"><h2>📦 Inventori</h2>
+      <div class="bar"><h2><i class="ic" data-ic="box"></i>Inventori</h2>
         <button class="btn sm" onclick="itemForm()">+ Tambah Item</button>
-        <button class="btn sm red" id="bulkDel" onclick="bulkDel()" hidden>🗑 Hapus terpilih (0)</button>
-        <button class="btn sm sec" onclick="orderForm()">↕ Atur Urutan Menu</button>
+        <button class="btn sm red" id="bulkDel" onclick="bulkDel()" hidden><i class="ic" data-ic="trash"></i>Hapus terpilih (0)</button>
+        <button class="btn sm sec" onclick="orderForm()"><i class="ic" data-ic="reorder"></i>Atur Urutan Menu</button>
         <button class="btn sm sec" onclick="exportCSV()">Ekspor CSV</button>
       </div>
       <div class="stats" id="invStats"></div>
@@ -424,7 +470,7 @@ select.fi{appearance:auto}
     </section>
 
     <section id="v-hist" hidden>
-      <div class="bar"><h2>📊 Riwayat Penjualan</h2><button class="btn sm" style="width:auto;margin:0" onclick="exportXlsx()">⬇️ Excel</button></div>
+      <div class="bar"><h2><i class="ic" data-ic="chart"></i>Riwayat Penjualan</h2><button class="btn sm" style="width:auto;margin:0" onclick="exportXlsx()"><i class="ic" data-ic="download"></i>Excel</button></div>
       <div class="panel hfil"><div class="chips" id="hChips"></div>
         <div class="hdates"><label><span>Dari</span><input class="fi" type="date" id="hFrom" onchange="setHD()"></label><label><span>Sampai</span><input class="fi" type="date" id="hTo" onchange="setHD()"></label></div></div>
       <div class="stats" id="histStats"></div>
@@ -433,48 +479,49 @@ select.fi{appearance:auto}
     </section>
 
     <section id="v-rc" hidden>
-      <div class="bar"><h2>🧾 Desain Struk</h2></div>
+      <div class="bar"><h2><i class="ic" data-ic="receipt"></i>Desain Struk</h2></div>
       <div class="rcgrid"><div id="rcForm"></div>
         <div class="rcside"><div class="panel"><h3>Pratinjau</h3><div class="rc-wrap" id="rcPrev"></div>
-        <button class="btn sec" onclick="testPrint()">🖨️ Cetak Contoh</button></div></div></div>
+        <button class="btn sec" onclick="testPrint()"><i class="ic" data-ic="print"></i>Cetak Contoh</button></div></div></div>
     </section>
 
     <section id="v-prn" hidden>
-      <div class="bar"><h2>🖨️ Printer</h2></div>
+      <div class="bar"><h2><i class="ic" data-ic="print"></i>Printer</h2></div>
       <div id="prnForm"></div>
     </section>
 
     <section id="v-co" hidden>
-      <div class="bar"><h2>🔔 Pesanan Online</h2><button class="btn sm" id="coGear" style="width:auto;margin:0" hidden onclick="go('set')">⚙️ Pengaturan QR</button></div>
+      <div class="bar"><h2><i class="ic" data-ic="bell"></i>Pesanan Online</h2><button class="btn sm" id="coGear" style="width:auto;margin:0" hidden onclick="S.setTab='co';go('set')"><i class="ic" data-ic="sliders"></i>Pengaturan QR</button></div>
       <div id="coStat"></div>
       <div id="coList"></div>
       <details class="panel" id="coDev" style="margin-top:18px"><summary>Pengaturan perangkat ini</summary><div id="coTop"></div></details>
     </section>
 
     <section id="v-usr" hidden>
-      <div class="bar"><h2>👥 Pengguna</h2><button class="btn sm" style="width:auto;margin:0" onclick="usrForm(0)">＋ Tambah</button></div>
+      <div class="bar"><h2><i class="ic" data-ic="users"></i>Pengguna</h2><button class="btn sm" style="width:auto;margin:0" onclick="usrForm(0)"><i class="ic" data-ic="plus"></i>Tambah</button></div>
       <div class="panel"><div class="hint" style="margin:0"><b>Owner</b>: akses penuh, termasuk harga, riwayat, pengaturan, backup, dan pengguna.<br><b>Karyawan</b>: hanya kasir, ditambah izin yang Anda pilih. Karyawan tidak bisa mengubah harga atau menghapus riwayat penjualan.</div></div>
       <div id="usrList"></div>
       <div class="panel" style="margin-top:14px"><h3>Aktivitas terbaru</h3><div id="usrLog"></div></div>
     </section>
 
     <section id="v-set" hidden>
-      <div class="bar"><h2>⚙️ Pengaturan</h2></div>
-      <div class="panel" id="setForm"></div>
-      <div class="panel" id="coForm" hidden></div>
-      <div class="panel" id="payForm" hidden></div>
-      <div class="panel" id="scrForm"></div>
-      <div class="panel" id="logoForm"></div>
-      <div class="panel" id="langForm"></div>
-      <div class="panel" id="curForm"></div>
-      <div class="panel"><h3>Kategori</h3><div id="catMgr"></div>
+      <div class="bar"><h2><i class="ic" data-ic="sliders"></i>Pengaturan</h2></div>
+      <div class="stabs" id="setTabs" role="tablist"><button data-t="toko" onclick="setTab('toko')">Toko</button><button data-t="co" onclick="setTab('co')">Pesanan &amp; Bayar</button><button data-t="tampil" onclick="setTab('tampil')">Tampilan</button><button data-t="data" onclick="setTab('data')">Data &amp; Cadangan</button></div>
+      <div class="panel" data-g="toko" id="setForm"></div>
+      <div class="panel" data-g="toko" id="logoForm"></div>
+      <div class="panel" data-g="toko" id="curForm"></div>
+      <div class="panel" data-g="toko"><h3>Kategori</h3><div id="catMgr"></div>
         <div class="acts" style="margin-top:10px"><input class="fi" id="newCat" placeholder="Nama kategori baru"><button class="btn sm" onclick="addCat()">Tambah</button></div></div>
-      <div class="panel" id="dbForm"></div>
+      <div class="panel" data-g="co" id="coForm" hidden></div>
+      <div class="panel" data-g="co" id="payForm" hidden></div>
+      <div class="panel" data-g="tampil" id="langForm"></div>
+      <div class="panel" data-g="tampil" id="scrForm"></div>
+      <div class="panel" data-g="data" id="dbForm"></div>
     </section>
   </main>
 
   <aside class="invoice" id="invoice">
-    <h2><span>Invoice</span><button class="sheet-x mini" style="color:var(--mu);font-size:22px" onclick="toggleInv(false)">✕</button></h2>
+    <h2><span>Invoice</span><button class="sheet-x mini" style="color:var(--mu);font-size:22px" onclick="toggleInv(false)"><i class="ic solo" data-ic="x"></i></button></h2>
     <select id="otype" onchange="S.type=this.value">
       <option value="Takeaway">Takeaway</option><option value="Dine In">Dine In</option><option value="Delivery">Delivery</option>
     </select>
@@ -493,7 +540,7 @@ select.fi{appearance:auto}
   </aside>
 </div>
 
-<button class="fab" id="fab" onclick="toggleInv(true)"><span id="fabN">🛒 0 item</span><span id="fabT"></span></button>
+<button class="fab" id="fab" onclick="toggleInv(true)"><span id="fabN"><i class="ic" data-ic="cart"></i>0 item</span><span id="fabT"></span></button>
 <div class="mw" id="mw" onclick="if(event.target===this)closeModal()"><div class="modal" id="modal"></div></div>
 <div class="toast" id="toast"></div>
 <style id="pageStyle"></style>
@@ -502,6 +549,7 @@ select.fi{appearance:auto}
 const $=s=>document.querySelector(s);
 const KEY='sushi_pos_v1';
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const emo=i=>i.emoji&&i.emoji!=='🍽️'?esc(i.emoji):'<i class="ic solo" data-ic="food"></i>'; // item tanpa gambar: emoji pilihan, atau ikon bawaan
 const uid=()=>'i'+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
 
 function seed(){
@@ -548,12 +596,12 @@ const rnd=v=>{const f=Math.pow(10,dec());return Math.round((+v+Number.EPSILON)*f
 const fmtNum=n=>Number(n).toLocaleString(db.set.loc||'id-ID',{minimumFractionDigits:dec(),maximumFractionDigits:dec()});
 const money=n=>{const s=db.set,v=fmtNum(n);return s.curPos==='after'?v+' '+s.cur:s.cur+' '+v};
 const find=id=>db.items.find(i=>i.id===id);
-const thumb=i=>i.img?`<img src="${i.img}" alt="">`:esc(i.emoji||'🍽️');
+const thumb=i=>i.img?`<img src="${i.img}" alt="">`:emo(i);
 
 function toast(m){const t=$('#toast');t.textContent=m;t.classList.add('on');clearTimeout(toast.t);toast.t=setTimeout(()=>t.classList.remove('on'),2200)}
 function applyBrand(){
   const s=db.set,b=$('#brand');if(!b)return;
-  b.innerHTML=(s.logo&&s.logoApp!==false?'<img class="blogo" alt="" src="'+s.logo+'">':'<span>🍢</span>')+'<span>'+esc(s.store)+'</span>';
+  b.innerHTML=(s.logo&&s.logoApp!==false?'<img class="blogo" alt="" src="'+s.logo+'">':'<i class="ic solo" data-ic="food"></i>')+'<span>'+esc(s.store)+'</span>';
   if(typeof applyLang==='function'&&lang()!=='id'){}
 }
 (function(){
@@ -674,7 +722,7 @@ function totals(){
   const c=calc(),n=Object.values(S.cart).reduce((a,b)=>a+b,0);
   $('#sSub').textContent=money(c.sub);$('#sTaxL').textContent=`Pajak (${db.set.tax}%)`;$('#sTax').textContent=money(c.tax);
   $('#sDisc').textContent='− '+money(c.disc);$('#sTot').textContent=money(c.total);
-  $('#placeBtn').disabled=!n;$('#fabN').textContent=`🛒 ${n} item`;$('#fabT').textContent=money(c.total);
+  $('#placeBtn').disabled=!n;$('#fabN').innerHTML=`<i class="ic" data-ic="cart"></i>${n} item`;$('#fabT').textContent=money(c.total);
 }
 function clearCart(){S.cart={};S.dVal=0;renderGrid();renderInvoice()}
 
@@ -684,7 +732,7 @@ function payForm(){
   openModal(`<h3>Pembayaran</h3><div class="big" id="pTot">${money(c.total)}</div>
   <label class="fl">Nama pelanggan / meja (opsional)</label><input class="fi" id="pCust">
   <label class="fl">Metode</label><div class="chips" id="pM">${['Tunai','Kartu','QRIS','DuitNow','E-Wallet'].map(m=>`<button class="chip ${m===pre?'on':''}" data-m="${m}" onclick="setM('${m}')">${m}</button>`).join('')}</div>
-  ${co&&co.pay==='duitnow'?`<div class="chg ${co.pst===2?'':'neg'}" style="margin:8px 0"><span>${co.pst===2?'💳 Pelanggan membayar lewat DuitNow, sudah Anda konfirmasi.':co.pst===1?'💳 Pelanggan mengaku sudah bayar lewat DuitNow. Cek mutasi dulu sebelum lanjut.':'💳 Pelanggan memilih DuitNow tetapi belum menandai sudah bayar.'}</span></div>`:''}
+  ${co&&co.pay==='duitnow'?`<div class="chg ${co.pst===2?'':'neg'}" style="margin:8px 0"><span>${co.pst===2?'<i class="ic" data-ic="card"></i>Pelanggan membayar lewat DuitNow, sudah Anda konfirmasi.':co.pst===1?'<i class="ic" data-ic="card"></i>Pelanggan mengaku sudah bayar lewat DuitNow. Cek mutasi dulu sebelum lanjut.':'<i class="ic" data-ic="card"></i>Pelanggan memilih DuitNow tetapi belum menandai sudah bayar.'}</span></div>`:''}
   <div id="cashBox" style="${pre==='Tunai'?'':'display:none'}"><label class="fl">Uang diterima</label><input class="fi" id="pPaid" type="number" step="any" min="0" value="${c.total}" oninput="calcChange()">
   <div class="chips"><button class="chip" onclick="quick(${c.total})">Uang Pas</button>${quickAmts().filter(v=>v>=c.total/2).map(v=>`<button class="chip" onclick="quick(${v})">${amtLbl(v)}</button>`).join('')}</div>
   <div class="chg" id="pChg"><span>Kembalian</span><span>${money(0)}</span></div></div>
@@ -765,7 +813,7 @@ function receiptHTML(o,prev){
 function showReceipt(o,fresh){
   S.rcOrder=o;S.rcFresh=!!fresh;setPageSize();
   openModal(`<h3>Struk</h3><div class="rc-wrap">${receiptHTML(o)}</div>
-  <button class="btn" onclick="printReceipt(S.rcOrder)">🖨️ Cetak Struk</button>
+  <button class="btn" onclick="printReceipt(S.rcOrder)"><i class="ic" data-ic="print"></i>Cetak Struk</button>
   <button class="btn sec" onclick="${fresh?'newTx()':'closeModal()'}">${fresh?'Selesai':'Tutup'}</button>`);
   if(fresh&&db.set.prn.auto)setTimeout(()=>printReceipt(o),250);
 }
@@ -1006,9 +1054,9 @@ function itemForm(id){
   const i=id?find(id):{name:'',cat:db.cats[0]||'',price:'',cost:'',stock:0,min:db.set.low,img:'',emoji:'🍽️'};
   S.edit={id:id||null,img:i.img};
   openModal(`<h3>${id?'Edit':'Tambah'} Item</h3>
-  <div class="up"><div class="pv" id="pv">${i.img?`<img src="${i.img}">`:esc(i.emoji||'🍽️')}</div>
-  <div><button class="btn sm sec" onclick="$('#imgF').click()">📷 Upload Gambar</button>
-  <button class="mini" onclick="S.edit.img='';$('#pv').innerHTML='🍽️'">Hapus</button>
+  <div class="up"><div class="pv" id="pv">${i.img?`<img src="${i.img}">`:emo(i)}</div>
+  <div><button class="btn sm sec" onclick="$('#imgF').click()"><i class="ic" data-ic="camera"></i>Upload Gambar</button>
+  <button class="mini" onclick="S.edit.img='';$('#pv').innerHTML=emo({})">Hapus</button>
   <input type="file" id="imgF" accept="image/*" hidden onchange="pickImg(this)"></div></div>
   <label class="fl">Nama item *</label><input class="fi" id="fN" value="${esc(i.name)}">
   <div class="two"><div><label class="fl">Kategori</label><select class="fi" id="fC">${db.cats.map(c=>`<option ${c===i.cat?'selected':''}>${esc(c)}</option>`).join('')}</select></div>
@@ -1073,8 +1121,8 @@ function histOpen(no){
   <tr class="tt"><td>Total</td><td>${money(x.total)}</td></tr>
   ${x.method==='Tunai'?`<tr><td>Diterima</td><td>${money(x.paid)}</td></tr><tr><td>Kembalian</td><td>${money(x.change||0)}</td></tr>`:''}
   ${isOwner()?`<tr><td>Estimasi laba</td><td>${money(x.total-x.tax-cost)}</td></tr>`:''}</table>
-  <button class="btn" onclick="showReceipt(db.orders.find(o=>o.no==='${esc(x.no)}'))">🖨️ Lihat / Cetak Struk</button>
-  ${isOwner()?`<button class="btn sec" style="color:var(--bad)" onclick="histDel('${esc(x.no)}')">🗑️ Hapus transaksi</button>`:''}
+  <button class="btn" onclick="showReceipt(db.orders.find(o=>o.no==='${esc(x.no)}'))"><i class="ic" data-ic="print"></i>Lihat / Cetak Struk</button>
+  ${isOwner()?`<button class="btn sec" style="color:var(--bad)" onclick="histDel('${esc(x.no)}')"><i class="ic" data-ic="trash"></i>Hapus transaksi</button>`:''}
   <button class="btn sec" onclick="closeModal()">Tutup</button>`);
 }
 function histDel(no){
@@ -1119,6 +1167,14 @@ function renderHist(){
 }
 
 /* ---------- settings ---------- */
+function setTab(k){S.setTab=k;applySetTab()}
+function applySetTab(){
+  const sec=$('#v-set');if(!sec||!sec.querySelectorAll)return;
+  const has=g=>[...sec.querySelectorAll('.panel[data-g="'+g+'"]')].some(p=>!p.hidden);
+  let k=S.setTab||'toko';if(!has(k))k='toko';
+  sec.querySelectorAll('.panel[data-g]').forEach(p=>p.classList.toggle('gh',p.dataset.g!==k));
+  sec.querySelectorAll('#setTabs button').forEach(b=>{b.hidden=!has(b.dataset.t);b.classList.toggle('on',b.dataset.t===k)});
+}
 function renderSet(){
   const s=db.set;
   $('#setForm').innerHTML=`<h3>Toko & Struk</h3>
@@ -1134,8 +1190,8 @@ function renderSet(){
   renderDb();
   renderLang();
   renderCur();
-  renderCoSet();renderPay();
-  $('#catMgr').innerHTML=db.cats.map(c=>`<span class="chip" style="display:inline-flex;gap:8px;margin:0 6px 6px 0">${esc(c)} <button style="color:var(--bad)" onclick="delCat('${esc(c).replace(/'/g,"\\'")}')">✕</button></span>`).join('')||'<span style="color:var(--mu)">Belum ada kategori</span>';
+  renderCoSet();renderPay();applySetTab();
+  $('#catMgr').innerHTML=db.cats.map(c=>`<span class="chip" style="display:inline-flex;gap:8px;margin:0 6px 6px 0">${esc(c)} <button style="color:var(--bad)" onclick="delCat('${esc(c).replace(/'/g,"\\'")}')"><i class="ic solo" data-ic="x"></i></button></span>`).join('')||'<span style="color:var(--mu)">Belum ada kategori</span>';
 }
 function saveSet(){
   Object.assign(db.set,{store:$('#sN').value.trim()||'Toko',addr:$('#sA').value,tax:Math.max(0,+$('#sT').value||0),low:Math.max(0,+$('#sL').value||0),foot:$('#sF').value});
@@ -1259,7 +1315,7 @@ function selOne(id,on){if(on)S.sel.add(id);else S.sel.delete(id);updateBulk()}
 function selAll(on){invList().forEach(i=>{if(on)S.sel.add(i.id);else S.sel.delete(i.id)});renderInvTable()}
 function updateBulk(){
   const b=$('#bulkDel');if(!b)return;
-  const n=S.sel.size;b.hidden=!n;b.textContent='🗑 Hapus terpilih ('+n+')';
+  const n=S.sel.size;b.hidden=!n;b.innerHTML='<i class="ic" data-ic="trash"></i>Hapus terpilih ('+n+')';
   const a=$('#selAllCk');if(a){const l=invList();a.checked=l.length>0&&l.every(i=>S.sel.has(i.id))}
 }
 function bulkDel(){
@@ -1309,7 +1365,7 @@ function renderRc(){
   const tx=(k,l,ph)=>`<label class="fl">${l}</label><input class="fi" value="${esc(r[k])}" placeholder="${esc(ph||'')}" oninput="setOpt('rc','${k}',this.value)">`;
   $('#rcForm').innerHTML=`
   <div class="panel"><h3>Logo</h3>
-    <div class="up"><div class="pv logo">${db.set.logo?`<img src="${db.set.logo}" alt="">`:'🖼️'}</div>
+    <div class="up"><div class="pv logo">${db.set.logo?`<img src="${db.set.logo}" alt="">`:'<i class="ic solo" data-ic="image"></i>'}</div>
     <div><button class="btn sm sec" onclick="go('set')">Ubah logo di Pengaturan</button></div></div>
     <div class="tgls" style="margin-top:8px">${ck('showLogo','Tampilkan logo di struk')}</div>
     ${sel('logoW','Ukuran logo',[['100','Kecil'],['160','Sedang'],['240','Besar'],['320','Sangat besar']])}
@@ -1351,7 +1407,7 @@ function setLogoApp(v){db.set.logoApp=v;save();applyBrand()}
 function renderLogo(){
   const el=$('#logoForm');if(!el)return;const s=db.set;
   el.innerHTML=`<h3>Logo Perusahaan</h3>
-  <div class="up"><div class="pv logo">${s.logo?`<img src="${s.logo}" alt="">`:'🖼️'}</div>
+  <div class="up"><div class="pv logo">${s.logo?`<img src="${s.logo}" alt="">`:'<i class="ic solo" data-ic="image"></i>'}</div>
   <div><button class="btn sm sec" onclick="$('#lgF').click()">Upload Logo</button> <button class="mini" style="color:var(--b)" onclick="setLogo(DEF_LOGO)">Kembali ke Default</button>
   <input type="file" id="lgF" accept="image/*" hidden onchange="pickLogo(this)"></div></div>
   <div class="tgls" style="margin-top:8px">
@@ -1383,9 +1439,9 @@ function renderPrn(){
     <p class="hint">${help}</p>
     <div class="chg" id="prnStat"></div>
     <div class="acts" style="margin-top:10px;flex-wrap:wrap">
-      <button class="btn sm" onclick="prnConnect()">🔍 Cari &amp; Hubungkan</button>
+      <button class="btn sm" onclick="prnConnect()"><i class="ic" data-ic="search"></i>Cari &amp; Hubungkan</button>
       <button class="btn sm sec" onclick="prnDisconnect()">Putuskan</button>
-      <button class="btn sm sec" onclick="testPrint()">🖨️ Tes Cetak</button>
+      <button class="btn sm sec" onclick="testPrint()"><i class="ic" data-ic="print"></i>Tes Cetak</button>
     </div></div>
   <div class="panel"><h3>Opsi Cetak</h3>
     <label class="fl">Ukuran kertas</label>
@@ -1453,8 +1509,8 @@ function applyGridView(){
   $('#cats').style.display=g.cats?'':'none';
   const b=(on,t,fn)=>`<button class="chip ${on?'on':''}" onclick="${fn}">${t}</button>`;
   $('#gtool').innerHTML='<span class="lb">Tampilan</span>'
-    +b(g.mode==='grid','⊞ Grid',"setGV('mode','grid')")+b(g.mode==='list','☰ Daftar',"setGV('mode','list')")
-    +'<button class="chip" onclick="gridForm()">⚙ Atur</button>';
+    +b(g.mode==='grid','<i class="ic" data-ic="grid"></i>Grid',"setGV('mode','grid')")+b(g.mode==='list','<i class="ic" data-ic="list"></i>Daftar',"setGV('mode','list')")
+    +'<button class="chip" onclick="gridForm()"><i class="ic" data-ic="sliders"></i>Atur</button>';
 }
 function setGV(k,v,re){db.set.gv[k]=v;save();applyGridView();if(k==='tap')renderGrid();if(re)gridForm()}
 function gridForm(){
@@ -1462,8 +1518,8 @@ function gridForm(){
   const row=(k,opts)=>`<div class="chips">${opts.map(([v,t])=>`<button class="chip ${g[k]===v?'on':''}" onclick="setGV('${k}',${typeof v==='number'?v:`'${v}'`},1)">${t}</button>`).join('')}</div>`;
   const ck=(k,l)=>`<label class="tgl"><input type="checkbox" ${g[k]?'checked':''} onchange="setGV('${k}',this.checked)"><span>${l}</span></label>`;
   openModal(`<h3>Atur Tampilan Menu</h3>
-  <label class="fl">Mode</label>${row('mode',[['grid','⊞ Grid'],['list','☰ Daftar']])}
-  <label class="fl">Saat gambar menu diketuk</label>${row('tap',[['add','⚡ Tambah 1 langsung'],['qty','🔢 Pilih jumlah'],['detail','🔍 Lihat detail'],['none','🚫 Tanpa aksi']])}
+  <label class="fl">Mode</label>${row('mode',[['grid','<i class="ic" data-ic="grid"></i>Grid'],['list','<i class="ic" data-ic="list"></i>Daftar']])}
+  <label class="fl">Saat gambar menu diketuk</label>${row('tap',[['add','<i class="ic" data-ic="bolt"></i>Tambah 1 langsung'],['qty','<i class="ic" data-ic="hash"></i>Pilih jumlah'],['detail','<i class="ic" data-ic="search"></i>Lihat detail'],['none','<i class="ic" data-ic="ban"></i>Tanpa aksi']])}
   <label class="fl">Jumlah kolom: layar besar (PC / tablet)</label>${row('colsD',[[0,'Auto'],[2,'2'],[3,'3'],[4,'4'],[5,'5'],[6,'6'],[8,'8']])}
   <label class="fl">Jumlah kolom: HP</label>${row('colsM',[[1,'1'],[2,'2'],[3,'3'],[4,'4']])}
   <div class="tgls" style="margin-top:6px">${ck('stock','Tampilkan stok')}${ck('cats','Tampilkan bar kategori')}</div>
@@ -1487,6 +1543,7 @@ const DATE_LOC={id:'id-ID',en:'en-GB',ms:'ms-MY'};
 const lang=()=>db.set.lang||'id';
 const dloc=()=>DATE_LOC[lang()]||'id-ID';
 const TR_ROWS=[
+["Operasional","Operations","Operasi"],["Toko & Sistem","Store & System","Kedai & Sistem"],["Toko","Store","Kedai"],["Pesanan & Bayar","Orders & Payment","Pesanan & Bayaran"],["Tampilan","Display","Paparan"],["Data & Cadangan","Data & Backup","Data & Sandaran"],
 ["Pesanan Online","Online Orders","Pesanan Dalam Talian"],["Pesan lewat QR","Order via QR","Pesan melalui QR"],["Perangkat ini","This device","Peranti ini"],["Aktif","Active","Aktif"],
 ["Kasir","Cashier","Juruwang"],["Inventori","Inventory"],["Riwayat Penjualan","Sales History","Sejarah Jualan"],["Desain Struk","Receipt Design","Reka Bentuk Resit"],["Printer","Printer","Pencetak"],["Pengaturan","Settings","Tetapan"],
 ["Cari menu","Search menu"],["Invoice","Invoice","Invois"],["Takeaway","Takeaway","Bawa Pulang"],["Dine In","Dine In","Makan Sini"],["Delivery","Delivery","Penghantaran"],
@@ -1500,7 +1557,7 @@ const TR_ROWS=[
 ["Penyesuaian manual","Manual adjustment","Pelarasan manual"],["Item dihapus","Item deleted","Item dipadam"],["Edit item","Item edited","Item disunting"],["Stok awal","Initial stock"],
 ["Penjualan Hari Ini","Today's Sales","Jualan Hari Ini"],["Transaksi Hari Ini","Today's Transactions"],["Estimasi Laba Hari Ini","Estimated Profit Today","Anggaran Untung Hari Ini"],["Total Semua","Grand Total","Jumlah Keseluruhan"],
 ["Tipe","Type","Jenis"],["Bayar","Payment","Bayaran"],["Struk","Receipt","Resit"],["Belum ada transaksi.","No transactions yet."],
-["Isi Struk","Receipt Content","Kandungan Resit"],["Pratinjau","Preview","Pratonton"],["Upload Logo","Upload Logo","Muat Naik Logo"],["Tampilkan logo di struk","Show logo on receipt","Papar logo pada resit"],["Ukuran logo","Logo size","Saiz logo"],["Menu Populer","Popular Items","Menu Popular"],["Kata sandi","Password","Kata laluan"],["Masuk","Sign in","Log masuk"],["Kata sandi salah","Wrong password","Kata laluan salah"],["Terlalu banyak percobaan. Coba lagi beberapa menit lagi.","Too many attempts. Try again in a few minutes.","Terlalu banyak percubaan. Cuba lagi dalam beberapa minit."],["Tidak bisa terhubung ke server","Cannot connect to the server","Tidak dapat menyambung ke pelayan"],["Tersinkron","Synced","Disegerakkan"],["Menyinkronkan…","Syncing…","Menyegerakkan…"],["Offline, data tersimpan di perangkat","Offline, data is saved on this device","Luar talian, data disimpan pada peranti"],["Offline","Offline","Luar talian"],["Perlu login","Login required","Perlu log masuk"],["Gagal sinkron","Sync failed","Gagal segerak"],["Sinkron online","Online sync","Segerak dalam talian"],["Server","Server","Pelayan"],["Database SQLite di server","SQLite database on the server","Pangkalan data SQLite di pelayan"],["☁ Sinkron Sekarang","☁ Sync Now","☁ Segerak Sekarang"],["⬇ Unduh dari Server","⬇ Download from Server","⬇ Muat Turun dari Pelayan"],["Keluar","Sign out","Log keluar"],["Snapshot Server","Server Snapshots","Syot Kilat Pelayan"],["Snapshot server dibuat sekali sehari (30 hari terakhir), berisi kondisi sebelum perubahan pertama hari itu.","A server snapshot is made once a day (last 30 days) and holds the state before the first change of that day.","Syot kilat pelayan dibuat sekali sehari (30 hari terakhir) dan mengandungi keadaan sebelum perubahan pertama hari itu."],["Pulihkan snapshot server?","Restore server snapshot?","Pulihkan syot kilat pelayan?"],["Data saat ini akan diganti dengan snapshot ini, lalu disinkronkan ke semua perangkat.","Current data will be replaced with this snapshot and then synced to all devices.","Data semasa akan diganti dengan syot kilat ini, kemudian disegerakkan ke semua peranti."],["Data dari perangkat lain digabung","Data from another device was merged","Data daripada peranti lain telah digabungkan"],["Gagal mengambil snapshot","Failed to fetch the snapshot","Gagal mengambil syot kilat"],["Gagal mengunduh","Download failed","Gagal memuat turun"],["↕ Atur Urutan Menu","↕ Arrange Menu Order","↕ Susun Urutan Menu"],["Atur Urutan Menu","Arrange Menu Order","Susun Urutan Menu"],["Seret ⠿ untuk memindahkan posisi, atau pakai tombol ▲ ▼. Urutan ini sama dengan susunan menu di Kasir (kiri ke kanan, atas ke bawah).","Drag ⠿ to move an item, or use the ▲ ▼ buttons. This order is the same as the menu layout in Cashier (left to right, top to bottom).","Seret ⠿ untuk mengalihkan kedudukan, atau guna butang ▲ ▼. Susunan ini sama dengan susunan menu di Juruwang (kiri ke kanan, atas ke bawah)."],["A–Z","A–Z","A–Z"],["Harga ↑","Price ↑","Harga ↑"],["Stok ↓","Stock ↓","Stok ↓"],["Belum ada item.","No items yet.","Belum ada item."],["Kembali ke Default","Back to Default","Kembali ke Lalai"],["Selesai","Done","Selesai"],["Layar penuh","Fullscreen","Skrin penuh"],["Keluar layar penuh","Exit fullscreen","Keluar skrin penuh"],["Layar","Screen","Skrin"],["⛶ Layar Penuh","⛶ Fullscreen","⛶ Skrin Penuh"],["Layar penuh otomatis saat layar pertama disentuh","Automatic fullscreen on the first touch","Skrin penuh automatik pada sentuhan pertama"],["Gunakan tombol ⛶ di bar atas, atau tekan F11 di komputer. Browser mewajibkan layar penuh dimulai dari sentuhan atau klik, jadi tidak bisa aktif sendiri tanpa interaksi.","Use the ⛶ button in the top bar, or press F11 on a computer. Browsers require fullscreen to start from a tap or click, so it cannot turn on by itself without interaction.","Gunakan butang ⛶ pada bar atas, atau tekan F11 pada komputer. Pelayar mewajibkan skrin penuh bermula daripada ketikan atau klik, jadi ia tidak boleh aktif sendiri tanpa interaksi."],["iPhone/iPad (Safari) tidak mendukung layar penuh untuk web: pilih Bagikan > Tambahkan ke Layar Utama. Di Android: Chrome > menu ⋮ > Tambahkan ke layar utama, lalu buka dari ikonnya agar tanpa bilah browser.","iPhone/iPad (Safari) does not support fullscreen for the web: choose Share > Add to Home Screen. On Android: Chrome > ⋮ menu > Add to Home screen, then open it from its icon to hide the browser bar.","iPhone/iPad (Safari) tidak menyokong skrin penuh untuk web: pilih Kongsi > Tambah ke Skrin Utama. Pada Android: Chrome > menu ⋮ > Tambah ke skrin utama, kemudian buka daripada ikonnya untuk menyembunyikan bar pelayar."],["Layar penuh tidak didukung di browser ini. Di iPhone: Bagikan > Tambahkan ke Layar Utama.","Fullscreen is not supported in this browser. On iPhone: Share > Add to Home Screen.","Skrin penuh tidak disokong dalam pelayar ini. Pada iPhone: Kongsi > Tambah ke Skrin Utama."],["Database & Penyimpanan","Database & Storage","Pangkalan Data & Storan"],["Penyimpanan utama (browser)","Main storage (browser)","Storan utama (pelayar)"],["Cadangan database (IndexedDB)","Database backup (IndexedDB)","Sandaran pangkalan data (IndexedDB)"],["Penyimpanan permanen","Persistent storage","Storan kekal"],["Ruang terpakai","Space used","Ruang digunakan"],["File database tertaut","Linked database file","Fail pangkalan data dipautkan"],["Backup terakhir","Last backup","Sandaran terakhir"],["Aktif","Active","Aktif"],["Menunggu data pertama","Waiting for first data","Menunggu data pertama"],["Tidak tersedia","Unavailable","Tidak tersedia"],["Ya","Yes","Ya"],["Belum","Not yet","Belum"],["Minta","Request","Minta"],["Izinkan","Allow","Benarkan"],["Perlu izin","Permission needed","Perlu kebenaran"],["Tertulis otomatis","Written automatically","Ditulis secara automatik"],["Gagal","Failed","Gagal"],["Belum ditautkan","Not linked","Belum dipautkan"],["Belum pernah","Never","Belum pernah"],["Tidak didukung di perangkat ini","Not supported on this device","Tidak disokong pada peranti ini"],["⬇ Unduh File Database","⬇ Download Database File","⬇ Muat Turun Fail Pangkalan Data"],["⬆ Pulihkan dari File","⬆ Restore from File","⬆ Pulihkan daripada Fail"],["🔗 Tautkan File Database","🔗 Link Database File","🔗 Pautkan Fail Pangkalan Data"],["Putuskan File","Unlink File","Putuskan Fail"],["Data disimpan di dua tempat: penyimpanan browser dan database IndexedDB. Jika salah satunya terhapus, data dipulihkan otomatis dari yang lain.","Data is stored in two places: browser storage and an IndexedDB database. If one is erased, data is restored automatically from the other.","Data disimpan di dua tempat: storan pelayar dan pangkalan data IndexedDB. Jika salah satu dipadam, data dipulihkan secara automatik daripada yang lain."],["Tautkan file database agar setiap perubahan otomatis ditulis ke file .json di perangkat ini (Chrome atau Edge di komputer).","Link a database file so every change is written automatically to a .json file on this device (Chrome or Edge on a computer).","Pautkan fail pangkalan data supaya setiap perubahan ditulis secara automatik ke fail .json pada peranti ini (Chrome atau Edge pada komputer)."],["Perangkat ini tidak mendukung penulisan file otomatis. Unduh file database secara berkala dan simpan di Google Drive atau flash disk.","This device does not support automatic file writing. Download the database file regularly and keep it on Google Drive or a flash drive.","Peranti ini tidak menyokong penulisan fail automatik. Muat turun fail pangkalan data secara berkala dan simpan di Google Drive atau pemacu kilat."],["Menghapus data situs atau cache browser, atau meng-uninstall aplikasi, dapat menghapus kedua penyimpanan. File database yang diunduh tetap aman.","Clearing site data or browser cache, or uninstalling the app, can erase both storages. A downloaded database file stays safe.","Memadam data tapak atau cache pelayar, atau menyahpasang aplikasi, boleh memadam kedua-dua storan. Fail pangkalan data yang dimuat turun kekal selamat."],["Snapshot Otomatis","Automatic Snapshots","Syot Kilat Automatik"],["Belum ada snapshot.","No snapshots yet.","Belum ada syot kilat."],["Sebelum pemulihan","Before restore","Sebelum pemulihan"],["Item","Items","Item"],["Pulihkan","Restore","Pulihkan"],["Snapshot dibuat otomatis setiap hari saat aplikasi pertama dibuka (14 hari terakhir).","A snapshot is created automatically each day when the app is first opened (last 14 days).","Syot kilat dibuat secara automatik setiap hari apabila aplikasi dibuka pertama kali (14 hari terakhir)."],["Pulihkan snapshot?","Restore snapshot?","Pulihkan syot kilat?"],["Data saat ini akan ditimpa. Kondisi saat ini disimpan dulu sebagai snapshot \"Sebelum pemulihan\".","Current data will be overwritten. The current state is saved first as a \"Before restore\" snapshot.","Data semasa akan ditimpa. Keadaan semasa disimpan dahulu sebagai syot kilat \"Sebelum pemulihan\"."],["Snapshot tidak ditemukan","Snapshot not found","Syot kilat tidak dijumpai"],["Gagal menautkan file","Failed to link file","Gagal memautkan fail"],["Data dipulihkan dari cadangan database","Data restored from the database backup","Data dipulihkan daripada sandaran pangkalan data"],["Data diperbarui dari cadangan database","Data updated from the database backup","Data dikemas kini daripada sandaran pangkalan data"],["Penyimpanan browser penuh, data tetap aman di cadangan database","Browser storage is full; data is still safe in the database backup","Storan pelayar penuh; data kekal selamat dalam sandaran pangkalan data"],["Sudah lebih dari 7 hari belum unduh file database (Pengaturan)","It has been over 7 days since the last database download (Settings)","Sudah lebih 7 hari sejak muat turun fail pangkalan data (Tetapan)"],["Saat gambar menu diketuk","When a menu image is tapped","Apabila imej menu diketik"],["⚡ Tambah 1 langsung","⚡ Add 1 instantly","⚡ Tambah 1 terus"],["🔢 Pilih jumlah","🔢 Choose quantity","🔢 Pilih kuantiti"],["🔍 Lihat detail","🔍 View details","🔍 Lihat butiran"],["🚫 Tanpa aksi","🚫 No action","🚫 Tiada tindakan"],["Jumlah","Quantity","Kuantiti"],["Tambah ke Pesanan","Add to Order","Tambah ke Pesanan"],["Stok habis","Out of stock","Stok habis"],["Tambah 1 langsung: sekali ketuk gambar, item masuk ke pesanan. Pilih jumlah: muncul kotak untuk mengatur jumlah. Lihat detail: tampil gambar besar dan info dulu. Tombol + dan − di kartu tetap bisa dipakai di semua mode.","Add 1 instantly: one tap on the image adds the item to the order. Choose quantity: a box appears to set the amount. View details: shows a large image and info first. The + and − buttons on the card work in every mode.","Tambah 1 terus: satu ketikan pada imej menambah item ke pesanan. Pilih kuantiti: kotak muncul untuk menetapkan jumlah. Lihat butiran: papar imej besar dan maklumat dahulu. Butang + dan − pada kad sentiasa boleh digunakan."],["Logo Perusahaan","Company Logo","Logo Syarikat"],["Tampilkan logo di aplikasi","Show logo in the app","Papar logo dalam aplikasi"],["Logo dipakai di menu aplikasi dan struk. Ukuran logo di struk diatur di Desain Struk.","The logo is used in the app menu and on receipts. Receipt logo size is set in Receipt Design.","Logo digunakan dalam menu aplikasi dan resit. Saiz logo pada resit ditetapkan dalam Reka Bentuk Resit."],["Ubah logo di Pengaturan","Change logo in Settings","Tukar logo dalam Tetapan"],["Logo perusahaan diatur di Pengaturan > Logo Perusahaan. Logo hitam-putih paling bagus untuk printer thermal.","Set the company logo in Settings > Company Logo. Black-and-white logos work best on thermal printers.","Tetapkan logo syarikat dalam Tetapan > Logo Syarikat. Logo hitam putih paling sesuai untuk pencetak terma."],["Semua pengaturan tampilan struk kembali ke default.","All receipt display settings return to default.","Semua tetapan paparan resit kembali kepada asal."],
+["Isi Struk","Receipt Content","Kandungan Resit"],["Pratinjau","Preview","Pratonton"],["Upload Logo","Upload Logo","Muat Naik Logo"],["Tampilkan logo di struk","Show logo on receipt","Papar logo pada resit"],["Ukuran logo","Logo size","Saiz logo"],["Menu Populer","Popular Items","Menu Popular"],["Kata sandi","Password","Kata laluan"],["Masuk","Sign in","Log masuk"],["Kata sandi salah","Wrong password","Kata laluan salah"],["Terlalu banyak percobaan. Coba lagi beberapa menit lagi.","Too many attempts. Try again in a few minutes.","Terlalu banyak percubaan. Cuba lagi dalam beberapa minit."],["Tidak bisa terhubung ke server","Cannot connect to the server","Tidak dapat menyambung ke pelayan"],["Tersinkron","Synced","Disegerakkan"],["Menyinkronkan…","Syncing…","Menyegerakkan…"],["Offline, data tersimpan di perangkat","Offline, data is saved on this device","Luar talian, data disimpan pada peranti"],["Offline","Offline","Luar talian"],["Perlu login","Login required","Perlu log masuk"],["Gagal sinkron","Sync failed","Gagal segerak"],["Sinkron online","Online sync","Segerak dalam talian"],["Server","Server","Pelayan"],["Database SQLite di server","SQLite database on the server","Pangkalan data SQLite di pelayan"],["Sinkron Sekarang","Sync Now","Segerak Sekarang"],["Unduh dari Server","Download from Server","Muat Turun dari Pelayan"],["Keluar","Sign out","Log keluar"],["Snapshot Server","Server Snapshots","Syot Kilat Pelayan"],["Snapshot server dibuat sekali sehari (30 hari terakhir), berisi kondisi sebelum perubahan pertama hari itu.","A server snapshot is made once a day (last 30 days) and holds the state before the first change of that day.","Syot kilat pelayan dibuat sekali sehari (30 hari terakhir) dan mengandungi keadaan sebelum perubahan pertama hari itu."],["Pulihkan snapshot server?","Restore server snapshot?","Pulihkan syot kilat pelayan?"],["Data saat ini akan diganti dengan snapshot ini, lalu disinkronkan ke semua perangkat.","Current data will be replaced with this snapshot and then synced to all devices.","Data semasa akan diganti dengan syot kilat ini, kemudian disegerakkan ke semua peranti."],["Data dari perangkat lain digabung","Data from another device was merged","Data daripada peranti lain telah digabungkan"],["Gagal mengambil snapshot","Failed to fetch the snapshot","Gagal mengambil syot kilat"],["Gagal mengunduh","Download failed","Gagal memuat turun"],["Atur Urutan Menu","Arrange Menu Order","Susun Urutan Menu"],["Atur Urutan Menu","Arrange Menu Order","Susun Urutan Menu"],["Seret ⠿ untuk memindahkan posisi, atau pakai tombol ▲ ▼. Urutan ini sama dengan susunan menu di Kasir (kiri ke kanan, atas ke bawah).","Drag ⠿ to move an item, or use the ▲ ▼ buttons. This order is the same as the menu layout in Cashier (left to right, top to bottom).","Seret ⠿ untuk mengalihkan kedudukan, atau guna butang ▲ ▼. Susunan ini sama dengan susunan menu di Juruwang (kiri ke kanan, atas ke bawah)."],["A–Z","A–Z","A–Z"],["Harga ↑","Price ↑","Harga ↑"],["Stok ↓","Stock ↓","Stok ↓"],["Belum ada item.","No items yet.","Belum ada item."],["Kembali ke Default","Back to Default","Kembali ke Lalai"],["Selesai","Done","Selesai"],["Layar penuh","Fullscreen","Skrin penuh"],["Keluar layar penuh","Exit fullscreen","Keluar skrin penuh"],["Layar","Screen","Skrin"],["Layar Penuh","Fullscreen","Skrin Penuh"],["Layar penuh otomatis saat layar pertama disentuh","Automatic fullscreen on the first touch","Skrin penuh automatik pada sentuhan pertama"],["Gunakan tombol Layar Penuh di bar atas, atau tekan F11 di komputer. Browser mewajibkan layar penuh dimulai dari sentuhan atau klik, jadi tidak bisa aktif sendiri tanpa interaksi.","Use the Fullscreen button in the top bar, or press F11 on a computer. Browsers require fullscreen to start from a tap or click, so it cannot turn on by itself without interaction.","Gunakan butang Skrin Penuh pada bar atas, atau tekan F11 pada komputer. Pelayar mewajibkan skrin penuh bermula daripada ketikan atau klik, jadi ia tidak boleh aktif sendiri tanpa interaksi."],["iPhone/iPad (Safari) tidak mendukung layar penuh untuk web: pilih Bagikan > Tambahkan ke Layar Utama. Di Android: Chrome > menu ⋮ > Tambahkan ke layar utama, lalu buka dari ikonnya agar tanpa bilah browser.","iPhone/iPad (Safari) does not support fullscreen for the web: choose Share > Add to Home Screen. On Android: Chrome > ⋮ menu > Add to Home screen, then open it from its icon to hide the browser bar.","iPhone/iPad (Safari) tidak menyokong skrin penuh untuk web: pilih Kongsi > Tambah ke Skrin Utama. Pada Android: Chrome > menu ⋮ > Tambah ke skrin utama, kemudian buka daripada ikonnya untuk menyembunyikan bar pelayar."],["Layar penuh tidak didukung di browser ini. Di iPhone: Bagikan > Tambahkan ke Layar Utama.","Fullscreen is not supported in this browser. On iPhone: Share > Add to Home Screen.","Skrin penuh tidak disokong dalam pelayar ini. Pada iPhone: Kongsi > Tambah ke Skrin Utama."],["Database & Penyimpanan","Database & Storage","Pangkalan Data & Storan"],["Penyimpanan utama (browser)","Main storage (browser)","Storan utama (pelayar)"],["Cadangan database (IndexedDB)","Database backup (IndexedDB)","Sandaran pangkalan data (IndexedDB)"],["Penyimpanan permanen","Persistent storage","Storan kekal"],["Ruang terpakai","Space used","Ruang digunakan"],["File database tertaut","Linked database file","Fail pangkalan data dipautkan"],["Backup terakhir","Last backup","Sandaran terakhir"],["Aktif","Active","Aktif"],["Menunggu data pertama","Waiting for first data","Menunggu data pertama"],["Tidak tersedia","Unavailable","Tidak tersedia"],["Ya","Yes","Ya"],["Belum","Not yet","Belum"],["Minta","Request","Minta"],["Izinkan","Allow","Benarkan"],["Perlu izin","Permission needed","Perlu kebenaran"],["Tertulis otomatis","Written automatically","Ditulis secara automatik"],["Gagal","Failed","Gagal"],["Belum ditautkan","Not linked","Belum dipautkan"],["Belum pernah","Never","Belum pernah"],["Tidak didukung di perangkat ini","Not supported on this device","Tidak disokong pada peranti ini"],["Unduh File Database","Download Database File","Muat Turun Fail Pangkalan Data"],["Pulihkan dari File","Restore from File","Pulihkan daripada Fail"],["Tautkan File Database","Link Database File","Pautkan Fail Pangkalan Data"],["Putuskan File","Unlink File","Putuskan Fail"],["Data disimpan di dua tempat: penyimpanan browser dan database IndexedDB. Jika salah satunya terhapus, data dipulihkan otomatis dari yang lain.","Data is stored in two places: browser storage and an IndexedDB database. If one is erased, data is restored automatically from the other.","Data disimpan di dua tempat: storan pelayar dan pangkalan data IndexedDB. Jika salah satu dipadam, data dipulihkan secara automatik daripada yang lain."],["Tautkan file database agar setiap perubahan otomatis ditulis ke file .json di perangkat ini (Chrome atau Edge di komputer).","Link a database file so every change is written automatically to a .json file on this device (Chrome or Edge on a computer).","Pautkan fail pangkalan data supaya setiap perubahan ditulis secara automatik ke fail .json pada peranti ini (Chrome atau Edge pada komputer)."],["Perangkat ini tidak mendukung penulisan file otomatis. Unduh file database secara berkala dan simpan di Google Drive atau flash disk.","This device does not support automatic file writing. Download the database file regularly and keep it on Google Drive or a flash drive.","Peranti ini tidak menyokong penulisan fail automatik. Muat turun fail pangkalan data secara berkala dan simpan di Google Drive atau pemacu kilat."],["Menghapus data situs atau cache browser, atau meng-uninstall aplikasi, dapat menghapus kedua penyimpanan. File database yang diunduh tetap aman.","Clearing site data or browser cache, or uninstalling the app, can erase both storages. A downloaded database file stays safe.","Memadam data tapak atau cache pelayar, atau menyahpasang aplikasi, boleh memadam kedua-dua storan. Fail pangkalan data yang dimuat turun kekal selamat."],["Snapshot Otomatis","Automatic Snapshots","Syot Kilat Automatik"],["Belum ada snapshot.","No snapshots yet.","Belum ada syot kilat."],["Sebelum pemulihan","Before restore","Sebelum pemulihan"],["Item","Items","Item"],["Pulihkan","Restore","Pulihkan"],["Snapshot dibuat otomatis setiap hari saat aplikasi pertama dibuka (14 hari terakhir).","A snapshot is created automatically each day when the app is first opened (last 14 days).","Syot kilat dibuat secara automatik setiap hari apabila aplikasi dibuka pertama kali (14 hari terakhir)."],["Pulihkan snapshot?","Restore snapshot?","Pulihkan syot kilat?"],["Data saat ini akan ditimpa. Kondisi saat ini disimpan dulu sebagai snapshot \"Sebelum pemulihan\".","Current data will be overwritten. The current state is saved first as a \"Before restore\" snapshot.","Data semasa akan ditimpa. Keadaan semasa disimpan dahulu sebagai syot kilat \"Sebelum pemulihan\"."],["Snapshot tidak ditemukan","Snapshot not found","Syot kilat tidak dijumpai"],["Gagal menautkan file","Failed to link file","Gagal memautkan fail"],["Data dipulihkan dari cadangan database","Data restored from the database backup","Data dipulihkan daripada sandaran pangkalan data"],["Data diperbarui dari cadangan database","Data updated from the database backup","Data dikemas kini daripada sandaran pangkalan data"],["Penyimpanan browser penuh, data tetap aman di cadangan database","Browser storage is full; data is still safe in the database backup","Storan pelayar penuh; data kekal selamat dalam sandaran pangkalan data"],["Sudah lebih dari 7 hari belum unduh file database (Pengaturan)","It has been over 7 days since the last database download (Settings)","Sudah lebih 7 hari sejak muat turun fail pangkalan data (Tetapan)"],["Saat gambar menu diketuk","When a menu image is tapped","Apabila imej menu diketik"],["Tambah 1 langsung","Add 1 instantly","Tambah 1 terus"],["Pilih jumlah","Choose quantity","Pilih kuantiti"],["Lihat detail","View details","Lihat butiran"],["Tanpa aksi","No action","Tiada tindakan"],["Jumlah","Quantity","Kuantiti"],["Tambah ke Pesanan","Add to Order","Tambah ke Pesanan"],["Stok habis","Out of stock","Stok habis"],["Tambah 1 langsung: sekali ketuk gambar, item masuk ke pesanan. Pilih jumlah: muncul kotak untuk mengatur jumlah. Lihat detail: tampil gambar besar dan info dulu. Tombol + dan − di kartu tetap bisa dipakai di semua mode.","Add 1 instantly: one tap on the image adds the item to the order. Choose quantity: a box appears to set the amount. View details: shows a large image and info first. The + and − buttons on the card work in every mode.","Tambah 1 terus: satu ketikan pada imej menambah item ke pesanan. Pilih kuantiti: kotak muncul untuk menetapkan jumlah. Lihat butiran: papar imej besar dan maklumat dahulu. Butang + dan − pada kad sentiasa boleh digunakan."],["Logo Perusahaan","Company Logo","Logo Syarikat"],["Tampilkan logo di aplikasi","Show logo in the app","Papar logo dalam aplikasi"],["Logo dipakai di menu aplikasi dan struk. Ukuran logo di struk diatur di Desain Struk.","The logo is used in the app menu and on receipts. Receipt logo size is set in Receipt Design.","Logo digunakan dalam menu aplikasi dan resit. Saiz logo pada resit ditetapkan dalam Reka Bentuk Resit."],["Ubah logo di Pengaturan","Change logo in Settings","Tukar logo dalam Tetapan"],["Logo perusahaan diatur di Pengaturan > Logo Perusahaan. Logo hitam-putih paling bagus untuk printer thermal.","Set the company logo in Settings > Company Logo. Black-and-white logos work best on thermal printers.","Tetapkan logo syarikat dalam Tetapan > Logo Syarikat. Logo hitam putih paling sesuai untuk pencetak terma."],["Semua pengaturan tampilan struk kembali ke default.","All receipt display settings return to default.","Semua tetapan paparan resit kembali kepada asal."],
 ["Dari","From","Dari"],["Sampai","To","Hingga"],["Hari ini","Today","Hari ini"],["Kemarin","Yesterday","Semalam"],["7 Hari","7 Days","7 Hari"],["Bulan ini","This month","Bulan ini"],["Semua","All","Semua"],["Penjualan","Sales","Jualan"],["Transaksi","Transactions","Transaksi"],["Estimasi Laba","Estimated Profit","Anggaran Untung"],["Tidak ada transaksi pada tanggal ini.","No transactions on these dates.","Tiada transaksi pada tarikh ini."],["Sangat besar","Extra large"],
 ["Logo hitam-putih paling bagus untuk printer thermal.","Black-and-white logos work best on thermal printers.","Logo hitam putih paling sesuai untuk pencetak terma."],
 ["Alamat toko","Store address","Alamat kedai"],["No. invoice","Invoice no.","No. invois"],["Tanggal & jam","Date & time","Tarikh & masa"],["Tipe order","Order type","Jenis pesanan"],["Nama pelanggan","Customer name"],["Nama kasir","Cashier name","Nama juruwang"],
@@ -1735,7 +1792,7 @@ async function renderDb(){
   const el=$('#dbForm');if(!el)return;
   if(CL.on&&!isOwner()){
     el.innerHTML=`<h3>Sinkron Online</h3><div class="dbr"><span>Status</span><b class="${CL.st==='ok'?'ok':'warn'}">${({ok:'Tersinkron',sync:'Menyinkronkan…',offline:'Offline',auth:'Perlu login',err:'Gagal sinkron'})[CL.st]||''}</b></div>
-    <div class="acts" style="margin-top:12px"><button class="btn sm" onclick="syncNow()">☁ Sinkron Sekarang</button></div>
+    <div class="acts" style="margin-top:12px"><button class="btn sm" onclick="syncNow()"><i class="ic" data-ic="cloud"></i>Sinkron Sekarang</button></div>
     <p class="hint">Unduh backup, pulihkan, dan reset data hanya bisa dilakukan owner.</p>`;
     return;
   }
@@ -1756,7 +1813,7 @@ async function renderDb(){
   let srv=[];
   if(CL.on&&CL.tok){try{srv=(await (await api('/api/snapshots')).json()).snapshots||[]}catch(e){}}
   const cloudRows=CL.on?row('Sinkron online',({ok:'Tersinkron',sync:'Menyinkronkan…',offline:'Offline',auth:'Perlu login',err:'Gagal sinkron'})[CL.st]+(CL.st==='ok'&&CL.last?' · '+new Date(CL.last).toLocaleTimeString(dloc(),{hour:'2-digit',minute:'2-digit'}):''),CL.st==='ok'?'ok':'warn')+row('Server',(globalThis.POS_SB?'Database Supabase':'Database SQLite di server'),'ok'):'';
-  const cloudBtns=CL.on?'<button class="btn sm" onclick="syncNow()">☁ Sinkron Sekarang</button><button class="btn sm sec" onclick="downloadServerExport()">⬇ Unduh dari Server</button><button class="btn sm sec" onclick="doLogout()">Keluar</button>':'';
+  const cloudBtns=CL.on?'<button class="btn sm" onclick="syncNow()"><i class="ic" data-ic="cloud"></i>Sinkron Sekarang</button><button class="btn sm sec" onclick="downloadServerExport()"><i class="ic" data-ic="download"></i>Unduh dari Server</button><button class="btn sm sec" onclick="doLogout()">Keluar</button>':'';
   const srvSnaps=CL.on&&srv.length?'<label class="fl" style="margin-top:12px">Snapshot Server</label>'+srv.map(x=>`<div class="dbs"><span>${new Date(x.created_at).toLocaleString(dloc(),{day:'2-digit',month:'short',year:'numeric'})} · ${Math.round(x.size/1024)} KB</span><button class="chip" onclick="srvSnapRestore('${x.day}')">Pulihkan</button></div>`).join('')+'<p class="hint">Snapshot server dibuat sekali sehari (30 hari terakhir), berisi kondisi sebelum perubahan pertama hari itu.</p>':'';
   el.innerHTML=`<h3>Database & Penyimpanan</h3>
   ${cloudRows}
@@ -1768,9 +1825,9 @@ async function renderDb(){
   ${row('Backup terakhir',lb?new Date(lb).toLocaleString(dloc(),{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'}):'Belum pernah',old?'warn':'ok')}
   <div class="acts" style="flex-wrap:wrap;margin-top:12px">
     ${cloudBtns}
-    <button class="btn sm" onclick="backup()">⬇ Unduh File Database</button>
-    <button class="btn sm sec" onclick="$('#restoreF').click()">⬆ Pulihkan dari File</button>
-    ${fs?(FH?'<button class="btn sm sec" onclick="unlinkFile()">Putuskan File</button>':'<button class="btn sm sec" onclick="linkFile()">🔗 Tautkan File Database</button>'):''}
+    <button class="btn sm" onclick="backup()"><i class="ic" data-ic="download"></i>Unduh File Database</button>
+    <button class="btn sm sec" onclick="$('#restoreF').click()"><i class="ic" data-ic="upload"></i>Pulihkan dari File</button>
+    ${fs?(FH?'<button class="btn sm sec" onclick="unlinkFile()">Putuskan File</button>':'<button class="btn sm sec" onclick="linkFile()"><i class="ic" data-ic="link"></i>Tautkan File Database</button>'):''}
     <button class="btn sm red" onclick="resetAll()">Reset Semua</button>
     <input type="file" id="restoreF" accept=".json,application/json" hidden onchange="restore(this)">
   </div>
@@ -1811,9 +1868,9 @@ function setFsAuto(v){db.set.fsAuto=v;save()}
 function renderScr(){
   const el=$('#scrForm');if(!el)return;
   el.innerHTML=`<h3>Layar</h3>
-  <div class="acts" style="flex-wrap:wrap"><button class="btn sm" onclick="toggleFS()">⛶ Layar Penuh</button></div>
+  <div class="acts" style="flex-wrap:wrap"><button class="btn sm" onclick="toggleFS()"><i class="ic" data-ic="expand"></i>Layar Penuh</button></div>
   <div class="tgls" style="margin-top:8px"><label class="tgl"><input type="checkbox" ${db.set.fsAuto!==false?'checked':''} onchange="setFsAuto(this.checked)"><span>Layar penuh otomatis saat layar pertama disentuh</span></label></div>
-  <p class="hint">Gunakan tombol ⛶ di bar atas, atau tekan F11 di komputer. Browser mewajibkan layar penuh dimulai dari sentuhan atau klik, jadi tidak bisa aktif sendiri tanpa interaksi.</p>
+  <p class="hint">Gunakan tombol Layar Penuh di bar atas, atau tekan F11 di komputer. Browser mewajibkan layar penuh dimulai dari sentuhan atau klik, jadi tidak bisa aktif sendiri tanpa interaksi.</p>
   <p class="hint">iPhone/iPad (Safari) tidak mendukung layar penuh untuk web: pilih Bagikan &gt; Tambahkan ke Layar Utama. Di Android: Chrome &gt; menu ⋮ &gt; Tambahkan ke layar utama, lalu buka dari ikonnya agar tanpa bilah browser.</p>`;
 }
 function autoFS(){
@@ -2197,6 +2254,7 @@ function coBadge(){
   const b=$('#coBell'),nv=$('#coNav');if(b)b.hidden=!on;if(nv)nv.hidden=!on;
   ['coBellN','coNavN'].forEach(id=>{const e=$('#'+id);if(e){e.hidden=!n;e.textContent=n}});
   document.title=(n?'('+n+') ':'')+CO.title;
+  navGroups();
 }
 
 /* polling panjang: pesanan masuk langsung muncul */
@@ -2227,7 +2285,7 @@ function coApply(j){
   CO.list.forEach(o=>{const p=prev.get(o.id);if(p&&p.status!=='cancelled'&&o.status==='cancelled'&&!CO.mine.has(o.id))toast('Pesanan '+o.num+' ('+o.name+') dibatalkan pelanggan')});
   if(fresh.length){
     const names=fresh.map(o=>o.name+(o.tbl?' (Meja '+o.tbl+')':'')).join(', ');
-    toast('🔔 Pesanan baru: '+names);clearTimeout(toast.t);toast.t=setTimeout(()=>$('#toast').classList.remove('on'),7000);
+    toast('Pesanan baru: '+names);clearTimeout(toast.t);toast.t=setTimeout(()=>$('#toast').classList.remove('on'),7000);
     CO.ring=0;coBeep();
     try{if(navigator.vibrate)navigator.vibrate([200,100,200])}catch(e){}
     if(document.hidden)coNotify('Pesanan baru '+fresh[0].num,names+' · '+money(fresh.reduce((s,o)=>s+o.total,0)));
@@ -2289,7 +2347,7 @@ async function coAutoPrint(){
       const ok=await printTicket(o);
       x.n=ok?0:x.n+1;
       try{await api('/api/co/'+o.id+'/print',{method:'POST',body:JSON.stringify({action:ok?'done':'release'})})}catch(e){}
-      if(ok){o.printed=2;toast('🖨️ Tiket '+o.num+' tercetak')}
+      if(ok){o.printed=2;toast('Tiket '+o.num+' tercetak')}
     }
   }finally{CO.pr=false;if(S.view==='co')renderCo(false)}
 }
@@ -2361,9 +2419,9 @@ function coQr(){
   <label class="fl">Nomor meja (opsional, pesanan otomatis tahu mejanya)</label>
   <input class="fi" id="qrT" value="${esc(S.coT||'')}" maxlength="12" oninput="coQrDraw()" placeholder="mis. 5">
   <p class="hint" id="qrU" style="word-break:break-all"></p>
-  <button class="btn" onclick="coQrPrint()">🖨️ Cetak kartu QR</button>
-  <button class="btn sec" onclick="coQrPng()">⬇️ Unduh gambar (PNG)</button>
-  <button class="btn sec" onclick="coCopy()">📋 Salin tautan</button>
+  <button class="btn" onclick="coQrPrint()"><i class="ic" data-ic="print"></i>Cetak kartu QR</button>
+  <button class="btn sec" onclick="coQrPng()"><i class="ic" data-ic="download"></i>Unduh gambar (PNG)</button>
+  <button class="btn sec" onclick="coCopy()"><i class="ic" data-ic="copy"></i>Salin tautan</button>
   <button class="btn sec" onclick="closeModal()">Tutup</button>`);
   coQrDraw();
 }
@@ -2374,7 +2432,7 @@ function coQrPrint(){
   openModal(`<h3>Kartu QR</h3><div class="rc-wrap"><div id="receipt" class="rcpt" style="text-align:center;font-size:14px;width:auto;max-width:340px;margin:auto;font-family:system-ui,sans-serif">
   <b style="font-size:22px">${esc(db.set.store)}</b><div style="margin:6px 0 2px">Scan untuk memesan</div>${qrSvg(u,260)}
   ${t?`<div style="font-size:28px;font-weight:800">MEJA ${esc(t)}</div>`:''}<div style="font-size:11px;margin-top:4px;word-break:break-all">${esc(u)}</div></div></div>
-  <button class="btn" onclick="window.print()">🖨️ Cetak</button><button class="btn sec" onclick="coQr()">Kembali</button>`);
+  <button class="btn" onclick="window.print()"><i class="ic" data-ic="print"></i>Cetak</button><button class="btn sec" onclick="coQr()">Kembali</button>`);
 }
 function coQrPng(){
   const t=S.coT||'',u=coUrl(t),M=qrMatrix(u),n=M.length,sc=Math.max(4,Math.floor(900/(n+8))),W=(n+8)*sc,H=W+260,c=document.createElement('canvas');
@@ -2402,32 +2460,32 @@ function renderCo(full){
     const ck=(k,d,l,fn)=>`<label class="tgl"><input type="checkbox" ${coPref(k,d)?'checked':''} onchange="${fn||`coSetPref('${k}',this.checked)`}"><span>${l}</span></label>`;
     $('#coTop').innerHTML=`<div class="tgls">${ck('auto',true,'Cetak tiket otomatis')}${ck('sound',true,'Bunyi saat pesanan masuk')}${ck('notif',false,'Notifikasi sistem',"coSetNotif(this.checked)")}${ck('awake',true,'Layar tetap menyala',"coSetAwake(this.checked)")}</div>
     <p class="hint">Matikan “Cetak tiket otomatis” di perangkat yang tidak terhubung ke printer. Bila beberapa perangkat terbuka sekaligus, satu pesanan hanya dicetak oleh satu perangkat.</p>
-    <div class="cob"><button class="btn sec" onclick="coBeep()">🔔 Tes bunyi</button><button class="btn sec" onclick="coTestPrint()">🖨️ Tes tiket</button><button class="btn sec" onclick="prnConnect().then(()=>renderCo(false))">🔌 Sambungkan printer</button></div>`;
+    <div class="cob"><button class="btn sec" onclick="coBeep()"><i class="ic" data-ic="bell"></i>Tes bunyi</button><button class="btn sec" onclick="coTestPrint()"><i class="ic" data-ic="print"></i>Tes tiket</button><button class="btn sec" onclick="prnConnect().then(()=>renderCo(false))"><i class="ic" data-ic="plug"></i>Sambungkan printer</button></div>`;
   }
   const gear=$('#coGear');if(gear)gear.hidden=!can('set');
   {const o=$('#coOn');if(o&&document.activeElement!==o)o.checked=!!st.on}
   const un=CO.list.filter(o=>(o.status==='new'||o.status==='accepted')&&o.printed===0).length,msgs=[];
-  msgs.push(CO.err?['neg','⚠️ Server tidak terhubung, mencoba lagi…']:['','🟢 Terhubung. Pesanan baru muncul otomatis.']);
-  if(!CO.aud||CO.aud.state!=='running')msgs.push(['neg','🔇 Ketuk layar sekali agar bunyi aktif.']);
-  if(coPref('auto',true)&&!coReady())msgs.push(['neg','🖨️ Printer belum terhubung. Tekan “Sambungkan printer”, lalu tiket akan tercetak.']);
-  if(un&&coPref('auto',true))msgs.push(['neg','⏳ '+un+' tiket menunggu dicetak.']);
+  msgs.push(CO.err?['neg','<i class="ic" data-ic="alert"></i>Server tidak terhubung, mencoba lagi…']:['','<i class="ic" data-ic="dot"></i>Terhubung. Pesanan baru muncul otomatis.']);
+  if(!CO.aud||CO.aud.state!=='running')msgs.push(['neg','<i class="ic" data-ic="mute"></i>Ketuk layar sekali agar bunyi aktif.']);
+  if(coPref('auto',true)&&!coReady())msgs.push(['neg','<i class="ic" data-ic="print"></i>Printer belum terhubung. Tekan “Sambungkan printer”, lalu tiket akan tercetak.']);
+  if(un&&coPref('auto',true))msgs.push(['neg','<i class="ic" data-ic="clock"></i>'+un+' tiket menunggu dicetak.']);
   $('#coStat').innerHTML=msgs.map(m=>`<div class="chg ${m[0]}" style="margin:0 0 8px"><span>${m[1]}</span></div>`).join('');
   const L=CO.list,act=L.filter(o=>o.status==='new'||o.status==='accepted').sort((a,b)=>a.id-b.id),
     fin=L.filter(o=>o.status==='done'||o.status==='cancelled').sort((a,b)=>b.id-a.id).slice(0,40);
   const card=o=>{
-    const ps=o.printed===2?'<span class="pst ok">✓ tercetak</span>':o.printed===1?'<span class="pst w">mencetak…</span>':(o.status==='new'||o.status==='accepted')?'<span class="pst w">belum tercetak</span>':'';
-    const btn=o.status==='new'?`<button class="btn" onclick="coAct(${o.id},'accept')">✓ Terima</button><button class="btn sec" onclick="coPay(${o.id})">💳 Bayar</button>`:o.status==='accepted'?`<button class="btn" onclick="coPay(${o.id})">💳 Bayar</button>`:'';
-    const act=(o.status==='new'||o.status==='accepted')?`${btn}<button class="btn sec" onclick="coPrint(${o.id})">🖨️ Cetak</button><button class="btn sec" onclick="coCancel(${o.id})">✕ Batal</button>`:'';
-    const pb=o.pay==='duitnow'?(o.pst===2?'<span class="pst ok">💳 DuitNow · diterima</span>':o.pst===1?'<span class="pst w">💳 DuitNow · pelanggan klaim sudah bayar</span>':'<span class="pst w">💳 DuitNow · belum dibayar</span>'):'';
-    const pbtn=(o.pay==='duitnow'&&(o.status==='new'||o.status==='accepted'))?(o.pst===2?`<button class="btn sec" onclick="coAct(${o.id},'unpaid')">↩ Batalkan konfirmasi bayar</button>`:`<button class="btn" onclick="coConfirmPay(${o.id})">✓ Pembayaran diterima</button>`):'';
+    const ps=o.printed===2?'<span class="pst ok"><i class="ic" data-ic="check"></i>tercetak</span>':o.printed===1?'<span class="pst w">mencetak…</span>':(o.status==='new'||o.status==='accepted')?'<span class="pst w">belum tercetak</span>':'';
+    const btn=o.status==='new'?`<button class="btn" onclick="coAct(${o.id},'accept')"><i class="ic" data-ic="check"></i>Terima</button><button class="btn sec" onclick="coPay(${o.id})"><i class="ic" data-ic="card"></i>Bayar</button>`:o.status==='accepted'?`<button class="btn" onclick="coPay(${o.id})"><i class="ic" data-ic="card"></i>Bayar</button>`:'';
+    const act=(o.status==='new'||o.status==='accepted')?`${btn}<button class="btn sec" onclick="coPrint(${o.id})"><i class="ic" data-ic="print"></i>Cetak</button><button class="btn sec" onclick="coCancel(${o.id})"><i class="ic" data-ic="x"></i>Batal</button>`:'';
+    const pb=o.pay==='duitnow'?(o.pst===2?'<span class="pst ok"><i class="ic" data-ic="card"></i>DuitNow · diterima</span>':o.pst===1?'<span class="pst w"><i class="ic" data-ic="card"></i>DuitNow · pelanggan klaim sudah bayar</span>':'<span class="pst w"><i class="ic" data-ic="card"></i>DuitNow · belum dibayar</span>'):'';
+    const pbtn=(o.pay==='duitnow'&&(o.status==='new'||o.status==='accepted'))?(o.pst===2?`<button class="btn sec" onclick="coAct(${o.id},'unpaid')"><i class="ic" data-ic="undo"></i>Batalkan konfirmasi bayar</button>`:`<button class="btn" onclick="coConfirmPay(${o.id})"><i class="ic" data-ic="check"></i>Pembayaran diterima</button>`):'';
     const tag=o.status==='cancelled'?'<span class="pst">dibatalkan</span>':o.status==='done'?`<span class="pst ok">selesai${o.saleNo?' · '+esc(o.saleNo):''}</span>`:o.status==='accepted'?'<span class="pst ok">diterima</span>':'<span class="pst w">baru</span>';
     return`<div class="coc ${o.status}"><div class="coh"><span class="no">${esc(o.num)}</span><span class="cn">${esc(o.name)}</span><span class="ct">${o.tbl?'Meja '+esc(o.tbl)+' · ':''}${esc(o.type==='Dine In'?'Dine In':'Takeaway')}</span><time>${ago(o.t)}</time></div>
     <ul>${o.lines.map(l=>`<li><b>${l.qty}x</b><span>${esc(l.name)}</span></li>`).join('')}</ul>
-    ${o.note?`<div class="nt">📝 ${esc(o.note)}</div>`:''}
+    ${o.note?`<div class="nt"><i class="ic" data-ic="note"></i>${esc(o.note)}</div>`:''}
     <div class="cof"><span>${money(o.total)}</span><span style="display:flex;gap:6px;flex-wrap:wrap">${tag}${pb}${ps}</span></div>
     ${act?`<div class="cob">${pbtn}${act}</div>`:''}</div>`;
   };
-  const finRow=o=>`<button class="li" onclick="coDet(${o.id})"><span class="l"><b>${esc(o.num)} · ${esc(o.name)}</b><small>${o.tbl?'Meja '+esc(o.tbl)+' · ':''}${o.type==='Dine In'?'Dine In':'Takeaway'} · ${ago(o.u||o.t)}</small></span><span class="r"><b>${money(o.total)}</b><small>${o.status==='cancelled'?'dibatalkan':'selesai'}${o.pay==='duitnow'?' · DuitNow'+(o.pst===2?' ✓':''):''}</small></span><span class="ch">›</span></button>`;
+  const finRow=o=>`<button class="li" onclick="coDet(${o.id})"><span class="l"><b>${esc(o.num)} · ${esc(o.name)}</b><small>${o.tbl?'Meja '+esc(o.tbl)+' · ':''}${o.type==='Dine In'?'Dine In':'Takeaway'} · ${ago(o.u||o.t)}</small></span><span class="r"><b>${money(o.total)}</b><small>${o.status==='cancelled'?'dibatalkan':'selesai'}${o.pay==='duitnow'?' · DuitNow'+(o.pst===2?' <i class="ic solo" data-ic="check"></i>':''):''}</small></span><span class="ch">›</span></button>`;
   $('#coList').innerHTML=(act.length?`<div class="sech"><h3>Aktif (${act.length})</h3></div>${act.map(card).join('')}`:'<div class="empty" style="padding:30px 10px">Belum ada pesanan aktif.<br><small>Pesanan dari QR akan muncul di sini.</small></div>')
     +(fin.length?`<div class="sech" style="margin-top:14px"><h3>Selesai / batal (${fin.length})</h3></div><div class="panel"><div class="lst">${fin.map(finRow).join('')}</div></div>`:'');
 }
@@ -2443,9 +2501,9 @@ function coDet(id){
   <tr><td>Tiket</td><td>${o.printed===2?'tercetak':'belum tercetak'}</td></tr></table>
   <table class="dl">${o.lines.map(l=>`<tr><td>${l.qty}× ${esc(l.name)}<br><small>${money(l.price)}</small></td><td>${money(l.price*l.qty)}</td></tr>`).join('')}
   <tr><td>Subtotal</td><td>${money(o.sub)}</td></tr>${o.tax?`<tr><td>Pajak</td><td>${money(o.tax)}</td></tr>`:''}<tr class="tt"><td>Total</td><td>${money(o.total)}</td></tr></table>
-  ${o.note?`<div class="nt">📝 ${esc(o.note)}</div>`:''}
+  ${o.note?`<div class="nt"><i class="ic" data-ic="note"></i>${esc(o.note)}</div>`:''}
   ${o.saleNo&&db.orders.some(x=>x.no===o.saleNo)?`<button class="btn" onclick="histOpen('${esc(o.saleNo)}')">Lihat transaksi ${esc(o.saleNo)}</button>`:''}
-  <button class="btn sec" onclick="coPrint(${o.id});closeModal()">🖨️ Cetak ulang tiket</button>
+  <button class="btn sec" onclick="coPrint(${o.id});closeModal()"><i class="ic" data-ic="print"></i>Cetak ulang tiket</button>
   <button class="btn sec" onclick="closeModal()">Tutup</button>`);
 }
 function setPay(k,v){db.set.pay[k]=v;save();renderPay()}
@@ -2469,11 +2527,11 @@ function pickPayQr(inp){
 }
 function renderPay(){
   const p=$('#payForm');if(!p)return;
-  if(!(CL.on&&can('co')&&can('set'))){p.hidden=true;return}
+  if(!(CL.on&&can('co')&&can('set'))){p.hidden=true;applySetTab();return}
   p.hidden=false;const y=db.set.pay;
   p.innerHTML=`<h3>Pembayaran Online (DuitNow / Touch 'n Go)</h3>
     <label class="tgl"><input type="checkbox" ${y.on&&y.qr?'checked':''} ${y.qr?'':'disabled'} onchange="setPay('on',this.checked)"><span>Tawarkan bayar online saat pelanggan memesan lewat QR</span></label>
-    <div class="up"><div class="pv payqr">${y.qr?`<img src="${y.qr}" alt="QR pembayaran">`:'🏦'}</div>
+    <div class="up"><div class="pv payqr">${y.qr?`<img src="${y.qr}" alt="QR pembayaran">`:'<i class="ic solo" data-ic="bank"></i>'}</div>
     <div><button class="btn sm sec" onclick="$('#pqF').click()">${y.qr?'Ganti gambar QR':'Upload gambar QR'}</button> ${y.qr?`<button class="mini" style="color:var(--b)" onclick="setPay('qr','');setPay('on',false)">Hapus</button>`:''}
     <input type="file" id="pqF" accept="image/*" hidden onchange="pickPayQr(this)"></div></div>
     <label class="fl">Nama penerima (tampil ke pelanggan)</label>
@@ -2484,13 +2542,13 @@ function renderPay(){
 }
 function renderCoSet(){
   const p=$('#coForm');if(!p)return;
-  if(!(CL.on&&can('co')&&can('set'))){p.hidden=true;return}
+  if(!(CL.on&&can('co')&&can('set'))){p.hidden=true;applySetTab();return}
   p.hidden=false;const st=CO.set||{on:true,msg:''};
   p.innerHTML=`<h3>Pesan lewat QR</h3>
     <label class="tgl"><input type="checkbox" id="coOn" ${st.on?'checked':''} onchange="coSetOpen(this.checked)"><span>Terima pesanan dari pelanggan</span></label>
     <label class="fl">Pesan saat ditutup (tampil ke pelanggan)</label>
     <input class="fi" id="coMsg" value="${esc(st.msg||'')}" maxlength="200" placeholder="mis. Dapur tutup, silakan pesan ke kasir" onchange="coSetOpen($('#coOn').checked)">
-    <div class="cob"><button class="btn" onclick="coQr()">📱 Tampilkan / Cetak QR</button><button class="btn sec" onclick="coCopy()">📋 Salin tautan</button></div>
+    <div class="cob"><button class="btn" onclick="coQr()"><i class="ic" data-ic="qr"></i>Tampilkan / Cetak QR</button><button class="btn sec" onclick="coCopy()"><i class="ic" data-ic="copy"></i>Salin tautan</button></div>
     <p class="hint">Bunyi, cetak tiket otomatis, dan notifikasi diatur per perangkat di halaman Pesanan Online.</p>`;
 }
 function coStart(){
@@ -2520,12 +2578,20 @@ function canView(v){
   if(v==='co'||v==='usr')return CL.on&&(p==='#owner'?isOwner():can(p));
   return p==='#owner'?isOwner():can(p);
 }
+function navGroups(){
+  document.querySelectorAll('.drawer .dg').forEach(g=>{
+    let n=g.nextElementSibling,any=false;
+    while(n&&!n.classList.contains('dg')){if(n.matches('button[data-v]')&&!n.hidden)any=true;n=n.nextElementSibling}
+    g.hidden=!any;
+  });
+}
 function applyAccess(){
   document.querySelectorAll('.drawer button[data-v],.bnav button[data-v]').forEach(b=>{
     const ok=canView(b.dataset.v);
     if(b.closest('.bnav'))b.style.visibility=ok?'':'hidden';else b.hidden=!ok;
   });
   if(typeof coBadge==='function')coBadge();
+  navGroups();
   renderAcct();
   if(S.view&&!canView(S.view))go('pos');
 }
@@ -2638,9 +2704,9 @@ async function renderUsr(){
   el.innerHTML=USR.list.map(u=>`<div class="coc usr ${u.active?'':'cancelled'}" style="border-left-color:${u.role==='owner'?'var(--b)':'#d4d4d4'}">
     <div class="coh"><span class="av">${esc((u.name||'?').trim().charAt(0).toUpperCase())}</span><span class="cn">${esc(u.name)}</span><span class="ct">@${esc(u.username)}${u.id===me?' · Anda':''}</span><time>${esc(fmtLast(u.lastLogin))}</time></div>
     <div class="cof" style="justify-content:flex-start;gap:6px;flex-wrap:wrap;margin-top:8px"><span class="pst ${u.role==='owner'?'w':'ok'}">${u.role==='owner'?'Owner':'Karyawan'}</span>${u.active?'':'<span class="pst">nonaktif</span>'}${u.single?'<span class="pst">1 perangkat</span>':''}
-      ${u.role==='owner'?'<span class="pchip">Semua fitur</span>':'<span class="pchip on">Kasir</span>'+Object.keys(PERM_SHORT).map(p=>`<span class="pchip ${u.perms.includes(p)?'on':''}">${PERM_SHORT[p]}</span>`).join('')}</div>
-    <div class="cob"><button class="btn sec" onclick="usrForm(${u.id})">✎ Ubah</button><button class="btn sec" onclick="usrPw(${u.id})">🔑 Reset sandi</button>
-      ${u.id!==me?`<button class="btn sec" onclick="usrToggle(${u.id})">${u.active?'⏸ Nonaktifkan':'▶ Aktifkan'}</button><button class="btn sec" onclick="usrDel(${u.id})">🗑 Hapus</button>`:''}</div></div>`).join('')||'<div class="empty">Belum ada pengguna</div>';
+      ${u.role==='owner'?'<span class="pchip on">Semua fitur</span>':'<span class="pchip on">Kasir</span>'+Object.keys(PERM_SHORT).map(p=>`<span class="pchip ${u.perms.includes(p)?'on':''}">${PERM_SHORT[p]}</span>`).join('')}</div>
+    <div class="cob"><button class="btn sec" onclick="usrForm(${u.id})"><i class="ic" data-ic="edit"></i>Ubah</button><button class="btn sec" onclick="usrPw(${u.id})"><i class="ic" data-ic="key"></i>Reset sandi</button>
+      ${u.id!==me?`<button class="btn sec" onclick="usrToggle(${u.id})">${u.active?'<i class="ic" data-ic="pause"></i>Nonaktifkan':'<i class="ic" data-ic="play"></i>Aktifkan'}</button><button class="btn sec" onclick="usrDel(${u.id})"><i class="ic" data-ic="trash"></i>Hapus</button>`:''}</div></div>`).join('')||'<div class="empty">Belum ada pengguna</div>';
   $('#usrLog').innerHTML=USR.log.length?USR.log.slice(0,40).map(x=>`<div class="dbs"><span><b>${esc(ACT_LBL[x.action]||x.action)}</b>${x.uname?' · @'+esc(x.uname):''}${x.detail?' · <span style="color:var(--mu)">'+esc(x.detail)+'</span>':''}</span><span style="color:var(--mu);white-space:nowrap">${esc(fmtLast(x.t))}</span></div>`).join(''):'<div class="hint">Belum ada aktivitas.</div>';
 }
 function permBoxes(sel){return Object.keys(PERM_LBL).map(p=>`<label class="tgl"><input type="checkbox" class="upm" value="${p}" ${sel.includes(p)?'checked':''}><span>${PERM_LBL[p]}</span></label>`).join('')}
