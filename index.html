@@ -140,9 +140,21 @@ td .th img{width:100%;height:100%;object-fit:cover}
 .tag.ok{background:#dcfce7;color:var(--ok)}.tag.low{background:#fef3c7;color:#b45309}.tag.out{background:#fee2e2;color:var(--bad)}
 .stkc{display:flex;align-items:center;gap:6px}
 .stkc input{width:60px;text-align:center;border:1px solid var(--ln);border-radius:8px;padding:5px;outline:0}
-.logbar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:8px}.logbar select{width:auto;min-width:180px}
-.logrows{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:600;color:var(--mu)}.logrows select{width:auto;padding:6px 10px}
-.logt tbody tr{cursor:pointer}.logt .num{text-align:right;font-variant-numeric:tabular-nums}
+.logbar{display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap;margin-bottom:10px}
+.logsel{height:38px;padding:0 30px 0 12px;border:1px solid var(--ln);border-radius:12px;background:#fff;font:inherit;font-size:13.5px;font-weight:500;color:#111;outline:0;cursor:pointer}
+.logrows{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:600;color:var(--mu);margin-left:auto}
+.logcnt{margin:0 0 6px;font-size:12px;color:var(--mu)}
+.logt tbody tr{cursor:pointer}.logt tbody tr:hover{background:#fafafa}.logt .num{text-align:right;font-variant-numeric:tabular-nums}
+.logt .c-t,.logt .c-s{white-space:nowrap}.logt .c-note{color:#555}.logt .nu{color:var(--mu);font-style:italic}
+.chgp{display:inline-block;min-width:46px;text-align:center;padding:2px 9px;border-radius:999px;font-weight:700;font-size:12.5px}.chgp.gu{background:#dcfce7;color:#15803d}.chgp.gd{background:#fee2e2;color:#b91c1c}
+@media (max-width:700px){
+.logbar #logUser{flex:1 1 230px;min-width:0}
+.logt,.logt tbody{display:block}.logt thead{display:none}
+.logt tr{display:grid;grid-template-columns:1fr auto;grid-template-areas:"n d" "t s" "u u" "o o";gap:3px 12px;padding:12px 2px;border-bottom:1px solid var(--ln)}
+.logt tr:last-child{border-bottom:0}.logt td{padding:0;border:0;min-width:0;font-size:12.5px;color:var(--mu)}
+.logt .c-name{grid-area:n;font-size:14.5px;color:#111}.logt .c-d{grid-area:d;align-self:center}.logt .c-t{grid-area:t}.logt .c-s{grid-area:s;text-align:right}.logt .c-s::before{content:'Stok '}.logt .c-u{grid-area:u}.logt .c-note{grid-area:o;color:#555;overflow-wrap:anywhere}
+.logt td[colspan]{grid-column:1/-1}
+}
 .ib{padding:6px 10px;border-radius:10px;background:#fff0e3;color:var(--b);font-size:12.5px;font-weight:700;margin-right:4px}
 .ib.d{background:#fee2e2;color:var(--bad)}
 .bar{display:flex;gap:10px;margin-bottom:12px;flex-wrap:wrap;align-items:center}
@@ -471,8 +483,8 @@ select.fi{appearance:auto}
       <div class="stats" id="invStats"></div>
       <div class="panel"><div class="tw"><table><thead><tr id="invHead"></tr></thead><tbody id="invBody"></tbody></table></div></div>
       <div class="panel"><h3>Riwayat Perubahan Stok</h3>
-        <div class="logbar"><select class="fi" id="logUser" onchange="S.logU=this.value;S.ln=15;renderLog()" hidden></select><label class="logrows">Baris<select class="fi" id="logRows" onchange="setLogRows(this.value)"></select></label></div>
-        <p class="hint" id="logHint" hidden></p>
+        <div class="logbar"><select class="logsel" id="logUser" aria-label="Filter pengguna" onchange="S.logU=this.value;S.ln=0;renderLog()" hidden></select><label class="logrows">Baris<select class="logsel" id="logRows" onchange="setLogRows(this.value)"></select></label></div>
+        <p class="hint" id="logHint" hidden></p><p class="logcnt" id="logCnt"></p>
         <div class="tw"><table class="logt"><thead id="logHead"></thead><tbody id="logBody"></tbody></table></div><button class="btn sec morebtn" id="logMore" hidden onclick="S.ln=(S.ln||logRowsN())+logRowsN();renderLog()">Tampilkan lebih banyak</button></div>
     </section>
 
@@ -1077,10 +1089,11 @@ function renderLog(){
   $('#logHead').innerHTML='<tr>'+vis.map(([k,l])=>`<th${k==='d'||k==='s'?' class="num"':''}>${l}</th>`).join('')+'</tr>';
   const rows=logRows(),cell={
     t:l=>tm(l.t),name:l=>`<b>${esc(l.name)}</b>`,
-    d:l=>`<b style="color:${l.d<0?'var(--bad)':'var(--ok)'}">${l.d>0?'+':''}${l.d}</b>`,
-    s:l=>l.s!=null?l.s:'-',u:l=>esc(l.by||l.u||'Tidak tercatat'),note:l=>esc(l.note||'')};
-  $('#logBody').innerHTML=rows.slice(0,n).map(r=>`<tr onclick="logOpen(${r.i})">`+vis.map(([k])=>`<td${k==='d'||k==='s'?' class="num"':''}>${cell[k](r.l)}</td>`).join('')+'</tr>').join('')||`<tr><td colspan="${Math.max(1,vis.length)}" style="color:var(--mu)">Belum ada perubahan.</td></tr>`;
+    d:l=>`<span class="chgp ${l.d<0?'gd':'gu'}">${l.d>0?'+':''}${l.d}</span>`,
+    s:l=>l.s!=null?l.s:'-',u:l=>l.by||l.u?esc(l.by||l.u):'<span class="nu">Tidak tercatat</span>',note:l=>esc(l.note||'')};
+  $('#logBody').innerHTML=rows.slice(0,n).map(r=>`<tr onclick="logOpen(${r.i})">`+vis.map(([k])=>`<td class="c-${k==='name'?'name':k}${k==='d'||k==='s'?' num':''}">${cell[k](r.l)}</td>`).join('')+'</tr>').join('')||`<tr><td colspan="${Math.max(1,vis.length)}" style="color:var(--mu)">Belum ada perubahan.</td></tr>`;
   $('#logMore').hidden=rows.length<=n;
+  const cn=$('#logCnt');if(cn)cn.textContent=rows.length?`Menampilkan ${Math.min(n,rows.length)} dari ${rows.length} catatan`:'';
 }
 function logOpen(i){
   const l=db.log[i];if(!l)return;
