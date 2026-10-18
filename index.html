@@ -53,18 +53,27 @@ input,select,textarea{font:inherit;color:inherit}
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(var(--minc,160px),1fr));gap:var(--gd,14px);margin-top:8px;--pd:var(--pdd,8px);--rad:var(--radd,18px)}
 .grid.fd{grid-template-columns:repeat(var(--cd),minmax(0,1fr))}
 .grid.nostock .stk{display:none}
-.grid.list{grid-template-columns:1fr!important;gap:8px}
-.grid.list .p{display:grid;grid-template-columns:auto 1fr auto;column-gap:12px;align-items:center;padding:10px 12px;text-align:left;border-radius:24px}
-.grid.list .sub{display:none}
-.grid.list .im{grid-row:1/3;aspect-ratio:1/1;width:72px;font-size:36px;margin:0}
-.grid.list .nm{grid-column:2;min-height:0;margin:0;text-align:left}
-.grid.list .stk{grid-column:2;margin:0}
-.grid.list .row{grid-column:3;grid-row:1/3;flex-direction:column;align-items:flex-end;gap:6px;margin:0}
+.grid.list{grid-template-columns:1fr!important;gap:14px}
+.grid.list .p{display:grid;grid-template-columns:auto minmax(0,1fr) auto;grid-template-areas:"im nm q" "im sub q" "im pr q" "im stk q";grid-template-rows:1fr auto auto auto;grid-template-rows:none;column-gap:16px;row-gap:3px;align-items:center;align-content:center;padding:14px 16px 14px 14px;text-align:left;border-radius:30px;box-shadow:0 10px 30px rgba(0,0,0,.07)}
+.grid.list .im{grid-area:im;grid-row:1/5;width:96px;height:96px;aspect-ratio:auto;font-size:46px;margin:0;box-shadow:0 8px 18px rgba(0,0,0,.14)}
+.grid.list .nm{grid-area:nm;min-height:0;margin:0;text-align:left;font-size:17px;line-height:1.25;align-self:end}
+.grid.list .sub{display:block;grid-area:sub;margin:0;font-size:12px;color:#a8a8a8}
+.grid.list .row{display:contents}
+.grid.list .pr{grid-area:pr;font-size:18px;margin-top:4px;color:var(--b)}
+.grid.list .stk{grid-area:stk;margin:0;font-size:11.5px;align-self:start}
+.grid.list .qty{grid-area:q;grid-row:1/5;flex-direction:column;justify-content:center;align-self:center;gap:2px;padding:6px 4px;background:var(--b);border-radius:999px;box-shadow:0 8px 18px rgba(255,106,0,.35);color:#fff}
+.grid.list .qty button{width:34px;height:34px;font-size:22px;background:transparent;color:#fff;box-shadow:none}
+.grid.list .qty button:first-child:not(:disabled){background:transparent;color:#fff}
+.grid.list .qty button:disabled{opacity:.4}
+.grid.list .qty span{color:#fff;font-weight:700;font-size:15px;min-width:0}
 .gtool{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:6px 2px 0}
 .gtool .lb{color:var(--mu);font-size:12px;margin-right:2px}
 .gtool .chip{padding:6px 12px;font-size:12px}
 .p{background:var(--card);border-radius:var(--rad,28px);padding:calc(var(--pd,8px) + 4px) var(--pd,8px) 14px;display:flex;flex-direction:column;align-items:center;text-align:center;container-type:inline-size;min-width:0;box-shadow:0 10px 30px rgba(0,0,0,.06)}
 .p .im{aspect-ratio:1/1;width:78%;border-radius:50%;background:#fff6ee;overflow:hidden;display:grid;place-items:center;font-size:clamp(26px,38cqw,88px);position:relative;box-shadow:0 12px 24px rgba(255,106,0,.18);margin:2px auto 0}
+.p .im .qov{position:absolute;inset:0;display:grid;place-items:center;background:rgba(0,0,0,.42);color:#fff;font-weight:800;font-size:clamp(22px,34cqw,52px);pointer-events:none;border-radius:50%;animation:qovin .22s cubic-bezier(.34,1.56,.64,1)}
+@keyframes qovin{from{opacity:.4;transform:scale(.7)}to{opacity:1;transform:none}}
+.grid.list .im .qov{font-size:38px}
 .p .im img{width:100%;height:100%;object-fit:cover}
 .p .nm{font-weight:700;text-align:center;font-size:clamp(11px,7.6cqw,16px);margin:12px 2px 0;line-height:1.25;min-height:2.5em;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;word-break:break-word}
 .p .row{display:flex;align-items:center;justify-content:space-between;margin:6px 2px 0;gap:6px;flex-wrap:wrap;width:100%}
@@ -290,11 +299,17 @@ td .th img{width:100%;height:100%;object-fit:cover}
 
 @media (max-width:700px){
   .top .pill:not(.search){display:none}
-  .bnav{display:grid;grid-template-columns:repeat(5,1fr);align-items:center;position:fixed;left:0;right:0;bottom:0;z-index:38;background:#fff;height:calc(66px + env(safe-area-inset-bottom,0px));padding:0 max(8px,env(safe-area-inset-right,0px)) env(safe-area-inset-bottom,0px) max(8px,env(safe-area-inset-left,0px));border-radius:28px 28px 0 0;box-shadow:0 -8px 30px rgba(0,0,0,.08)}
-  .bnav button{height:66px;display:grid;place-items:center;color:#b9b9b9;transition:color .15s}
-  .bnav button.on{color:var(--b)}
-  .bnav button.home{width:62px;height:62px;border-radius:50%;background:var(--b);color:#fff;margin:-30px auto 0;box-shadow:0 10px 24px rgba(255,106,0,.45);border:5px solid #fff}
-  .bnav button.home.on{color:#fff}
+  .bnav{display:grid;grid-template-columns:repeat(5,1fr);align-items:center;position:fixed;left:0;right:0;bottom:0;z-index:38;height:calc(66px + env(safe-area-inset-bottom,0px));padding:0 max(8px,env(safe-area-inset-right,0px)) env(safe-area-inset-bottom,0px) max(8px,env(safe-area-inset-left,0px));filter:drop-shadow(0 -6px 14px rgba(0,0,0,.08));-webkit-tap-highlight-color:transparent}
+  .bnav .bnbg{position:absolute;left:0;top:0;width:100%;height:100%;overflow:hidden;z-index:-1;pointer-events:none}
+  .bnav .bndot{position:absolute;top:-9px;left:-29px;width:58px;height:58px;border-radius:50%;background:var(--b);box-shadow:0 8px 20px rgba(255,106,0,.45);z-index:0;pointer-events:none;will-change:transform;transition:opacity .2s}
+  .bnav.none .bndot{opacity:0}
+  .bnav button{position:relative;z-index:1;height:66px;display:grid;place-items:center;color:#b9b9b9;transition:color .2s;-webkit-tap-highlight-color:transparent}
+  .bnav button svg{width:26px;height:26px;transition:transform .38s cubic-bezier(.34,1.56,.64,1)}
+  .bnav button.on{color:#fff}
+  .bnav button.on svg{transform:translateY(-13px) scale(1.08);animation:bnpop .45s}
+  .bnav button:active svg{transform:scale(.8)}
+  .bnav button.on:active svg{transform:translateY(-13px) scale(.9)}
+  @keyframes bnpop{0%{transform:translateY(0) scale(.7) rotate(-14deg)}60%{transform:translateY(-17px) scale(1.25) rotate(6deg)}100%{transform:translateY(-13px) scale(1.08)}}
   .main{padding-bottom:calc(150px + env(safe-area-inset-bottom,0px))}
   .fab{bottom:calc(78px + env(safe-area-inset-bottom,0px))}
   .toast{bottom:calc(150px + env(safe-area-inset-bottom,0px))}
@@ -335,6 +350,16 @@ button[hidden]{display:none!important}
 .drawer button.acct[hidden]{display:none}
 .av{width:36px;height:36px;border-radius:50%;background:var(--b);color:#fff;display:inline-grid;place-items:center;font-weight:700;flex:none}
 .av.lg{width:52px;height:52px;font-size:22px}
+.av{overflow:hidden}.av img{width:100%;height:100%;object-fit:cover;display:block}
+.accph{display:flex;gap:16px;align-items:center;margin-bottom:6px}
+.accav{position:relative;width:84px;height:84px;border-radius:50%;background:var(--b);color:#fff;display:grid;place-items:center;font-size:34px;font-weight:700;flex:none;padding:0;box-shadow:0 8px 20px rgba(255,106,0,.3)}
+.accav #accAv{width:100%;height:100%;border-radius:50%;overflow:hidden;display:grid;place-items:center}.accav img{width:100%;height:100%;object-fit:cover}
+.accav .cam{position:absolute;right:-2px;bottom:-2px;width:30px;height:30px;border-radius:50%;background:#fff;color:var(--b);display:grid;place-items:center;box-shadow:0 3px 10px rgba(0,0,0,.2)}
+.accwho{min-width:0;display:flex;flex-direction:column;gap:2px}.accwho b{font-size:18px;overflow-wrap:anywhere}.accwho small{color:var(--mu)}
+.lnk{align-self:flex-start;background:none;color:var(--bad);font-size:12.5px;font-weight:600;padding:2px 0;margin-top:2px}
+.accpw{margin:14px 0 4px;border:1px solid var(--ln);border-radius:16px;padding:12px 14px}.accpw summary{font-weight:600;cursor:pointer;list-style:none}.accpw summary::after{content:'▾';float:right;color:var(--mu)}.accpw[open] summary::after{content:'▴'}.accpw[open] summary{margin-bottom:10px}
+.lgo{text-align:center}.lgo h3{margin:10px 0 6px}.lgo p{margin:0 0 14px;color:var(--mu);line-height:1.5}
+.lgi{width:64px;height:64px;border-radius:50%;background:#fee2e2;color:var(--bad);display:grid;place-items:center;margin:4px auto 0}
 .acct .who{display:flex;flex-direction:column;min-width:0;line-height:1.25}
 .acct .who b{font-size:13.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.acct .who small{color:var(--mu);font-weight:500;font-size:11.5px}
 .acctc{display:flex;gap:12px;align-items:center;margin-bottom:8px}
@@ -471,7 +496,7 @@ select.fi{appearance:auto}
   <p class="lfoot">Lupa sandi? Hubungi owner untuk meresetnya.</p>
 </form></div>
 
-<nav class="bnav" id="bnav">
+<nav class="bnav" id="bnav"><svg class="bnbg" id="bnbg" aria-hidden="true"><defs><mask id="bnmask" maskUnits="userSpaceOnUse" x="-100" y="-40" width="2000" height="300"><rect x="-100" y="-40" width="2000" height="300" fill="#fff"/><path id="bnhole" fill="#000" d=""/></mask></defs><rect id="bnrect" x="0" y="0" width="400" height="200" rx="28" ry="28" fill="#fff" mask="url(#bnmask)"/></svg><i class="bndot" id="bndot"></i>
   <button data-v="inv" onclick="go('inv')" aria-label="Inventori"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 7h12l1 13H5L6 7z"/><path d="M9 9V7a3 3 0 0 1 6 0v2"/></svg></button>
   <button data-v="hist" onclick="go('hist')" aria-label="Riwayat"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 20V11M12 20V4M19 20v-6"/></svg></button>
   <button class="home" data-v="pos" onclick="go('pos')" aria-label="Kasir"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11.5 12 4l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg></button>
@@ -670,11 +695,37 @@ function go(v){
   S.view=v;closeAll();toggleInv(false);
   ['pos','inv','hist','rc','prn','set','co','usr'].forEach(x=>$('#v-'+x).hidden=x!==v);
   document.querySelectorAll('.drawer button,.bnav button').forEach(b=>b.classList.toggle('on',b.dataset.v===v));
+  navDot(v);
   $('#invoice').style.display=v==='pos'?'':'none';
   $('#fab').classList.toggle('hide',v!=='pos');
   $('.search').style.visibility=(v==='pos'||v==='inv')?'visible':'hidden';
   render();
 }
+let NAV={x:null,raf:0,none:false};
+function navDraw(x){
+  const n=$('#bnav'),h=$('#bnhole'),r=$('#bnrect'),d=$('#bndot');if(!n||!h||!r||!d)return;
+  NAV.x=x;const W=n.clientWidth,H=n.clientHeight;
+  r.setAttribute('width',W);r.setAttribute('height',H+40);
+  d.style.transform='translateX('+x+'px)';
+  if(NAV.none){h.setAttribute('d','');return}
+  /* lengkung mulus mengelilingi lingkaran (pusat y=20, jari-jari 29 + celah 8) */
+  const R=37,cy=20,t=20*Math.PI/180,ax=R*Math.cos(t),ay=cy+R*Math.sin(t),k=14,tx=Math.sin(t)*k,ty=Math.cos(t)*k;
+  const f=n=>n.toFixed(1);
+  h.setAttribute('d','M'+f(x-62)+',-40L'+f(x-62)+',0C'+f(x-46)+',0 '+f(x-ax-tx)+','+f(ay-ty)+' '+f(x-ax)+','+f(ay)+'A'+R+','+R+' 0 0 0 '+f(x+ax)+','+f(ay)+'C'+f(x+ax+tx)+','+f(ay-ty)+' '+f(x+46)+',0 '+f(x+62)+',0L'+f(x+62)+',-40Z');
+}
+function navDot(v,instant){
+  const n=$('#bnav');if(!n||!n.querySelectorAll||!n.clientWidth)return;
+  const bs=Array.from(n.querySelectorAll('button')),b=bs.find(b=>b.dataset.v===v);
+  n.classList.toggle('none',!b);NAV.none=!b;
+  if(!b){navDraw(NAV.x==null?n.clientWidth/2:NAV.x);return}
+  const to=b.offsetLeft+b.offsetWidth/2,from=NAV.x==null||instant?to:NAV.x;
+  cancelAnimationFrame(NAV.raf);
+  if(from===to){navDraw(to);return}
+  const t0=performance.now(),D=420,c1=1.9;
+  const ease=u=>{u-=1;return u*u*((c1+1)*u+c1)+1};  /* easeOutBack */
+  (function step(now){const u=Math.min(1,(now-t0)/D);navDraw(from+(to-from)*ease(u));if(u<1)NAV.raf=requestAnimationFrame(step)})(t0);
+}
+window.addEventListener('resize',()=>{const o=document.querySelector('.bnav button.on');navDot(o?o.dataset.v:null,true)});
 function toggleInv(open){$('#invoice').classList.toggle('open',open);$('#fab').classList.toggle('hide',!!open||S.view!=='pos')}
 
 /* ---------- POS ---------- */
@@ -715,7 +766,7 @@ function renderGrid0(){
   const l=filtered(),tapOn=db.set.gv.tap!=='none';
   $('#grid').innerHTML=l.length?l.map(i=>{
     const q=S.cart[i.id]||0,out=i.stock<=0;
-    return`<div class="p"><div class="im${tapOn?' tap':''}"${tapOn?` onclick="tapItem('${i.id}')"`:''}>${thumb(i)}${out?'<div class="sold">HABIS</div>':''}</div>
+    return`<div class="p"><div class="im${tapOn?' tap':''}${q?' has':''}"${tapOn?` onclick="tapItem('${i.id}')"`:''}>${thumb(i)}${out?'<div class="sold">HABIS</div>':''}${q?`<div class="qov">${q}</div>`:''}</div>
     <div class="nm">${esc(i.name)}</div>
     <div class="sub">${esc(i.cat)}</div>
     <div class="stk ${i.stock<=i.min?'low':''}">Stok: ${i.stock}</div>
@@ -2737,7 +2788,7 @@ function renderAcct(){
   const b=$('#acct');if(!b)return;
   if(!CL.on||!CL.me){b.hidden=true;return}
   b.hidden=false;
-  b.innerHTML=`<span class="av">${esc((CL.me.name||'?').trim().charAt(0).toUpperCase())}</span><span class="who"><b>${esc(CL.me.name)}</b><small>${CL.me.role==='owner'?'Owner':'Karyawan'} · @${esc(CL.me.username)}</small></span>`;
+  b.innerHTML=`${avHtml(CL.me)}<span class="who"><b>${esc(CL.me.name)}</b><small>${CL.me.role==='owner'?'Owner':'Karyawan'} · @${esc(CL.me.username)}</small></span>`;
 }
 
 /* ----- halaman login ----- */
@@ -2770,10 +2821,7 @@ async function doLogin(){
   }catch(e){err.textContent='Tidak bisa terhubung ke server'}
   finally{btn.disabled=false;btn.textContent='Masuk'}
 }
-function doLogout(){
-  if(CL.dirty)ask('Ada perubahan belum tersinkron','Perubahan di perangkat ini belum terkirim ke server. Jika keluar sekarang, perubahan itu bisa hilang. Tetap keluar?','Keluar',cloudLogout);
-  else cloudLogout();
-}
+function doLogout(){logoutAsk()}
 function cloudLogout(){
   CL.tok='';setMe(null);try{localStorage.removeItem('pos_tok')}catch(e){}
   CO.list=[];CO.rev=0;CO.seen.clear();
@@ -2781,32 +2829,80 @@ function cloudLogout(){
 }
 
 /* ----- akun saya ----- */
+function avHtml(m,cls){const ph=m&&m.photo;return `<span class="av ${cls||''}">${ph?`<img src="${esc(ph)}" alt="">`:esc(((m&&m.name)||'?').trim().charAt(0).toUpperCase())}</span>`}
+let ACC={photo:null};
 function openAcct(){
-  const m=CL.me;if(!m)return;closeAll();
-  openModal(`<h3>Akun Saya</h3>
-  <div class="acctc"><span class="av lg">${esc((m.name||'?').trim().charAt(0).toUpperCase())}</span><div><b>${esc(m.name)}</b><div class="hint" style="margin:2px 0">@${esc(m.username)} · ${m.role==='owner'?'Owner':'Karyawan'}</div></div></div>
-  <div class="hint">${m.role==='owner'?'Akses penuh ke semua fitur dan pengelolaan pengguna.':'Akses: Kasir'+((m.perms||[]).length?', '+m.perms.map(p=>PERM_SHORT[p]).join(', '):'')+'.'}</div>
-  <label class="fl">Ganti kata sandi</label>
-  <input class="fi" id="pwOld" type="password" placeholder="Sandi saat ini" autocomplete="current-password">
-  <input class="fi" id="pwNew" type="password" placeholder="Sandi baru (min. 6 karakter)" autocomplete="new-password" style="margin-top:8px">
-  <input class="fi" id="pwNew2" type="password" placeholder="Ulangi sandi baru" autocomplete="new-password" style="margin-top:8px">
-  <p class="hint" id="pwErr" style="color:var(--bad);min-height:16px"></p>
-  <button class="btn" onclick="changePw()">Simpan Sandi</button>
-  <button class="btn red" onclick="closeModal();doLogout()">Keluar</button>
-  <button class="btn sec" onclick="closeModal()">Tutup</button>`);
+  const m=CL.me;if(!m)return;closeAll();ACC.photo=m.photo||'';
+  openModal(`<div class="accp">
+  <div class="accph"><button class="accav" type="button" onclick="$('#accFile').click()" aria-label="Ganti foto profil"><span id="accAv"></span><i class="cam"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg></i></button>
+    <input type="file" id="accFile" accept="image/*" hidden onchange="accPhoto(this)">
+    <div class="accwho"><b id="accNm">${esc(m.name)}</b><small>@${esc(m.username)} · ${m.role==='owner'?'Owner':'Karyawan'}</small>
+    <button class="lnk" type="button" id="accRm" onclick="accPhotoDel()">Hapus foto</button></div></div>
+  <label class="fl">Nama lengkap</label><input class="fi" id="accName" maxlength="60" value="${esc(m.name)}" autocomplete="name">
+  <label class="fl">Alamat email</label><input class="fi" id="accEmail" type="email" inputmode="email" maxlength="120" placeholder="nama@contoh.com" value="${esc(m.email||'')}" autocomplete="email">
+  <label class="fl">Nomor telepon</label><input class="fi" id="accPhone" type="tel" inputmode="tel" maxlength="20" placeholder="+60 12-345 6789" value="${esc(m.phone||'')}" autocomplete="tel">
+  <p class="hint" id="accErr" style="color:var(--bad);min-height:16px;margin:6px 0 0"></p>
+  <button class="btn" id="accSave" onclick="accSave()">Simpan Perubahan</button>
+  <details class="accpw"><summary>Ubah password</summary>
+    <input class="fi" id="pwOld" type="password" placeholder="Password saat ini" autocomplete="current-password">
+    <input class="fi" id="pwNew" type="password" placeholder="Password baru (min. 6 karakter)" autocomplete="new-password" style="margin-top:8px">
+    <input class="fi" id="pwNew2" type="password" placeholder="Ulangi password baru" autocomplete="new-password" style="margin-top:8px">
+    <p class="hint" id="pwErr" style="color:var(--bad);min-height:16px"></p>
+    <button class="btn sec" onclick="changePw()">Ubah Password</button></details>
+  <button class="btn red" onclick="logoutAsk()">Keluar</button>
+  <button class="btn sec" onclick="closeModal()">Tutup</button></div>`);
+  accAvDraw();
+}
+function accAvDraw(){const m=CL.me||{};const e=$('#accAv');if(e)e.innerHTML=ACC.photo?`<img src="${esc(ACC.photo)}" alt="">`:esc(((($('#accName')||{}).value||m.name||'?')).trim().charAt(0).toUpperCase());const r=$('#accRm');if(r)r.hidden=!ACC.photo}
+function accPhoto(inp){
+  const f=inp.files&&inp.files[0];inp.value='';if(!f)return;
+  if(!/^image\//.test(f.type)){$('#accErr').textContent='File harus berupa gambar';return}
+  const rd=new FileReader();
+  rd.onload=()=>{const im=new Image();
+    im.onload=()=>{try{
+      const N=256,c=document.createElement('canvas');c.width=c.height=N;const x=c.getContext('2d');
+      const sz=Math.min(im.width,im.height),sx=(im.width-sz)/2,sy=(im.height-sz)/2;
+      x.fillStyle='#fff';x.fillRect(0,0,N,N);x.drawImage(im,sx,sy,sz,sz,0,0,N,N);
+      ACC.photo=c.toDataURL('image/jpeg',.82);$('#accErr').textContent='';accAvDraw();
+    }catch(e){$('#accErr').textContent='Foto tidak bisa diproses'}};
+    im.onerror=()=>{$('#accErr').textContent='Foto tidak bisa dibaca'};
+    im.src=rd.result};
+  rd.onerror=()=>{$('#accErr').textContent='Foto tidak bisa dibaca'};
+  rd.readAsDataURL(f);
+}
+function accPhotoDel(){ACC.photo='';accAvDraw()}
+async function accSave(){
+  const e=$('#accErr'),btn=$('#accSave'),name=$('#accName').value.trim(),email=$('#accEmail').value.trim(),phone=$('#accPhone').value.trim();
+  if(!name){e.textContent='Nama lengkap wajib diisi';return}
+  if(email&&!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)){e.textContent='Format alamat email tidak valid';return}
+  if(phone&&(!/^[0-9+\-() ]{6,20}$/.test(phone)||phone.replace(/\D/g,'').length<6)){e.textContent='Nomor telepon tidak valid';return}
+  btn.disabled=true;e.textContent='';
+  try{
+    const r=await api('/api/me',{method:'PUT',body:JSON.stringify({name,email,phone,photo:ACC.photo||''})}),j=await r.json();
+    if(!r.ok){e.textContent=j.error||'Gagal menyimpan';return}
+    setMe(j);renderAcct();closeModal();toast('Profil disimpan');
+  }catch(x){if(x.message!=='auth')e.textContent='Tidak bisa terhubung ke server'}
+  finally{btn.disabled=false}
 }
 async function changePw(){
   const o=$('#pwOld').value,n=$('#pwNew').value,n2=$('#pwNew2').value,e=$('#pwErr');
-  if(!o||!n){e.textContent='Isi sandi saat ini dan sandi baru';return}
-  if(n.length<6){e.textContent='Sandi baru minimal 6 karakter';return}
-  if(n!==n2){e.textContent='Pengulangan sandi tidak sama';return}
+  if(!o||!n){e.textContent='Isi password saat ini dan password baru';return}
+  if(n.length<6){e.textContent='Password baru minimal 6 karakter';return}
+  if(n!==n2){e.textContent='Pengulangan password tidak sama';return}
   try{
     const r=await api('/api/me/password',{method:'POST',body:JSON.stringify({old:o,new:n})});
     const j=await r.json();
     if(!r.ok){e.textContent=j.error||'Gagal';return}
     CL.tok=j.token;try{localStorage.setItem('pos_tok',CL.tok)}catch(x){}
-    closeModal();toast('Sandi diganti');
+    closeModal();toast('Password diganti');
   }catch(x){if(x.message!=='auth')e.textContent='Tidak bisa terhubung ke server'}
+}
+/* dialog keluar: hanya dua pilihan, Keluar atau Batal */
+function logoutAsk(){
+  openModal(`<div class="lgo"><div class="lgi"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/></svg></div>
+  <h3>Keluar dari akun?</h3><p>${CL.dirty?'Ada perubahan yang belum tersinkron dan bisa hilang kalau Anda keluar sekarang.':'Anda perlu masuk lagi untuk memakai aplikasi.'}</p>
+  <button class="btn red" onclick="closeModal();cloudLogout()">Keluar</button>
+  <button class="btn sec" onclick="closeModal()">Batal</button></div>`);
 }
 
 /* ----- pembatasan saat sinkron: karyawan tidak mengirim perubahan di luar izinnya ----- */
@@ -2828,7 +2924,7 @@ function restrictToServer(M,S){
 
 /* ----- halaman Pengguna (owner) ----- */
 const USR={list:[],log:[]};
-const ACT_LBL={'login':'Masuk','login-gagal':'Gagal masuk','tambah-user':'Tambah pengguna','ubah-user':'Ubah pengguna','hapus-user':'Hapus pengguna','reset-sandi':'Reset sandi','ganti-sandi':'Ganti sandi','ditolak':'Perubahan ditolak','reset-owner':'Reset sandi owner'};
+const ACT_LBL={'ubah-profil':'Ubah profil','login':'Masuk','login-gagal':'Gagal masuk','tambah-user':'Tambah pengguna','ubah-user':'Ubah pengguna','hapus-user':'Hapus pengguna','reset-sandi':'Reset sandi','ganti-sandi':'Ganti sandi','ditolak':'Perubahan ditolak','reset-owner':'Reset sandi owner'};
 function fmtLast(t){if(!t)return 'belum pernah masuk';const d=new Date(t);return d.toLocaleDateString(dloc(),{day:'2-digit',month:'short'})+' '+d.toLocaleTimeString(dloc(),{hour:'2-digit',minute:'2-digit'}).replace('.',':')}
 async function renderUsr(){
   const el=$('#usrList');if(!el)return;

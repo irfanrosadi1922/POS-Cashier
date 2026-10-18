@@ -22,6 +22,9 @@ create table if not exists pos.sessions(
   th text primary key,                    -- sha256 dari token; token asli tidak disimpan
   uid bigint not null references pos.users(id) on delete cascade,
   exp timestamptz not null);
+alter table pos.users add column if not exists email text not null default '';
+alter table pos.users add column if not exists phone text not null default '';
+alter table pos.users add column if not exists photo text not null default '';
 alter table pos.users add column if not exists single boolean;            -- null = otomatis (karyawan: ya, owner: tidak)
 alter table pos.sessions add column if not exists kicked_at timestamptz;   -- diisi saat perangkat ini dikeluarkan karena login di perangkat lain
 create index if not exists sessions_uid on pos.sessions(uid);
@@ -112,7 +115,10 @@ $$ select u.role = 'owner' or pos.perms_of(u) ? k $$;
 
 create or replace function pos.me_view(u pos.users) returns jsonb language sql stable as $$
   select jsonb_build_object('id', u.id, 'username', u.username, 'name', u.name, 'role', u.role, 'perms', pos.perms_of(u),
-    'single', coalesce(u.single, u.role <> 'owner'), 'active', u.active, 'lastLogin', coalesce(pos.iso(u.last_login), ''), 'createdAt', pos.iso(u.created_at)) $$;
+    'single', coalesce(u.single, u.role <> 'owner'), 'active', u.active, 'lastLogin', coalesce(pos.iso(u.last_login), ''), 'createdAt', pos.iso(u.created_at),
+    'email', u.email, 'phone', u.phone, 'hasPhoto', u.photo <> '') $$;
+create or replace function pos.me_self(u pos.users) returns jsonb language sql stable as $$
+  select pos.me_view(u) || jsonb_build_object('photo', u.photo) $$;
 
 create or replace function pos.auth(tok text) returns pos.users language plpgsql as $$
 declare u pos.users;
@@ -336,7 +342,7 @@ begin
   end if;
   perform pos.audit(u.id, u.username, 'login', v_ip || case when v_out > 0 then ' (perangkat lama dikeluarkan)' else '' end);
   select * into u from pos.users where id = u.id;
-  return pos.r(200, jsonb_build_object('token', pos.new_session(u.id), 'days', 90, 'me', pos.me_view(u)));
+  return pos.r(200, jsonb_build_object('token', pos.new_session(u.id), 'days', 90, 'me', pos.me_self(u)));
 end $$;
 
 -- ------------------------------------------------------------ router utama
@@ -381,14 +387,31 @@ begin
   if me.id is null then return pos.r(401, case when pos.kicked(t) then '{"error":"kicked"}'::jsonb else '{"error":"unauthorized"}'::jsonb end); end if;
   own := me.role = 'owner';
 
-  if u = '/api/me' and m = 'GET' then return pos.r(200, pos.me_view(me)); end if;
+  if u = '/api/me' and m = 'GET' then return pos.r(200, pos.me_self(me)); end if;
+  if u = '/api/me' and m = 'PUT' then
+    declare pn text; pe text; pp text; pf text;
+    begin
+      pn := regexp_replace(btrim(coalesce(b ->> 'name', me.name)), '\s+', ' ', 'g');
+      pe := lower(btrim(coalesce(b ->> 'email', me.email)));
+      pp := btrim(coalesce(b ->> 'phone', me.phone));
+      pf := coalesce(b ->> 'photo', me.photo);
+      if length(pn) < 1 or length(pn) > 60 then return pos.r(400, '{"error":"Nama lengkap wajib diisi (maks. 60 karakter)"}'); end if;
+      if pe <> '' and (length(pe) > 120 or pe !~ '^[^\s@]+@[^\s@]+\.[^\s@]{2,}$') then return pos.r(400, '{"error":"Format alamat email tidak valid"}'); end if;
+      if pp <> '' and (pp !~ '^[0-9+() -]{6,20}$' or length(regexp_replace(pp, '\D', '', 'g')) < 6) then return pos.r(400, '{"error":"Nomor telepon tidak valid"}'); end if;
+      if pf <> '' and (length(pf) > 110000 or pf !~ '^data:image/(jpeg|png|webp);base64,[A-Za-z0-9+/=]+$') then return pos.r(400, '{"error":"Foto profil tidak valid atau terlalu besar"}'); end if;
+      update pos.users set name = pn, email = pe, phone = pp, photo = pf where id = me.id;
+      perform pos.audit(me.id, me.username, 'ubah-profil', '');
+      select * into me from pos.users where id = me.id;
+      return pos.r(200, pos.me_self(me));
+    end;
+  end if;
   if u = '/api/me/password' and m = 'POST' then
     if coalesce(jsonb_typeof(b -> 'new'), '') <> 'string' or length(b ->> 'new') < 6 then return pos.r(400, '{"error":"Sandi baru minimal 6 karakter"}'); end if;
     if me.pw <> extensions.crypt(coalesce(b ->> 'old', ''), me.pw) then return pos.r(403, '{"error":"Sandi lama salah"}'); end if;
     update pos.users set pw = extensions.crypt(b ->> 'new', extensions.gen_salt('bf', 10)) where id = me.id;
     delete from pos.sessions where uid = me.id;
     perform pos.audit(me.id, me.username, 'ganti-sandi', '');
-    return pos.r(200, jsonb_build_object('token', pos.new_session(me.id)));
+    return pos.r(200, jsonb_build_object('token', pos.new_session(me.id), 'me', pos.me_self(me)));
   end if;
 
   if u = '/api/users' and m = 'GET' then
