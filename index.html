@@ -2,7 +2,7 @@
 <html lang="id">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no, viewport-fit=cover">
 <meta name="theme-color" content="#f6f6f6">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -115,7 +115,7 @@ input,select,textarea{font:inherit;color:inherit}
 .fab{display:none}
 .sheet-x{display:none}
 /* drawer */
-.drawer{position:fixed;left:0;top:0;bottom:0;width:260px;background:#fff;z-index:60;transform:translateX(-105%);transition:.25s;padding:calc(20px + env(safe-area-inset-top,0px)) 14px calc(20px + env(safe-area-inset-bottom,0px));overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;display:flex;flex-direction:column;border-radius:0 32px 32px 0;box-shadow:6px 0 30px rgba(0,0,0,.12)}
+.drawer{position:fixed;left:0;top:0;bottom:0;width:260px;background:#fff;z-index:60;transform:translateX(-105%);transition:.25s;padding:calc(20px + env(safe-area-inset-top,0px)) 14px calc(20px + env(safe-area-inset-bottom,0px)) max(14px,env(safe-area-inset-left,0px));width:calc(260px + env(safe-area-inset-left,0px));overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;display:flex;flex-direction:column;border-radius:0 32px 32px 0;box-shadow:6px 0 30px rgba(0,0,0,.12)}
 .drawer>*{flex:none}
 .drawer.open{transform:none}
 .drawer h3{margin:4px 10px 18px;color:var(--b)}
@@ -148,7 +148,14 @@ td .th img{width:100%;height:100%;object-fit:cover}
 .logt .c-t,.logt .c-s{white-space:nowrap}.logt .c-note{color:#555}.logt .nu{color:var(--mu);font-style:italic}
 .chgp{display:inline-block;min-width:46px;text-align:center;padding:2px 9px;border-radius:999px;font-weight:700;font-size:12.5px}.chgp.gu{background:#dcfce7;color:#15803d}.chgp.gd{background:#fee2e2;color:#b91c1c}
 @media (max-width:700px){
-.logbar #logUser{flex:1 1 230px;min-width:0}
+.logbar #logUser{flex:1 1 0;min-width:0}
+.logbar{flex-wrap:nowrap;gap:8px}.logsel{height:34px!important;font-size:13px!important;padding:0 26px 0 10px!important;border-radius:10px}
+.logrows{margin-left:0;font-size:12px;gap:6px;flex:none}.logrows .logsel{padding:0 22px 0 8px!important}
+.invt,.invt tbody{display:block}.invt thead{display:none}
+.invt tr{display:grid;grid-template-columns:auto auto 1fr;grid-template-areas:"k t n" "k t c" "k t p" "k t s" "k t st" "a a a";align-items:center;gap:2px 12px;padding:12px 2px;border-bottom:1px solid var(--ln)}
+.invt td{padding:0;border:0;min-width:0;font-size:12.5px;color:var(--mu)}
+.invt .i-ck{grid-area:k}.invt .i-th{grid-area:t}.invt .i-n{grid-area:n;font-size:14.5px;color:#111}.invt .i-c{grid-area:c}.invt .i-p{grid-area:p;color:#111;font-weight:600}.invt .i-m{display:none}.invt .i-s{grid-area:s;margin:3px 0}.invt .i-st{grid-area:st;justify-self:start}.invt .stkc input{width:72px}.invt .i-a{grid-area:a;padding-top:8px}
+.invt td[colspan]{grid-column:1/-1}
 .logt,.logt tbody{display:block}.logt thead{display:none}
 .logt tr{display:grid;grid-template-columns:1fr auto;grid-template-areas:"n d" "t s" "u u" "o o";gap:3px 12px;padding:12px 2px;border-bottom:1px solid var(--ln)}
 .logt tr:last-child{border-bottom:0}.logt td{padding:0;border:0;min-width:0;font-size:12.5px;color:var(--mu)}
@@ -283,7 +290,7 @@ td .th img{width:100%;height:100%;object-fit:cover}
 
 @media (max-width:700px){
   .top .pill:not(.search){display:none}
-  .bnav{display:grid;grid-template-columns:repeat(5,1fr);align-items:center;position:fixed;left:0;right:0;bottom:0;z-index:38;background:#fff;height:calc(66px + env(safe-area-inset-bottom,0px));padding:0 8px env(safe-area-inset-bottom,0px);border-radius:28px 28px 0 0;box-shadow:0 -8px 30px rgba(0,0,0,.08)}
+  .bnav{display:grid;grid-template-columns:repeat(5,1fr);align-items:center;position:fixed;left:0;right:0;bottom:0;z-index:38;background:#fff;height:calc(66px + env(safe-area-inset-bottom,0px));padding:0 max(8px,env(safe-area-inset-right,0px)) env(safe-area-inset-bottom,0px) max(8px,env(safe-area-inset-left,0px));border-radius:28px 28px 0 0;box-shadow:0 -8px 30px rgba(0,0,0,.08)}
   .bnav button{height:66px;display:grid;place-items:center;color:#b9b9b9;transition:color .15s}
   .bnav button.on{color:var(--b)}
   .bnav button.home{width:62px;height:62px;border-radius:50%;background:var(--b);color:#fff;margin:-30px auto 0;box-shadow:0 10px 24px rgba(255,106,0,.45);border:5px solid #fff}
@@ -481,7 +488,7 @@ select.fi{appearance:auto}
         <button class="btn sm sec own-only" onclick="exportCSV()">Ekspor CSV</button>
       </div>
       <div class="stats" id="invStats"></div>
-      <div class="panel"><div class="tw"><table><thead><tr id="invHead"></tr></thead><tbody id="invBody"></tbody></table></div></div>
+      <div class="panel"><div class="tw"><table class="invt"><thead><tr id="invHead"></tr></thead><tbody id="invBody"></tbody></table></div></div>
       <div class="panel"><h3>Riwayat Perubahan Stok</h3>
         <div class="logbar"><select class="logsel" id="logUser" aria-label="Filter pengguna" onchange="S.logU=this.value;S.ln=0;renderLog()" hidden></select><label class="logrows">Baris<select class="logsel" id="logRows" onchange="setLogRows(this.value)"></select></label></div>
         <p class="hint" id="logHint" hidden></p><p class="logcnt" id="logCnt"></p>
@@ -1379,12 +1386,12 @@ function renderInvTable(){
   [...S.sel].forEach(id=>{if(!ids.has(id))S.sel.delete(id)});
   $('#invHead').innerHTML=emp?'<th></th><th>Nama</th><th>Kategori</th><th>Harga</th><th>Stok</th><th>Status</th>':'<th><input type="checkbox" id="selAllCk" onchange="selAll(this.checked)"></th><th></th><th>Nama</th><th>Kategori</th><th>Harga</th><th>Modal</th><th>Stok</th><th>Status</th><th></th>';
   $('#invBody').innerHTML=invList().map(i=>{const[s,t]=status(i);
-    const stk=`<td><span class="stkc"><input type="number" min="0" value="${i.stock}" aria-label="Stok ${esc(i.name)}" onchange="setStock('${i.id}',this.value)"></span></td>`;
-    return emp?`<tr><td><div class="th">${thumb(i)}</div></td><td><b>${esc(i.name)}</b></td><td>${esc(i.cat)}</td><td>${money(i.price)}</td>${stk}<td><span class="tag ${s}">${t}</span></td></tr>`
-    :`<tr><td><input type="checkbox" ${S.sel.has(i.id)?'checked':''} onchange="selOne('${i.id}',this.checked)"></td><td><div class="th">${thumb(i)}</div></td><td><b>${esc(i.name)}</b></td><td>${esc(i.cat)}</td><td>${money(i.price)}</td><td>${money(i.cost||0)}</td>
+    const stk=`<td class="i-s"><span class="stkc"><input type="number" min="0" value="${i.stock}" aria-label="Stok ${esc(i.name)}" onchange="setStock('${i.id}',this.value)"></span></td>`;
+    return emp?`<tr><td class="i-th"><div class="th">${thumb(i)}</div></td><td class="i-n"><b>${esc(i.name)}</b></td><td class="i-c">${esc(i.cat)}</td><td class="i-p">${money(i.price)}</td>${stk}<td class="i-st"><span class="tag ${s}">${t}</span></td></tr>`
+    :`<tr><td class="i-ck"><input type="checkbox" ${S.sel.has(i.id)?'checked':''} onchange="selOne('${i.id}',this.checked)"></td><td class="i-th"><div class="th">${thumb(i)}</div></td><td class="i-n"><b>${esc(i.name)}</b></td><td class="i-c">${esc(i.cat)}</td><td class="i-p">${money(i.price)}</td><td class="i-m">${money(i.cost||0)}</td>
     ${stk}
-    <td><span class="tag ${s}">${t}</span></td>
-    <td style="white-space:nowrap"><button class="ib" onclick="itemForm('${i.id}')">Edit</button><button class="ib d" onclick="delItem('${i.id}')">Hapus</button></td></tr>`}).join('')||`<tr><td colspan="${emp?6:9}" style="color:var(--mu)">Tidak ada item.</td></tr>`;
+    <td class="i-st"><span class="tag ${s}">${t}</span></td>
+    <td class="i-a" style="white-space:nowrap"><button class="ib" onclick="itemForm('${i.id}')">Edit</button><button class="ib d" onclick="delItem('${i.id}')">Hapus</button></td></tr>`}).join('')||`<tr><td colspan="${emp?6:9}" style="color:var(--mu)">Tidak ada item.</td></tr>`;
   updateBulk();
 }
 function selOne(id,on){if(on)S.sel.add(id);else S.sel.delete(id);updateBulk()}
