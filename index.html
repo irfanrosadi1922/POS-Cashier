@@ -700,8 +700,17 @@ function renderPop(){
   w.hidden=!show;if(!show)return;
   l.innerHTML=items.map(i=>{const out=i.stock<=0||(S.cart[i.id]||0)>=i.stock;return`<div class="pc"><div class="pi">${thumb(i)}</div><div class="pt"><div class="pn">${esc(i.name)}</div><div class="pp">${money(i.price)}</div></div><button class="pa" onclick="chg('${i.id}',1)" ${out?'disabled':''}>+</button></div>`}).join('');
 }
+/* simpan & pulihkan posisi scroll agar daftar tidak lompat ke atas saat di-render ulang (iOS) */
+function keepScroll(fn,els){
+  const els2=els.map(e=>$(e)).filter(Boolean),pos=els2.map(e=>e.scrollTop);
+  fn();
+  const back=()=>els2.forEach((e,i)=>{if(pos[i]&&e.scrollTop!==pos[i])e.scrollTop=pos[i]});
+  back();if(typeof requestAnimationFrame==="function")requestAnimationFrame(back);setTimeout(back,60);
+}
 function renderGrid(){
-  if(S.view!=='pos')return;
+  if(S.view!=='pos')return;keepScroll(renderGrid0,['.main'])
+}
+function renderGrid0(){
   applyGridView();renderPop();
   const l=filtered(),tapOn=db.set.gv.tap!=='none';
   $('#grid').innerHTML=l.length?l.map(i=>{
@@ -755,7 +764,8 @@ function calc(){
   const base=rnd(sub-disc),tax=rnd(base*db.set.tax/100);
   return{sub,disc,tax,total:rnd(base+tax)};
 }
-function renderInvoice(){
+function renderInvoice(){keepScroll(renderInvoice0,['#lines','#invoice'])}
+function renderInvoice0(){
   const ids=Object.keys(S.cart).filter(id=>find(id));
   $('#lines').innerHTML=ids.length?ids.map(id=>{const i=find(id),q=S.cart[id];
     return`<div class="ln"><div class="th">${thumb(i)}</div><div class="in"><div>${esc(i.name)}</div><small>x ${q}</small><b>${money(i.price*q)}</b></div>
