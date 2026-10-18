@@ -23,7 +23,7 @@ body{position:fixed;inset:0;width:100%}
 body{font-family:'Poppins','Segoe UI',system-ui,-apple-system,Roboto,sans-serif;color:var(--tx);background:var(--bg)}
 button{font:inherit;cursor:pointer;border:0;background:none;color:inherit}
 input,select,textarea{font:inherit;color:inherit}
-.app{display:flex;height:100vh;height:100dvh;overflow:hidden}
+.app{display:flex;height:100vh;height:100dvh;height:var(--appH,100dvh);overflow:hidden}
 .main{flex:1;min-width:0;padding:0 max(18px,env(safe-area-inset-right,0px)) calc(90px + env(safe-area-inset-bottom,0px)) max(18px,env(safe-area-inset-left,0px));height:100%;overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;touch-action:pan-y;-webkit-overflow-scrolling:touch}
 /* header */
 .top{display:flex;gap:10px;align-items:center;margin-bottom:8px;position:sticky;top:0;z-index:30;background:var(--bg);padding:max(16px,env(safe-area-inset-top,0px)) 0 10px;box-shadow:0 0 0 100vmax var(--bg);clip-path:inset(0 -100vmax)}
@@ -421,6 +421,25 @@ select.fi{appearance:auto}
 .gh{display:none!important}
 </style>
 <link rel="manifest" href="manifest.webmanifest"><link rel="apple-touch-icon" href="icon-192.png"><link rel="icon" href="icon-192.png">
+<script>
+/* iOS: setelah rotasi landscape->portrait, ukuran layar & area sentuh kadang tidak ikut ter-reset (tombol tidak bisa ditekan / salah tekan). Paksa ukur ulang. */
+(function(){
+  var t=[];
+  function fit(){
+    var h=window.innerHeight;
+    document.documentElement.style.setProperty('--appH',h+'px');
+    try{window.scrollTo(0,0)}catch(e){}
+    var a=document.querySelector('.app');
+    if(a){a.style.display='none';void a.offsetHeight;a.style.display=''}
+  }
+  function later(){t.forEach(clearTimeout);t=[0,120,350,700,1200].map(function(ms){return setTimeout(fit,ms)})}
+  window.addEventListener('orientationchange',later);
+  window.addEventListener('resize',later);
+  window.addEventListener('pageshow',later);
+  document.addEventListener('visibilitychange',function(){if(!document.hidden)later()});
+  fit();
+})();
+</script>
 <script src="config.js"></script><script src="sbapi.js"></script>
 </head>
 <body>
