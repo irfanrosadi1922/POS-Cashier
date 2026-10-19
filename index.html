@@ -233,6 +233,10 @@ td .th img{width:100%;height:100%;object-fit:cover}
 .acts{display:flex;gap:10px}
 .toast{position:fixed;left:50%;bottom:90px;transform:translateX(-50%) translateY(30px);background:#111827;color:#fff;padding:10px 18px;border-radius:999px;font-size:13px;opacity:0;pointer-events:none;transition:.25s;z-index:200;max-width:90vw;text-align:center}
 .toast.on{opacity:1;transform:translateX(-50%)}
+.sesw{position:fixed;left:50%;top:calc(env(safe-area-inset-top,0px) + 12px);transform:translateX(-50%);z-index:220;background:#111827;color:#fff;border-radius:16px;padding:10px 10px 10px 16px;display:flex;align-items:center;gap:12px;max-width:92vw;width:max-content;font-size:13px;line-height:1.35;box-shadow:0 10px 30px rgba(0,0,0,.3)}
+.sesw[hidden]{display:none}
+.sesw b{color:#fb923c;font-variant-numeric:tabular-nums}
+.sesw button{background:#f97316;color:#fff;border-radius:10px;padding:9px 13px;font-weight:700;white-space:nowrap;flex:none}
 /* receipt */
 .rc-wrap{background:#f3f4f6;border-radius:12px;padding:10px;overflow-x:auto;touch-action:pan-x pan-y;display:flex;justify-content:center;margin-bottom:6px}
 .rcpt{background:#fff;color:#000;font-family:'Courier New',ui-monospace,monospace;font-size:12px;line-height:1.35;padding:10px;width:80mm;max-width:100%}
@@ -604,6 +608,7 @@ select.fi{appearance:auto}
       <div class="panel" data-g="co" id="payForm" hidden></div>
       <div class="panel" data-g="tampil" id="langForm"></div>
       <div class="panel" data-g="tampil" id="scrForm"></div>
+      <div class="panel" data-g="data" id="secForm" hidden></div>
       <div class="panel" data-g="data" id="dbForm"></div>
     </section>
   </main>
@@ -631,6 +636,7 @@ select.fi{appearance:auto}
 <button class="fab" id="fab" onclick="toggleInv(true)"><span id="fabN"><i class="ic" data-ic="cart"></i>0 item</span><span id="fabT"></span></button>
 <div class="mw" id="mw" onclick="if(event.target===this)closeModal()"><div class="modal" id="modal"></div></div>
 <div class="toast" id="toast"></div>
+<div class="sesw" id="sesw" role="alert" hidden><span>Sesi berakhir dalam <b id="seswT"></b> detik karena tidak ada aktivitas.</span><button type="button" onclick="ssStamp();ssWarnHide()">Tetap masuk</button></div>
 <style id="pageStyle"></style>
 
 <script>
@@ -1367,6 +1373,7 @@ function renderSet(){
   renderDb();
   renderLang();
   renderCur();
+  renderSec();
   renderCoSet();renderPay();applySetTab();
   $('#catMgr').innerHTML=db.cats.map(c=>`<span class="chip" style="display:inline-flex;gap:8px;margin:0 6px 6px 0">${esc(c)} <button style="color:var(--bad)" onclick="delCat('${esc(c).replace(/'/g,"\\'")}')"><i class="ic solo" data-ic="x"></i></button></span>`).join('')||'<span style="color:var(--mu)">Belum ada kategori</span>';
 }
@@ -2161,8 +2168,8 @@ async function api(p,o){
   o=o||{};const h={'Content-Type':'application/json'};if(CL.tok)h.Authorization='Bearer '+CL.tok;
   const r=await fetch(p,{...o,headers:h,cache:'no-store'});
   if(r.status===401){
-    let kicked=false;try{kicked=((await r.clone().json())||{}).error==='kicked'}catch(e){}
-    CL.tok='';setMe(null);try{localStorage.removeItem('pos_tok')}catch(e){}setSt('auth');applyAccess();showLogin(kicked?'Akun ini baru saja login di perangkat lain, jadi Anda dikeluarkan dari perangkat ini. Masuk lagi bila perlu.':'');throw new Error('auth')}
+    let why='';try{why=((await r.clone().json())||{}).error||''}catch(e){}
+    CL.tok='';setMe(null);try{localStorage.removeItem('pos_tok')}catch(e){}ssWarnHide();setSt('auth');applyAccess();showLogin(why==='kicked'?'Akun ini baru saja login di perangkat lain, jadi Anda dikeluarkan dari perangkat ini. Masuk lagi bila perlu.':why==='expired'?'Sesi Anda berakhir karena lama tidak dipakai. Masuk lagi untuk melanjutkan.':'');throw new Error('auth')}
   return r;
 }
 /* ----- penggabungan 3 arah (dasar = salinan terakhir yang tersinkron) ----- */
@@ -2240,7 +2247,7 @@ async function refreshMe(){ // izin/peran bisa diubah owner kapan saja: perbarui
 async function syncNow(){
   if(!CL.on)return;
   if(CL.busy){CL.again=true;return}
-  if(!CL.tok){setSt('auth');showLogin();return}
+  if(!CL.tok){setSt('auth');const lw=$('#login');if(!lw||lw.hidden)showLogin();return}
   CL.busy=true;setSt('sync');let ok=false;
   try{
     try{const m=await (await api('/api/me')).json();if(m&&m.username&&JSON.stringify(m)!==JSON.stringify(CL.me)){setMe(m);applyAccess()}}catch(e){if(e.message==='auth')throw e}
@@ -2285,6 +2292,7 @@ async function downloadServerExport(){
 function cloudStart(){
   setSt(CL.on?(CL.tok?'sync':'auth'):'off');
   if(!CL.on)return;
+  ssStart();
   document.addEventListener('visibilitychange',()=>{if(!document.hidden)syncNow()});
   window.addEventListener('online',syncNow);window.addEventListener('offline',()=>setSt('offline'));
   CL.pt=setInterval(async()=>{
@@ -2808,6 +2816,7 @@ function renderAcct(){
   if(ba)ba.innerHTML=on?avHtml(CL.me,'nv'):'<i class="ic" data-ic="sliders"></i>';
   if(an){an.hidden=!on;if(on)an.innerHTML=avHtml(CL.me,'dv')+'<span class="anm">Akun</span>'}
   if(lo)lo.hidden=!on;
+  if(typeof renderSec==='function')renderSec();
   if(S.view==='acc'&&!on)go('set');
 }
 
@@ -2835,18 +2844,68 @@ async function doLogin(){
     if(!r.ok)throw 0;
     CL.tok=j.token;setMe(j.me);
     try{localStorage.setItem('pos_tok',CL.tok);localStorage.setItem('pos_user',un)}catch(e){}
-    $('#loginPw').value='';$('#login').hidden=true;
+    $('#loginPw').value='';$('#login').hidden=true;ssStamp();ssWarnHide();
     applyAccess();if(!canView(S.view))go('pos');else render();
     syncNow();
   }catch(e){err.textContent='Tidak bisa terhubung ke server'}
   finally{btn.disabled=false;btn.textContent='Masuk'}
 }
 function doLogout(){logoutAsk()}
-function cloudLogout(){
-  CL.tok='';setMe(null);try{localStorage.removeItem('pos_tok')}catch(e){}
-  CO.list=[];CO.rev=0;CO.seen.clear();
-  setSt('auth');closeAll();closeModal();applyAccess();go('pos');showLogin();
+/* keluar: sesi di server ikut dimatikan, jadi token yang tersisa di perangkat tidak bisa dipakai lagi */
+function serverLogout(){
+  const t=CL.tok;if(!t)return;
+  try{fetch('/api/logout',{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+t},body:'{}',keepalive:true}).catch(()=>{})}catch(e){}
 }
+function cloudLogout(msg){
+  serverLogout();ssWarnHide();
+  CL.tok='';setMe(null);try{localStorage.removeItem('pos_tok');localStorage.removeItem('pos_act')}catch(e){}
+  CO.list=[];CO.rev=0;CO.seen.clear();
+  setSt('auth');closeAll();closeModal();applyAccess();go('pos');showLogin(typeof msg==='string'?msg:'');
+}
+
+/* ----- sesi login: keluar otomatis bila tidak dipakai (pengaturan owner, berlaku di semua perangkat) ----- */
+const SS={last:Date.now(),warn:false,on:false};
+function idleMin(){const v=db&&db.set?db.set.idle:null;return v==null?30:Math.max(0,+v||0)}   // menit; 0 = tidak pernah
+function fmtIdle(m){return m<60||m%60?m+' menit':(m/60)+' jam'}
+function ssStamp(){SS.last=Date.now();try{localStorage.setItem('pos_act',String(SS.last))}catch(e){}}
+function ssWarnHide(){if(!SS.warn)return;SS.warn=false;const w=$('#sesw');if(w)w.hidden=true}
+function ssWarnShow(sec){SS.warn=true;const w=$('#sesw');if(w)w.hidden=false;const t=$('#seswT');if(t)t.textContent=sec}
+function ssExempt(){return S.view==='co'&&can('co')&&coPref('auto',true)}   // layar dapur yang menerima & mencetak pesanan tidak ikut keluar
+function ssCheck(){
+  if(!CL.on||!CL.tok){ssWarnHide();return}
+  const m=idleMin();if(!m){ssWarnHide();return}
+  try{const a=+localStorage.getItem('pos_act')||0;if(a>SS.last)SS.last=a}catch(e){}
+  if(ssExempt()){if(Date.now()-SS.last>20000)ssStamp();ssWarnHide();return}
+  const left=m*60000-(Date.now()-SS.last);
+  if(left<=0){cloudLogout('Anda keluar otomatis karena tidak ada aktivitas selama '+fmtIdle(m)+'. Masuk lagi untuk melanjutkan.');return}
+  if(left<=Math.min(60000,m*30000))ssWarnShow(Math.ceil(left/1000));else ssWarnHide();
+}
+function ssAct(){
+  if(!CL.tok)return;
+  if(Date.now()-SS.last<3000&&!SS.warn)return;
+  ssStamp();ssWarnHide();
+}
+function ssStart(){
+  if(SS.on)return;SS.on=true;
+  let a=0;try{a=+localStorage.getItem('pos_act')||0}catch(e){}
+  SS.last=a||Date.now();if(!a&&CL.tok)ssStamp();
+  ['pointerdown','keydown','touchstart','wheel','scroll'].forEach(e=>document.addEventListener(e,ssAct,{passive:true,capture:true}));
+  document.addEventListener('visibilitychange',()=>{if(!document.hidden)ssCheck()});
+  window.addEventListener('pageshow',ssCheck);
+  setInterval(ssCheck,1000);
+  ssCheck();
+}
+function renderSec(){
+  const p=$('#secForm');if(!p)return;
+  if(!(CL.on&&isOwner())){p.hidden=true;applySetTab();return}
+  p.hidden=false;const m=idleMin();
+  const opts=[[5,'5 menit'],[15,'15 menit'],[30,'30 menit'],[60,'1 jam'],[120,'2 jam'],[240,'4 jam'],[480,'8 jam'],[0,'Tidak pernah']];
+  p.innerHTML=`<h3>Keamanan Sesi</h3>
+  <label class="fl">Keluar otomatis bila tidak dipakai</label>
+  <select class="fi" id="secIdle" onchange="secSet(this.value)">${opts.map(o=>`<option value="${o[0]}"${o[0]===m?' selected':''}>${o[1]}</option>`).join('')}</select>
+  <p class="hint">Berlaku untuk semua perangkat. Bila layar tidak disentuh selama waktu ini, pengguna otomatis keluar dan harus masuk lagi. Sebelumnya muncul peringatan 1 menit dengan tombol "Tetap masuk". Halaman Pesanan Online yang sedang terbuka tidak ikut keluar, supaya pesanan tetap masuk dan tercetak.</p>`;
+}
+function secSet(v){db.set.idle=Math.max(0,+v||0);save();ssStamp();toast('Pengaturan keamanan disimpan')}
 
 /* ----- akun saya ----- */
 function avHtml(m,cls){const ph=m&&m.photo;return `<span class="av ${cls||''}">${ph?`<img src="${esc(ph)}" alt="">`:esc(((m&&m.name)||'?').trim().charAt(0).toUpperCase())}</span>`}
@@ -2944,7 +3003,7 @@ function restrictToServer(M,S){
 
 /* ----- halaman Pengguna (owner) ----- */
 const USR={list:[],log:[]};
-const ACT_LBL={'ubah-profil':'Ubah profil','login':'Masuk','login-gagal':'Gagal masuk','tambah-user':'Tambah pengguna','ubah-user':'Ubah pengguna','hapus-user':'Hapus pengguna','reset-sandi':'Reset sandi','ganti-sandi':'Ganti sandi','ditolak':'Perubahan ditolak','reset-owner':'Reset sandi owner'};
+const ACT_LBL={'ubah-profil':'Ubah profil','login':'Masuk','logout':'Keluar','login-gagal':'Gagal masuk','tambah-user':'Tambah pengguna','ubah-user':'Ubah pengguna','hapus-user':'Hapus pengguna','reset-sandi':'Reset sandi','ganti-sandi':'Ganti sandi','ditolak':'Perubahan ditolak','reset-owner':'Reset sandi owner'};
 function fmtLast(t){if(!t)return 'belum pernah masuk';const d=new Date(t);return d.toLocaleDateString(dloc(),{day:'2-digit',month:'short'})+' '+d.toLocaleTimeString(dloc(),{hour:'2-digit',minute:'2-digit'}).replace('.',':')}
 async function renderUsr(){
   const el=$('#usrList');if(!el)return;

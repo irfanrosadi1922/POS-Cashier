@@ -26,6 +26,7 @@ alter table pos.users add column if not exists email text not null default '';
 alter table pos.users add column if not exists phone text not null default '';
 alter table pos.users add column if not exists photo text not null default '';
 alter table pos.users add column if not exists single boolean;            -- null = otomatis (karyawan: ya, owner: tidak)
+alter table pos.sessions add column if not exists seen_at timestamptz not null default now();   -- terakhir dipakai; sesi mati bila 12 jam tidak ada permintaan
 alter table pos.sessions add column if not exists kicked_at timestamptz;   -- diisi saat perangkat ini dikeluarkan karena login di perangkat lain
 create index if not exists sessions_uid on pos.sessions(uid);
 create table if not exists pos.audit(
@@ -121,22 +122,27 @@ create or replace function pos.me_self(u pos.users) returns jsonb language sql s
   select pos.me_view(u) || jsonb_build_object('photo', u.photo) $$;
 
 create or replace function pos.auth(tok text) returns pos.users language plpgsql as $$
-declare u pos.users;
+declare u pos.users; h text;
 begin
   if tok is null or length(tok) < 20 or length(tok) > 200 then return null; end if;
+  h := encode(extensions.digest(tok, 'sha256'), 'hex');
   select us.* into u from pos.sessions s join pos.users us on us.id = s.uid
-   where s.th = encode(extensions.digest(tok, 'sha256'), 'hex') and s.exp > now() and s.kicked_at is null and us.active;
+   where s.th = h and s.exp > now() and s.kicked_at is null and s.seen_at > now() - interval '12 hours' and us.active;
+  if u.id is not null then update pos.sessions set seen_at = now() where th = h and seen_at < now() - interval '1 minute'; end if;
   return u;
 end $$;
 create or replace function pos.kicked(tok text) returns boolean language sql stable as $$
   select tok is not null and length(tok) between 20 and 200 and exists (select 1 from pos.sessions s
     where s.th = encode(extensions.digest(tok, 'sha256'), 'hex') and s.exp > now() and s.kicked_at is not null) $$;
+create or replace function pos.expired(tok text) returns boolean language sql stable as $$
+  select tok is not null and length(tok) between 20 and 200 and exists (select 1 from pos.sessions s
+    where s.th = encode(extensions.digest(tok, 'sha256'), 'hex') and s.exp > now() and s.kicked_at is null and s.seen_at <= now() - interval '12 hours') $$;
 
 create or replace function pos.new_session(uid bigint) returns text language plpgsql as $$
 declare t text := 'ps' || encode(extensions.gen_random_bytes(24), 'hex');
 begin
-  insert into pos.sessions(th, uid, exp) values (encode(extensions.digest(t, 'sha256'), 'hex'), uid, now() + interval '90 days');
-  if random() < 0.1 then delete from pos.sessions where exp < now() or kicked_at < now() - interval '7 days'; end if;
+  insert into pos.sessions(th, uid, exp) values (encode(extensions.digest(t, 'sha256'), 'hex'), uid, now() + interval '14 days');
+  if random() < 0.1 then delete from pos.sessions where exp < now() or kicked_at < now() - interval '7 days' or seen_at < now() - interval '3 days'; end if;
   return t;
 end $$;
 
@@ -342,7 +348,7 @@ begin
   end if;
   perform pos.audit(u.id, u.username, 'login', v_ip || case when v_out > 0 then ' (perangkat lama dikeluarkan)' else '' end);
   select * into u from pos.users where id = u.id;
-  return pos.r(200, jsonb_build_object('token', pos.new_session(u.id), 'days', 90, 'me', pos.me_self(u)));
+  return pos.r(200, jsonb_build_object('token', pos.new_session(u.id), 'days', 14, 'me', pos.me_self(u)));
 end $$;
 
 -- ------------------------------------------------------------ router utama
@@ -384,8 +390,14 @@ begin
   end if;
 
   me := pos.auth(t);
-  if me.id is null then return pos.r(401, case when pos.kicked(t) then '{"error":"kicked"}'::jsonb else '{"error":"unauthorized"}'::jsonb end); end if;
+  if me.id is null then return pos.r(401, case when pos.kicked(t) then '{"error":"kicked"}'::jsonb when pos.expired(t) then '{"error":"expired"}'::jsonb else '{"error":"unauthorized"}'::jsonb end); end if;
   own := me.role = 'owner';
+
+  if u = '/api/logout' and m = 'POST' then   -- keluar: sesi ini dihapus di server
+    delete from pos.sessions where th = encode(extensions.digest(t, 'sha256'), 'hex');
+    perform pos.audit(me.id, me.username, 'logout', '');
+    return pos.r(200, '{"ok":true}');
+  end if;
 
   if u = '/api/me' and m = 'GET' then return pos.r(200, pos.me_self(me)); end if;
   if u = '/api/me' and m = 'PUT' then
