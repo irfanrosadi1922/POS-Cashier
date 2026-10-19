@@ -215,7 +215,7 @@ td .th img{width:100%;height:100%;object-fit:cover}
 .cdot{position:absolute;top:9px;right:9px;width:10px;height:10px;border-radius:50%;border:2px solid #fff;display:none}
 .cdot.ok{display:block;background:#16a34a}.cdot.sync{display:block;background:#f59e0b}
 .cdot.offline,.cdot.err,.cdot.auth{display:block;background:#dc2626}
-.acct[hidden]+.cloudst{margin-top:auto}
+.acct[hidden]+.cloudst,.lgout[hidden]+.cloudst{margin-top:auto}
 .cloudst{margin-top:8px;font-size:12px;color:var(--mu);padding:10px 12px;border-radius:12px;background:#f6f6f6;cursor:pointer}
 .loginw[hidden]{display:none}
 .up{display:flex;gap:12px;align-items:center}
@@ -360,9 +360,16 @@ button[hidden]{display:none!important}
 .accpw{margin:14px 0 4px;border:1px solid var(--ln);border-radius:16px;padding:12px 14px}.accpw summary{font-weight:600;cursor:pointer;list-style:none}.accpw summary::after{content:'▾';float:right;color:var(--mu)}.accpw[open] summary::after{content:'▴'}.accpw[open] summary{margin-bottom:10px}
 .lgo{text-align:center}.lgo h3{margin:10px 0 6px}.lgo p{margin:0 0 14px;color:var(--mu);line-height:1.5}
 .lgi{width:64px;height:64px;border-radius:50%;background:#fee2e2;color:var(--bad);display:grid;place-items:center;margin:4px auto 0}
+.drawer button.bot{margin-top:auto}
+.drawer button.bot[hidden]+.lgout{margin-top:auto}
+.drawer .av.dv{width:24px;height:24px;font-size:12px;flex:none}
+.drawer button .anm{flex:1;text-align:left}
 .drawer button.lgout{margin:0 0 8px;padding:10px 12px;background:#fff0f0;color:#dc2626;gap:10px;font-weight:700}
 .drawer button.lgout[hidden]{display:none}
 .drawer button.lgout .ic{background-color:#dc2626}
+.bnav button .av.nv{transition:transform .38s cubic-bezier(.34,1.56,.64,1),box-shadow .2s}
+.bnav button.on .av.nv{transform:translateY(-13px) scale(1.12);box-shadow:0 0 0 2px #fff;animation:bnavp .45s}
+@keyframes bnavp{0%{transform:translateY(0) scale(.7)}60%{transform:translateY(-17px) scale(1.25)}100%{transform:translateY(-13px) scale(1.12)}}
 .bnav .av.nv{width:30px;height:30px;font-size:13px;box-shadow:0 0 0 2px #fff,0 0 0 3.5px #e5e5e5;transition:box-shadow .2s}
 .bnav button:active .av.nv{box-shadow:0 0 0 2px #fff,0 0 0 3.5px var(--b)}
 .acct .who{display:flex;flex-direction:column;min-width:0;line-height:1.25}
@@ -488,7 +495,7 @@ select.fi{appearance:auto}
   <button data-v="rc" onclick="go('rc')"><i class="ic" data-ic="receipt"></i>Desain Struk</button>
   <button data-v="prn" onclick="go('prn')"><i class="ic" data-ic="print"></i>Printer</button>
   <button data-v="usr" id="usrNav" onclick="go('usr')" hidden><i class="ic" data-ic="users"></i>Pengguna</button>
-  <button class="acct" id="acct" onclick="openAcct()" hidden></button>
+  <button class="bot" data-v="acc" id="accNav" onclick="go('acc')" hidden></button>
   <button class="lgout" id="lgout" onclick="logoutAsk()" hidden><i class="ic" data-ic="logout"></i>Keluar</button>
   <div class="cloudst" id="cloudRow" hidden onclick="syncNow()"><i class="ic" data-ic="cloud"></i><span id="cloudSt"></span> <span id="cloudT"></span></div>
 </nav>
@@ -574,6 +581,10 @@ select.fi{appearance:auto}
       <details class="panel" id="coDev" style="margin-top:18px"><summary>Pengaturan perangkat ini</summary><div id="coTop"></div></details>
     </section>
 
+    <section id="v-acc" hidden>
+      <div class="bar"><h2><i class="ic" data-ic="users"></i>Akun</h2></div>
+      <div class="panel" id="accPage" style="max-width:560px"></div>
+    </section>
     <section id="v-usr" hidden>
       <div class="bar"><h2><i class="ic" data-ic="users"></i>Pengguna</h2><button class="btn sm" style="width:auto;margin:0" onclick="usrForm(0)"><i class="ic" data-ic="plus"></i>Tambah</button></div>
       <div class="panel"><div class="hint" style="margin:0"><b>Owner</b>: akses penuh, termasuk harga, riwayat, pengaturan, backup, dan pengguna.<br><b>Karyawan</b>: hanya kasir, ditambah izin yang Anda pilih. Karyawan tidak bisa mengubah harga atau menghapus riwayat penjualan.</div></div>
@@ -698,9 +709,10 @@ setInterval(tick,15000);
 function toggleDrawer(){$('#drawer').classList.toggle('open');$('#scrim').classList.toggle('on',$('#drawer').classList.contains('open'))}
 function closeAll(){$('#drawer').classList.remove('open');$('#scrim').classList.remove('on')}
 function go(v){
+  if(v==='acc'&&!(CL.on&&CL.me))v='set';
   if(!canView(v)){if(v!=='pos')toast('Anda tidak punya akses ke halaman itu');v='pos'}
   S.view=v;closeAll();toggleInv(false);
-  ['pos','inv','hist','rc','prn','set','co','usr'].forEach(x=>$('#v-'+x).hidden=x!==v);
+  ['pos','inv','hist','rc','prn','set','co','usr','acc'].forEach(x=>$('#v-'+x).hidden=x!==v);
   document.querySelectorAll('.drawer button,.bnav button').forEach(b=>b.classList.toggle('on',b.dataset.v===v));
   navDot(v);
   $('#invoice').style.display=v==='pos'?'':'none';
@@ -2792,13 +2804,11 @@ function applyAccess(){
   if(S.view&&!canView(S.view))go('pos');
 }
 function renderAcct(){
-  const b=$('#acct');if(!b)return;
-  const ba=$('#bnAcc'),lo=$('#lgout');
-  if(ba)ba.innerHTML=(CL.on&&CL.me)?avHtml(CL.me,'nv'):'<i class="ic" data-ic="sliders"></i>';
-  if(lo)lo.hidden=!(CL.on&&CL.me);
-  if(!CL.on||!CL.me){b.hidden=true;return}
-  b.hidden=false;
-  b.innerHTML=`${avHtml(CL.me)}<span class="who"><b>${esc(CL.me.name)}</b><small>${CL.me.role==='owner'?'Owner':'Karyawan'} · @${esc(CL.me.username)}</small></span>`;
+  const ba=$('#bnAcc'),lo=$('#lgout'),an=$('#accNav'),on=!!(CL.on&&CL.me);
+  if(ba)ba.innerHTML=on?avHtml(CL.me,'nv'):'<i class="ic" data-ic="sliders"></i>';
+  if(an){an.hidden=!on;if(on)an.innerHTML=avHtml(CL.me,'dv')+'<span class="anm">Akun</span>'}
+  if(lo)lo.hidden=!on;
+  if(S.view==='acc'&&!on)go('set');
 }
 
 /* ----- halaman login ----- */
@@ -2841,10 +2851,11 @@ function cloudLogout(){
 /* ----- akun saya ----- */
 function avHtml(m,cls){const ph=m&&m.photo;return `<span class="av ${cls||''}">${ph?`<img src="${esc(ph)}" alt="">`:esc(((m&&m.name)||'?').trim().charAt(0).toUpperCase())}</span>`}
 let ACC={photo:null};
-function accTap(){if(CL.on&&CL.me)openAcct();else go('set')}
-function openAcct(){
-  const m=CL.me;if(!m)return;closeAll();ACC.photo=m.photo||'';
-  openModal(`<div class="accp">
+function accTap(){go(CL.on&&CL.me?'acc':'set')}
+function openAcct(){go('acc')}
+function renderAccPage(){
+  const m=CL.me,box=$('#accPage');if(!m||!box)return;ACC.photo=m.photo||'';
+  box.innerHTML=`<div class="accp">
   <div class="accph"><button class="accav" type="button" onclick="$('#accFile').click()" aria-label="Ganti foto profil"><span id="accAv"></span><i class="cam"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg></i></button>
     <input type="file" id="accFile" accept="image/*" hidden onchange="accPhoto(this)">
     <div class="accwho"><b id="accNm">${esc(m.name)}</b><small>@${esc(m.username)} · ${m.role==='owner'?'Owner':'Karyawan'}</small>
@@ -2859,8 +2870,7 @@ function openAcct(){
     <input class="fi" id="pwNew" type="password" placeholder="Password baru (min. 6 karakter)" autocomplete="new-password" style="margin-top:8px">
     <input class="fi" id="pwNew2" type="password" placeholder="Ulangi password baru" autocomplete="new-password" style="margin-top:8px">
     <p class="hint" id="pwErr" style="color:var(--bad);min-height:16px"></p>
-    <button class="btn sec" onclick="changePw()">Ubah Password</button></details>
-  <button class="btn sec" onclick="closeModal()">Tutup</button></div>`);
+    <button class="btn sec" onclick="changePw()">Ubah Password</button></details></div>`;
   accAvDraw();
 }
 function accAvDraw(){const m=CL.me||{};const e=$('#accAv');if(e)e.innerHTML=ACC.photo?`<img src="${esc(ACC.photo)}" alt="">`:esc(((($('#accName')||{}).value||m.name||'?')).trim().charAt(0).toUpperCase());const r=$('#accRm');if(r)r.hidden=!ACC.photo}
@@ -2890,7 +2900,7 @@ async function accSave(){
   try{
     const r=await api('/api/me',{method:'PUT',body:JSON.stringify({name,email,phone,photo:ACC.photo||''})}),j=await r.json();
     if(!r.ok){e.textContent=j.error||'Gagal menyimpan';return}
-    setMe(j);renderAcct();closeModal();toast('Profil disimpan');
+    setMe(j);renderAcct();renderAccPage();toast('Profil disimpan');
   }catch(x){if(x.message!=='auth')e.textContent='Tidak bisa terhubung ke server'}
   finally{btn.disabled=false}
 }
@@ -2904,7 +2914,7 @@ async function changePw(){
     const j=await r.json();
     if(!r.ok){e.textContent=j.error||'Gagal';return}
     CL.tok=j.token;try{localStorage.setItem('pos_tok',CL.tok)}catch(x){}
-    closeModal();toast('Password diganti');
+    ['pwOld','pwNew','pwNew2'].forEach(i=>{const e=$('#'+i);if(e)e.value=''});$('#pwErr').textContent='';toast('Password diganti');
   }catch(x){if(x.message!=='auth')e.textContent='Tidak bisa terhubung ke server'}
 }
 /* dialog keluar: hanya dua pilihan, Keluar atau Batal */
@@ -3013,6 +3023,7 @@ function render(){
   if(S.view==='prn')renderPrn();
   if(S.view==='co')renderCo(true);
   if(S.view==='usr')renderUsr();
+  if(S.view==='acc')renderAccPage();
 }
 applyBrand();
 tick();go('pos');initI18n();dbBoot();updateFS();autoFS();setupPwa();cloudStart();coStart();applyAccess();
