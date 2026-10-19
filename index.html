@@ -461,6 +461,7 @@ select.fi{appearance:auto}
 .stabs button{padding:9px 16px;border-radius:999px;background:#fff;font-weight:700;font-size:13px;box-shadow:0 2px 8px rgba(0,0,0,.05)}
 .stabs button.on{background:var(--b);color:#fff;box-shadow:0 6px 14px rgba(255,106,0,.28)}
 .gh{display:none!important}
+.ic[data-ic=dash]{--m:url("data:image/svg+xml,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20viewBox=%220%200%2024%2024%22%20fill=%22none%22%20stroke=%22%23000%22%20stroke-width=%222%22%20stroke-linecap=%22round%22%20stroke-linejoin=%22round%22%3E%3Crect%20x=%223%22%20y=%223%22%20width=%227%22%20height=%229%22%20rx=%221.5%22/%3E%3Crect%20x=%2214%22%20y=%223%22%20width=%227%22%20height=%225%22%20rx=%221.5%22/%3E%3Crect%20x=%2214%22%20y=%2212%22%20width=%227%22%20height=%229%22%20rx=%221.5%22/%3E%3Crect%20x=%223%22%20y=%2216%22%20width=%227%22%20height=%225%22%20rx=%221.5%22/%3E%3C/svg%3E")}
 </style>
 <link rel="manifest" href="manifest.webmanifest"><link rel="apple-touch-icon" href="icon-192.png"><link rel="icon" href="icon-192.png">
 <script>
@@ -491,6 +492,7 @@ select.fi{appearance:auto}
   <h3 id="brand">POS SATE</h3>
   <div class="dg">Operasional</div>
   <button data-v="pos" onclick="go('pos')"><i class="ic" data-ic="cart"></i>Kasir</button>
+  <button id="dashNav" onclick="openDash()" hidden><i class="ic" data-ic="dash"></i>Dashboard</button>
   <button data-v="co" id="coNav" onclick="go('co')" hidden><i class="ic" data-ic="bell"></i>Pesanan Online <span class="nb" id="coNavN" hidden></span></button>
   <button data-v="inv" onclick="go('inv')"><i class="ic" data-ic="box"></i>Inventori</button>
   <button data-v="hist" onclick="go('hist')"><i class="ic" data-ic="chart"></i>Riwayat Penjualan</button>
@@ -565,6 +567,7 @@ select.fi{appearance:auto}
       <div class="panel"><div class="lst" id="histBody"></div><button class="btn sec morebtn" id="histMore" hidden onclick="S.hn=(S.hn||25)+25;renderHist()">Tampilkan lebih banyak</button></div>
       <div class="panel" id="voidBox" hidden></div>
     </section>
+
 
     <section id="v-rc" hidden>
       <div class="bar"><h2><i class="ic" data-ic="receipt"></i>Desain Struk</h2></div>
@@ -1745,7 +1748,7 @@ const dloc=()=>DATE_LOC[lang()]||'id-ID';
 const TR_ROWS=[
 ["Operasional","Operations","Operasi"],["Toko","Store","Kedai"],["Pesanan & Bayar","Orders & Payment","Pesanan & Bayaran"],["Tampilan","Display","Paparan"],["Data & Cadangan","Data & Backup","Data & Sandaran"],
 ["Pesanan Online","Online Orders","Pesanan Dalam Talian"],["Pesan lewat QR","Order via QR","Pesan melalui QR"],["Perangkat ini","This device","Peranti ini"],["Aktif","Active","Aktif"],
-["Kasir","Cashier","Juruwang"],["Inventori","Inventory"],["Riwayat Penjualan","Sales History","Sejarah Jualan"],["Desain Struk","Receipt Design","Reka Bentuk Resit"],["Printer","Printer","Pencetak"],["Pengaturan","Settings","Tetapan"],
+["Kasir","Cashier","Juruwang"],["Inventori","Inventory"],["Riwayat Penjualan","Sales History","Sejarah Jualan"],["Dashboard","Dashboard","Papan Pemuka"],["Grafik","Chart","Graf"],["Angka","Numbers","Angka"],["Barang Masuk/Keluar","Stock In/Out","Stok Masuk/Keluar"],["Desain Struk","Receipt Design","Reka Bentuk Resit"],["Printer","Printer","Pencetak"],["Pengaturan","Settings","Tetapan"],
 ["Cari menu","Search menu"],["Invoice","Invoice","Invois"],["Takeaway","Takeaway","Bawa Pulang"],["Dine In","Dine In","Makan Sini"],["Delivery","Delivery","Penghantaran"],
 ["Ringkasan Harga","Price Summary"],["Subtotal","Subtotal","Subjumlah"],["Diskon","Discount","Diskaun"],["Potongan","Deduction"],["Total","Total","Jumlah"],["Place Order","Place Order","Buat Pesanan"],
 ["Kosongkan keranjang","Clear cart","Kosongkan troli"],["Keranjang kosong.","Cart is empty.","Troli kosong."],["Pilih menu untuk memulai.","Pick items to start.","Pilih menu untuk bermula."],
@@ -2801,11 +2804,13 @@ function navGroups(){
     g.hidden=!any;
   });
 }
+function openDash(){closeAll();location.href='dashboard.html'}
 function applyAccess(){
   document.querySelectorAll('.drawer button[data-v],.bnav button[data-v]').forEach(b=>{
     const ok=b.dataset.v==='acc'||canView(b.dataset.v);
     if(b.closest('.bnav'))b.style.visibility=ok?'':'hidden';else b.hidden=!ok;
   });
+  const dn=$('#dashNav');if(dn)dn.hidden=!isOwner();   // Dashboard ada di halaman sendiri (dashboard.html), hanya untuk owner
   if(typeof coBadge==='function')coBadge();
   navGroups();
   renderAcct();
