@@ -360,6 +360,11 @@ button[hidden]{display:none!important}
 .accpw{margin:14px 0 4px;border:1px solid var(--ln);border-radius:16px;padding:12px 14px}.accpw summary{font-weight:600;cursor:pointer;list-style:none}.accpw summary::after{content:'▾';float:right;color:var(--mu)}.accpw[open] summary::after{content:'▴'}.accpw[open] summary{margin-bottom:10px}
 .lgo{text-align:center}.lgo h3{margin:10px 0 6px}.lgo p{margin:0 0 14px;color:var(--mu);line-height:1.5}
 .lgi{width:64px;height:64px;border-radius:50%;background:#fee2e2;color:var(--bad);display:grid;place-items:center;margin:4px auto 0}
+.drawer button.lgout{margin:0 0 8px;padding:10px 12px;background:#fff0f0;color:#dc2626;gap:10px;font-weight:700}
+.drawer button.lgout[hidden]{display:none}
+.drawer button.lgout .ic{background-color:#dc2626}
+.bnav .av.nv{width:30px;height:30px;font-size:13px;box-shadow:0 0 0 2px #fff,0 0 0 3.5px #e5e5e5;transition:box-shadow .2s}
+.bnav button:active .av.nv{box-shadow:0 0 0 2px #fff,0 0 0 3.5px var(--b)}
 .acct .who{display:flex;flex-direction:column;min-width:0;line-height:1.25}
 .acct .who b{font-size:13.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.acct .who small{color:var(--mu);font-weight:500;font-size:11.5px}
 .acctc{display:flex;gap:12px;align-items:center;margin-bottom:8px}
@@ -394,6 +399,7 @@ select.fi{appearance:auto}
 .ic.solo,.drawer button .ic{margin-right:0}
 .ic[data-ic=dot]{background:#16a34a}
 .ic[data-ic=food]{color:#e3b48f}
+.ic[data-ic=logout]{--m:url("data:image/svg+xml,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20viewBox=%220%200%2024%2024%22%20fill=%22none%22%20stroke=%22%23000%22%20stroke-width=%222%22%20stroke-linecap=%22round%22%20stroke-linejoin=%22round%22%3E%3Cpath%20d=%22M9%2021H5a2%202%200%200%201-2-2V5a2%202%200%200%201%202-2h4%22/%3E%3Cpath%20d=%22M16%2017l5-5-5-5%22/%3E%3Cpath%20d=%22M21%2012H9%22/%3E%3C/svg%3E")}
 .ic[data-ic=cart]{--m:url("data:image/svg+xml,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20viewBox=%220%200%2024%2024%22%20fill=%22none%22%20stroke=%22%23000%22%20stroke-width=%222%22%20stroke-linecap=%22round%22%20stroke-linejoin=%22round%22%3E%3Ccircle%20cx=%229%22%20cy=%2220%22%20r=%221.5%22/%3E%3Ccircle%20cx=%2218%22%20cy=%2220%22%20r=%221.5%22/%3E%3Cpath%20d=%22M3%204h2.5l2.2%2011h10.6l1.7-8H6.3%22/%3E%3C/svg%3E")}
 .ic[data-ic=image]{--m:url("data:image/svg+xml,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20viewBox=%220%200%2024%2024%22%20fill=%22none%22%20stroke=%22%23000%22%20stroke-width=%222%22%20stroke-linecap=%22round%22%20stroke-linejoin=%22round%22%3E%3Crect%20x=%223%22%20y=%225%22%20width=%2218%22%20height=%2214%22%20rx=%222%22/%3E%3Ccircle%20cx=%228.5%22%20cy=%2210.5%22%20r=%221.5%22/%3E%3Cpath%20d=%22m21%2015-5-5L5%2019%22/%3E%3C/svg%3E")}
 .ic[data-ic=box]{--m:url("data:image/svg+xml,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20viewBox=%220%200%2024%2024%22%20fill=%22none%22%20stroke=%22%23000%22%20stroke-width=%222%22%20stroke-linecap=%22round%22%20stroke-linejoin=%22round%22%3E%3Cpath%20d=%22M21%208%2012%203%203%208v8l9%205%209-5z%22/%3E%3Cpath%20d=%22m3%208%209%205%209-5M12%2013v8%22/%3E%3C/svg%3E")}
@@ -483,6 +489,7 @@ select.fi{appearance:auto}
   <button data-v="prn" onclick="go('prn')"><i class="ic" data-ic="print"></i>Printer</button>
   <button data-v="usr" id="usrNav" onclick="go('usr')" hidden><i class="ic" data-ic="users"></i>Pengguna</button>
   <button class="acct" id="acct" onclick="openAcct()" hidden></button>
+  <button class="lgout" id="lgout" onclick="logoutAsk()" hidden><i class="ic" data-ic="logout"></i>Keluar</button>
   <div class="cloudst" id="cloudRow" hidden onclick="syncNow()"><i class="ic" data-ic="cloud"></i><span id="cloudSt"></span> <span id="cloudT"></span></div>
 </nav>
 <div class="loginw" id="login" hidden><form class="loginc" onsubmit="doLogin();return false" autocomplete="on">
@@ -501,7 +508,7 @@ select.fi{appearance:auto}
   <button data-v="hist" onclick="go('hist')" aria-label="Riwayat"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 20V11M12 20V4M19 20v-6"/></svg></button>
   <button class="home" data-v="pos" onclick="go('pos')" aria-label="Kasir"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11.5 12 4l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg></button>
   <button data-v="prn" onclick="go('prn')" aria-label="Printer"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 9V3h10v6M7 17H5a2 2 0 0 1-2-2v-4a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v4a2 2 0 0 1-2 2h-2"/><path d="M7 14h10v7H7z"/></svg></button>
-  <button data-v="set" onclick="go('set')" aria-label="Pengaturan"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h9M17 6h3M4 12h3M11 12h9M4 18h11M19 18h1"/><circle cx="15" cy="6" r="2"/><circle cx="9" cy="12" r="2"/><circle cx="17" cy="18" r="2"/></svg></button>
+  <button data-v="acc" id="bnAcc" onclick="accTap()" aria-label="Akun"><i class="ic" data-ic="sliders"></i></button>
 </nav>
 
 <div class="app">
@@ -2776,7 +2783,7 @@ function navGroups(){
 }
 function applyAccess(){
   document.querySelectorAll('.drawer button[data-v],.bnav button[data-v]').forEach(b=>{
-    const ok=canView(b.dataset.v);
+    const ok=b.dataset.v==='acc'||canView(b.dataset.v);
     if(b.closest('.bnav'))b.style.visibility=ok?'':'hidden';else b.hidden=!ok;
   });
   if(typeof coBadge==='function')coBadge();
@@ -2786,6 +2793,9 @@ function applyAccess(){
 }
 function renderAcct(){
   const b=$('#acct');if(!b)return;
+  const ba=$('#bnAcc'),lo=$('#lgout');
+  if(ba)ba.innerHTML=(CL.on&&CL.me)?avHtml(CL.me,'nv'):'<i class="ic" data-ic="sliders"></i>';
+  if(lo)lo.hidden=!(CL.on&&CL.me);
   if(!CL.on||!CL.me){b.hidden=true;return}
   b.hidden=false;
   b.innerHTML=`${avHtml(CL.me)}<span class="who"><b>${esc(CL.me.name)}</b><small>${CL.me.role==='owner'?'Owner':'Karyawan'} · @${esc(CL.me.username)}</small></span>`;
@@ -2831,6 +2841,7 @@ function cloudLogout(){
 /* ----- akun saya ----- */
 function avHtml(m,cls){const ph=m&&m.photo;return `<span class="av ${cls||''}">${ph?`<img src="${esc(ph)}" alt="">`:esc(((m&&m.name)||'?').trim().charAt(0).toUpperCase())}</span>`}
 let ACC={photo:null};
+function accTap(){if(CL.on&&CL.me)openAcct();else go('set')}
 function openAcct(){
   const m=CL.me;if(!m)return;closeAll();ACC.photo=m.photo||'';
   openModal(`<div class="accp">
@@ -2849,7 +2860,6 @@ function openAcct(){
     <input class="fi" id="pwNew2" type="password" placeholder="Ulangi password baru" autocomplete="new-password" style="margin-top:8px">
     <p class="hint" id="pwErr" style="color:var(--bad);min-height:16px"></p>
     <button class="btn sec" onclick="changePw()">Ubah Password</button></details>
-  <button class="btn red" onclick="logoutAsk()">Keluar</button>
   <button class="btn sec" onclick="closeModal()">Tutup</button></div>`);
   accAvDraw();
 }
