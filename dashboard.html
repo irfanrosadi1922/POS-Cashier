@@ -340,10 +340,10 @@ function dSalesHtml(P){
 }
 /* ---------- tab Stok ---------- */
 function dStockHtml(){
-  const it=db.items,val=it.reduce((a,i)=>a+i.stock*(i.cost||0),0),mn=i=>i.min||0;
+  const it=db.items.filter(i=>!isB(i)),val=it.reduce((a,i)=>a+i.stock*(i.cost||0),0),mn=i=>i.min||0;
   const low=it.filter(i=>i.stock>0&&i.stock<=mn(i)).length,out=it.filter(i=>i.stock<=0).length;
   const t14=Date.now()-14*864e5,sold=new Map();
-  for(const o of db.orders){if(+new Date(o.t)<t14)continue;for(const l of o.lines){const k=l.id||l.name;sold.set(k,(sold.get(k)||0)+l.qty)}}
+  for(const o of db.orders){if(+new Date(o.t)<t14)continue;for(const l of o.lines){if(Array.isArray(l.bd)&&l.bd.length){l.bd.forEach(c=>sold.set(c.id,(sold.get(c.id)||0)+c.q*l.qty));continue}const k=l.id||l.name;sold.set(k,(sold.get(k)||0)+l.qty)}}
   const rate=i=>(sold.get(i.id)||sold.get(i.name)||0)/14,left=i=>{const r=rate(i);return r>0?i.stock/r:Infinity};
   const need=it.filter(i=>i.stock<=mn(i)||left(i)<=3).sort((a,b)=>(a.stock>0)-(b.stock>0)||left(a)-left(b)||a.stock-b.stock);
   let h=dTiles([['Total item',nf(it.length)],['Nilai stok (modal)',money(val)],['Stok menipis',nf(low)],['Habis',nf(out)]]);
@@ -528,7 +528,7 @@ async function mutate(fn){
   for(let k=0;k<5;k++){
     await load(true);
     const nd=JSON.parse(JSON.stringify(db)),er=fn(nd);if(er)return er;
-    nd._ts=Date.now();
+    syncBundles(nd);nd._ts=Date.now();
     const r=await api('/api/data',{method:'PUT',body:JSON.stringify({baseVersion:VER,data:nd})});
     if(r.status===409)continue;
     if(r.status===403){let m='';try{m=(await r.json()).error}catch(e){}return m||'Tidak ada izin'}
@@ -537,9 +537,12 @@ async function mutate(fn){
   }
   return 'Data baru saja diubah di perangkat lain. Coba lagi.';
 }
+/* item paket/set: stok dihitung dari isinya, jadi tidak dicatat langsung */
+function isB(i){return !!i&&Array.isArray(i.bundle)&&i.bundle.length>0}
+function syncBundles(d){if(!d||!Array.isArray(d.items))return;const by={};d.items.forEach(i=>{by[i.id]=i});d.items.forEach(i=>{if(isB(i)){let m=Infinity;for(const c of i.bundle){const x=by[c.id];if(!x||isB(x)||!(c.q>0)){m=0;break}m=Math.min(m,Math.floor((+x.stock||0)/c.q))}const v=m===Infinity?0:Math.max(0,m);if(i.stock!==v)i.stock=v}})}
 function stockForm(kind,id){
   if(!isOwner()){toast('Hubungkan ke server dan masuk sebagai owner untuk mencatat stok');return}
-  const its=[...db.items].sort((a,b)=>a.name.localeCompare(b.name)),IN=kind==='in';
+  const its=db.items.filter(i=>!isB(i)).sort((a,b)=>a.name.localeCompare(b.name)),IN=kind==='in';
   if(!its.length){toast('Belum ada item di inventori');return}
   const why=['Rusak','Kedaluwarsa','Dipakai sendiri','Hilang','Lainnya'];
   openModal(`<h3>${IN?'Barang Masuk':'Barang Keluar'}</h3>

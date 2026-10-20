@@ -121,6 +121,8 @@ input,select,textarea{font:inherit;color:inherit}
 .btn.red{background:#fee2e2;color:var(--bad)}
 .btn.sm{width:auto;padding:8px 14px;margin:0;font-size:13px}
 .mini{font-size:12px;color:var(--bad);font-weight:700;padding:2px 6px}
+.bdl{font-size:11px;color:var(--mu);line-height:1.25}
+.bdr{display:flex;align-items:center;gap:6px;margin-bottom:6px}.bdr input.fi{width:70px;flex:none;text-align:center}.bdr select.fi{flex:1;min-width:0}
 .fab{display:none}
 .sheet-x{display:none}
 /* drawer */
@@ -684,9 +686,10 @@ function fixDb(d){d.set=d.set||{};if(d.set.fsAuto==null)d.set.fsAuto=true;if(d.s
   if(d.set.store==='Sushi POS')d.set.store='POS SATE';
   if(!d.set.logo){d.set.logo=DEF_LOGO;if(!d.set.logoInit)d.set.rc.showLogo=false}
   d.set.logoInit=true;
+  syncBundles(d);
   return d}
 let db=fixDb(load());
-function save(){db._ts=Date.now();LSFAIL=false;try{localStorage.setItem(KEY,JSON.stringify(db))}catch(e){LSFAIL=true}schedMirror();if(CL.on){CL.dirty=true;persistMeta();schedSync()}}
+function save(){syncBundles(db);db._ts=Date.now();LSFAIL=false;try{localStorage.setItem(KEY,JSON.stringify(db))}catch(e){LSFAIL=true}schedMirror();if(CL.on){CL.dirty=true;persistMeta();schedSync()}}
 
 const S={view:'pos',cat:'all',q:'',sel:new Set(),cart:{},type:'Takeaway',dType:'%',dVal:0};
 const dec=()=>Math.max(0,Math.min(4,+db.set.dec||0));
@@ -694,6 +697,14 @@ const rnd=v=>{const f=Math.pow(10,dec());return Math.round((+v+Number.EPSILON)*f
 const fmtNum=n=>Number(n).toLocaleString(db.set.loc||'id-ID',{minimumFractionDigits:dec(),maximumFractionDigits:dec()});
 const money=n=>{const s=db.set,v=fmtNum(n);return s.curPos==='after'?v+' '+s.cur:s.cur+' '+v};
 const find=id=>db.items.find(i=>i.id===id);
+/* ---------- item paket / set: stok paket dihitung otomatis dari stok isinya ---------- */
+function isB(i){return !!i&&Array.isArray(i.bundle)&&i.bundle.length>0}
+function bdStock(i,by){let m=Infinity;for(const c of i.bundle){const x=by[c.id];if(!x||isB(x)||!(c.q>0))return 0;m=Math.min(m,Math.floor((+x.stock||0)/c.q))}return m===Infinity?0:Math.max(0,m)}
+function syncBundles(d){if(!d||!Array.isArray(d.items))return;const by={};d.items.forEach(i=>{by[i.id]=i});d.items.forEach(i=>{if(isB(i)){const v=bdStock(i,by);if(i.stock!==v)i.stock=v}})}
+const bdLbl=b=>(b||[]).map(c=>{const x=find(c.id);return c.q+'× '+(c.name||(x?x.name:'?'))}).join(' + ');
+function cartUse(skip){const u={};for(const id in S.cart){if(id===skip)continue;const i=find(id);if(!i)continue;const q=S.cart[id];if(isB(i))i.bundle.forEach(c=>{u[c.id]=(u[c.id]||0)+c.q*q});else u[id]=(u[id]||0)+q}return u}
+function maxQty(i){const u=cartUse(i.id);if(isB(i)){let m=Infinity;for(const c of i.bundle){const x=find(c.id);if(!x||isB(x)||!(c.q>0))return 0;m=Math.min(m,Math.floor(((+x.stock||0)-(u[c.id]||0))/c.q))}return Math.max(0,m===Infinity?0:m)}return Math.max(0,i.stock-(u[i.id]||0))}
+function bdUsedBy(id,skip){return db.items.find(x=>isB(x)&&!(skip&&skip.has(x.id))&&x.bundle.some(c=>c.id===id))}
 const thumb=i=>i.img?`<img src="${i.img}" alt="">`:emo(i);
 
 function toast(m){const t=$('#toast');t.textContent=m;t.classList.add('on');clearTimeout(toast.t);toast.t=setTimeout(()=>t.classList.remove('on'),2200)}
@@ -777,7 +788,7 @@ function renderPop(){
   const items=S._pt.map(n=>db.items.find(i=>i.name===n)).filter(Boolean);
   const show=S.view==='pos'&&S.cat==='all'&&!S.q.trim()&&items.length>0;
   w.hidden=!show;if(!show)return;
-  l.innerHTML=items.map(i=>{const out=i.stock<=0||(S.cart[i.id]||0)>=i.stock;return`<div class="pc"><div class="pi">${thumb(i)}</div><div class="pt"><div class="pn">${esc(i.name)}</div><div class="pp">${money(i.price)}</div></div><button class="pa" onclick="chg('${i.id}',1)" ${out?'disabled':''}>+</button></div>`}).join('');
+  l.innerHTML=items.map(i=>{const out=i.stock<=0||(S.cart[i.id]||0)>=maxQty(i);return`<div class="pc"><div class="pi">${thumb(i)}</div><div class="pt"><div class="pn">${esc(i.name)}</div><div class="pp">${money(i.price)}</div></div><button class="pa" onclick="chg('${i.id}',1)" ${out?'disabled':''}>+</button></div>`}).join('');
 }
 /* simpan & pulihkan posisi scroll agar daftar tidak lompat ke atas saat di-render ulang (iOS) */
 function keepScroll(fn,els){
@@ -796,10 +807,10 @@ function renderGrid0(){
     const q=S.cart[i.id]||0,out=i.stock<=0;
     return`<div class="p"><div class="im${tapOn?' tap':''}${q?' has':''}"${tapOn?` onclick="tapItem('${i.id}')"`:''}>${thumb(i)}${out?'<div class="sold">HABIS</div>':''}${q?`<div class="qov">${q}</div>`:''}</div>
     <div class="nm">${esc(i.name)}</div>
-    <div class="sub">${esc(i.cat)}</div>
+    <div class="sub">${esc(i.cat)}</div>${isB(i)?`<div class="bdl">Isi: ${esc(bdLbl(i.bundle))}</div>`:''}
     <div class="stk ${i.stock<=i.min?'low':''}">Stok: ${i.stock}</div>
     <div class="row"><span class="pr">${money(i.price)}</span>
-    <span class="qty"><button onclick="chg('${i.id}',-1)" ${q?'':'disabled'}>−</button><span>${q}</span><button onclick="chg('${i.id}',1)" ${out||q>=i.stock?'disabled':''}>+</button></span></div></div>`
+    <span class="qty"><button onclick="chg('${i.id}',-1)" ${q?'':'disabled'}>−</button><span>${q}</span><button onclick="chg('${i.id}',1)" ${out||q>=maxQty(i)?'disabled':''}>+</button></span></div></div>`
   }).join(''):'<div class="empty">Menu tidak ditemukan. Tambahkan lewat menu Inventori.</div>';
 }
 /* ---------- aksi ketuk gambar menu ---------- */
@@ -808,12 +819,12 @@ function tapItem(id){
   if(it.stock<=0){toast('Stok habis');return}
   const mode=db.set.gv.tap;
   if(mode==='add'){chg(id,1);return}
-  if((S.cart[id]||0)>=it.stock){toast('Stok tidak mencukupi');return}
+  if((S.cart[id]||0)>=maxQty(it)){toast('Stok tidak mencukupi');return}
   S.pop={id,q:1,info:mode==='detail'};popForm(S.pop.info);
 }
 function popForm(info){
   const p=S.pop,it=find(p.id);if(!it)return;
-  const room=it.stock-(S.cart[p.id]||0);
+  const room=maxQty(it)-(S.cart[p.id]||0);
   openModal(`${info?`<div class="pop-im">${thumb(it)}</div>`:''}
   <h3 style="margin:${info?'14px':'0'} 0 2px;font-size:20px">${esc(it.name)}</h3>
   ${info?`<div style="color:var(--mu);font-size:13px">${esc(it.cat)} · <span>Stok: ${it.stock}</span></div>`:''}
@@ -826,13 +837,13 @@ function popForm(info){
 }
 function popQ(d){
   const p=S.pop,it=find(p.id);if(!it)return;
-  p.q=Math.max(1,Math.min(it.stock-(S.cart[p.id]||0),p.q+d));popForm(p.info);
+  p.q=Math.max(1,Math.min(maxQty(it)-(S.cart[p.id]||0),p.q+d));popForm(p.info);
 }
 function popAdd(){const p=S.pop;if(!p)return;chg(p.id,p.q);S.pop=null;closeModal()}
 function chg(id,d){
   const it=find(id);if(!it)return;
   let n=(S.cart[id]||0)+d;
-  if(n>it.stock){n=it.stock;toast('Stok tidak mencukupi')}
+  const mx=maxQty(it);if(n>mx){n=mx;toast('Stok tidak mencukupi')}
   if(n<=0)delete S.cart[id];else S.cart[id]=n;
   renderGrid();renderInvoice();
 }
@@ -847,8 +858,8 @@ function renderInvoice(){keepScroll(renderInvoice0,['#lines','#invoice'])}
 function renderInvoice0(){
   const ids=Object.keys(S.cart).filter(id=>find(id));
   $('#lines').innerHTML=ids.length?ids.map(id=>{const i=find(id),q=S.cart[id];
-    return`<div class="ln"><div class="th">${thumb(i)}</div><div class="in"><div>${esc(i.name)}</div><small>x ${q}</small><b>${money(i.price*q)}</b></div>
-    <span class="qty"><button onclick="chg('${id}',-1)">−</button><span>${q}</span><button onclick="chg('${id}',1)" ${q>=i.stock?'disabled':''}>+</button></span></div>`}).join('')
+    return`<div class="ln"><div class="th">${thumb(i)}</div><div class="in"><div>${esc(i.name)}</div><small>x ${q}${isB(i)?' · '+esc(bdLbl(i.bundle)):''}</small><b>${money(i.price*q)}</b></div>
+    <span class="qty"><button onclick="chg('${id}',-1)">−</button><span>${q}</span><button onclick="chg('${id}',1)" ${q>=maxQty(i)?'disabled':''}>+</button></span></div>`}).join('')
     :'<div class="empty" style="padding:30px 0">Keranjang kosong.<br>Pilih menu untuk memulai.</div>';
   $('#otype').value=S.type;$('#dType').value=S.dType;$('#dVal').value=S.dVal;
   totals();
@@ -885,15 +896,17 @@ function calcChange(){
 function checkout(){
   const c=calc(),ids=Object.keys(S.cart).filter(id=>find(id));
   if(!ids.length)return;
-  for(const id of ids){if(S.cart[id]>find(id).stock){toast(find(id).name+': stok tidak cukup');return}}
+  {const u=cartUse();for(const k in u){const x=find(k);if(!x||u[k]>x.stock){toast((x?x.name:'Item')+': stok tidak cukup');return}}}
   const now=new Date(),pad=n=>String(n).padStart(2,'0');
   const no=`INV-${now.getFullYear()}${pad(now.getMonth()+1)}${pad(now.getDate())}-${CL.on?devTag()+'-':''}${String(db.seq).padStart(4,'0')}`;
   const paid=S.pay.m==='Tunai'?(+$('#pPaid').value||0):c.total;
   if(paid<c.total){toast('Uang diterima kurang');return}
   const o={no,t:now.toISOString(),type:S.type,cust:$('#pCust').value.trim(),cashier:(CL.on&&CL.me)?CL.me.name:'',
-    lines:ids.map(id=>{const i=find(id);return{id,name:i.name,price:i.price,cost:i.cost||0,qty:S.cart[id]}}),
+    lines:ids.map(id=>{const i=find(id),l={id,name:i.name,price:i.price,cost:i.cost||0,qty:S.cart[id]};if(isB(i))l.bd=i.bundle.map(c=>{const x=find(c.id);return{id:c.id,q:c.q,name:x?x.name:''}});return l}),
     sub:c.sub,disc:c.disc,tax:c.tax,taxRate:db.set.tax,total:c.total,method:S.pay.m,paid,change:rnd(paid-c.total)};
-  ids.forEach(id=>{const i=find(id);i.stock-=S.cart[id];logAdd(i.name,-S.cart[id],'Penjualan '+no,i.stock,o.t)});
+  ids.forEach(id=>{const i=find(id),q=S.cart[id];
+    if(isB(i))i.bundle.forEach(c=>{const x=find(c.id);if(x){const d=c.q*q;x.stock-=d;logAdd(x.name,-d,'Penjualan '+no+' ('+q+'× '+i.name+')',x.stock,o.t)}});
+    else{i.stock-=q;logAdd(i.name,-q,'Penjualan '+no,i.stock,o.t)}});
   db.log=db.log.slice(0,LOG_MAX);db.orders.unshift(o);db.seq++;save();
   coLink(no);
   S.cart={};S.dVal=0;renderGrid();renderInvoice();renderCats();
@@ -1175,7 +1188,7 @@ function testPrint(){
 function status(i){return i.stock<=0?['out','Habis']:i.stock<=i.min?['low','Menipis']:['ok','Aman']}
 const isStaffMode=()=>CL.on&&!isOwner();
 function renderInv(){
-  const it=db.items,emp=isStaffMode(),val=it.reduce((a,i)=>a+i.stock*(i.cost||0),0);
+  const it=db.items,emp=isStaffMode(),val=it.reduce((a,i)=>a+(isB(i)?0:i.stock*(i.cost||0)),0);
   document.querySelectorAll('#v-inv .own-only').forEach(b=>b.hidden=emp);
   $('#invStats').innerHTML=[['Total Item',it.length],...(emp?[]:[['Nilai Stok (modal)',money(val)]]),['Stok Menipis',it.filter(i=>i.stock>0&&i.stock<=i.min).length],['Habis',it.filter(i=>i.stock<=0).length]].map(([a,b])=>`<div class="st"><small>${a}</small><b>${b}</b></div>`).join('');
   renderInvTable();
@@ -1230,7 +1243,7 @@ function logAdd(name,d,note,stock,t){
   db.log.unshift(e);
 }
 function setStock(id,v){
-  const i=find(id);if(!i)return;v=Math.max(0,Math.floor(+v||0));
+  const i=find(id);if(!i||isB(i))return;v=Math.max(0,Math.floor(+v||0));
   if(v!==i.stock){const d=v-i.stock;i.stock=v;logAdd(i.name,d,'Penyesuaian manual',v);db.log=db.log.slice(0,LOG_MAX);save()}
   renderInv();
 }
@@ -1239,7 +1252,7 @@ function setStock(id,v){
 function itemForm(id){
   if(!isOwner()){toast('Hanya owner yang boleh mengubah data menu');return}
   const i=id?find(id):{name:'',cat:db.cats[0]||'',price:'',cost:'',stock:0,min:db.set.low,img:'',emoji:'🍽️'};
-  S.edit={id:id||null,img:i.img};
+  S.edit={id:id||null,img:i.img,bd:isB(i)?i.bundle.map(c=>({id:c.id,q:c.q})):[]};
   openModal(`<h3>${id?'Edit':'Tambah'} Item</h3>
   <div class="up"><div class="pv" id="pv">${i.img?`<img src="${i.img}">`:emo(i)}</div>
   <div><button class="btn sm sec" onclick="$('#imgF').click()"><i class="ic" data-ic="camera"></i>Upload Gambar</button>
@@ -1250,10 +1263,20 @@ function itemForm(id){
   <div><label class="fl">atau kategori baru</label><input class="fi" id="fC2" placeholder="Opsional"></div></div>
   <div class="two"><div><label class="fl">Harga jual *</label><input class="fi" id="fP" type="number" step="any" min="0" value="${i.price}"></div>
   <div><label class="fl">Harga modal</label><input class="fi" id="fK" type="number" step="any" min="0" value="${i.cost||''}"></div></div>
-  <div class="two"><div><label class="fl">Stok</label><input class="fi" id="fS" type="number" min="0" value="${i.stock}"></div>
-  <div><label class="fl">Batas stok menipis</label><input class="fi" id="fM" type="number" min="0" value="${i.min}"></div></div>
+  <label class="tgl"><input type="checkbox" id="fB" ${isB(i)?'checked':''} onchange="bdToggle()"><span>Item paket / set (berisi beberapa item)</span></label>
+  <div id="bdBox" ${isB(i)?'':'hidden'}><p class="hint" style="margin:0 0 6px">Pilih isi paket. Stok paket dihitung otomatis dari stok isinya, dan saat paket terjual stok isinya yang berkurang. Tulis isi di nama agar pelanggan tahu, mis. "Set Otak-otak (10 pcs)". Harga modal kosong = dihitung dari modal isinya.</p>
+  <div id="bdRows"></div><button class="btn sm sec" type="button" onclick="bdAdd()">+ Tambah isi</button></div>
+  <div id="stkRow" style="${isB(i)?'display:none':''}"><div class="two"><div><label class="fl">Stok</label><input class="fi" id="fS" type="number" min="0" value="${isB(i)?0:i.stock}"></div>
+  <div><label class="fl">Batas stok menipis</label><input class="fi" id="fM" type="number" min="0" value="${i.min}"></div></div></div>
   <button class="btn" onclick="saveItem()">Simpan</button><button class="btn sec" onclick="closeModal()">Batal</button>${id?`<button class="btn red" onclick="delItem('${id}')">Hapus Item</button>`:''}`);
+  bdRender();
 }
+function bdOpts(sel){const me=S.edit.id;return '<option value="">Pilih item…</option>'+db.items.filter(x=>!isB(x)&&x.id!==me).map(x=>`<option value="${esc(x.id)}" ${x.id===sel?'selected':''}>${esc(x.name)}</option>`).join('')}
+function bdRender(){const e=$('#bdRows');if(!e)return;e.innerHTML=S.edit.bd.map((c,k)=>`<div class="bdr"><input class="fi" type="number" min="1" step="1" inputmode="numeric" value="${c.q}" aria-label="Jumlah isi" onchange="bdSet(${k},'q',this.value)"><span>×</span><select class="fi" aria-label="Item isi" onchange="bdSet(${k},'id',this.value)">${bdOpts(c.id)}</select><button class="mini" type="button" onclick="bdDel(${k})">Hapus</button></div>`).join('')}
+function bdSet(k,f,v){const c=S.edit.bd[k];if(!c)return;if(f==='q')c.q=Math.max(1,Math.floor(+v||1));else c.id=v}
+function bdAdd(){S.edit.bd.push({id:'',q:1});bdRender()}
+function bdDel(k){S.edit.bd.splice(k,1);bdRender()}
+function bdToggle(){const on=$('#fB').checked;if(on&&bdUsedBy(S.edit.id)){$('#fB').checked=false;toast('Item ini sudah jadi isi paket lain, tidak bisa dijadikan paket');return}$('#bdBox').hidden=!on;$('#stkRow').style.display=on?'none':'';if(on&&!S.edit.bd.length)S.edit.bd.push({id:'',q:1});bdRender()}
 function pickImg(inp){
   const f=inp.files[0];if(!f)return;
   const r=new FileReader();
@@ -1272,10 +1295,19 @@ function saveItem(){
   let cat=$('#fC2').value.trim()||$('#fC').value;
   if(!cat){toast('Pilih / isi kategori');return}
   if(!db.cats.includes(cat))db.cats.push(cat);
-  const stock=Math.max(0,Math.floor(+$('#fS').value||0));
-  const d={name,cat,price,cost:rnd(+$('#fK').value||0),stock,min:Math.max(0,Math.floor(+$('#fM').value||0)),img:S.edit.img||''};
-  if(S.edit.id){const i=find(S.edit.id);if(stock!==i.stock)logAdd(name,stock-i.stock,'Edit item',stock);Object.assign(i,d)}
-  else{db.items.push({id:uid(),emoji:'🍽️',...d});if(stock)logAdd(name,stock,'Stok awal',stock)}
+  let bundle=null;
+  if($('#fB').checked){
+    const m=new Map();(S.edit.bd||[]).forEach(c=>{if(c.id&&find(c.id)&&c.id!==S.edit.id)m.set(c.id,(m.get(c.id)||0)+Math.max(1,Math.floor(+c.q||1)))});
+    bundle=[...m].map(([id,q])=>({id,q}));
+    if(!bundle.length){toast('Pilih minimal 1 isi paket');return}
+    if(bundle.some(c=>isB(find(c.id)))){toast('Isi paket tidak boleh berupa paket lain');return}
+  }
+  const stock=bundle?0:Math.max(0,Math.floor(+$('#fS').value||0));
+  let cost=rnd(+$('#fK').value||0);
+  if(bundle&&!cost)cost=rnd(bundle.reduce((a,c)=>a+c.q*((find(c.id)||{}).cost||0),0));
+  const d={name,cat,price,cost,stock,min:Math.max(0,Math.floor(+($('#fM')||{}).value||0)),img:S.edit.img||''};
+  if(S.edit.id){const i=find(S.edit.id);if(!isB(i)&&!bundle&&stock!==i.stock)logAdd(name,stock-i.stock,'Edit item',stock);if(bundle&&!isB(i)&&i.stock)logAdd(name,-i.stock,'Dijadikan item paket',0);Object.assign(i,d);if(bundle)i.bundle=bundle;else delete i.bundle}
+  else{const ni={id:uid(),emoji:'🍽️',...d};if(bundle)ni.bundle=bundle;db.items.push(ni);if(!bundle&&stock)logAdd(name,stock,'Stok awal',stock)}
   save();closeModal();render();toast('Item disimpan');
 }
 
@@ -1301,7 +1333,7 @@ function histOpen(no){
   <tr><td>Tipe</td><td>${esc(x.type)}</td></tr>
   <tr><td>Metode bayar</td><td>${esc(x.method)}</td></tr>
   ${x.cashier?`<tr><td>Kasir</td><td>${esc(x.cashier)}</td></tr>`:''}${x.cust?`<tr><td>Pelanggan</td><td style="white-space:normal">${esc(x.cust)}</td></tr>`:''}</table>
-  <table class="dl">${x.lines.map(l=>`<tr><td>${l.qty}× ${esc(l.name)}<br><small>${money(l.price)}</small></td><td>${money(l.price*l.qty)}</td></tr>`).join('')}</table>
+  <table class="dl">${x.lines.map(l=>`<tr><td>${l.qty}× ${esc(l.name)}<br><small>${money(l.price)}</small>${Array.isArray(l.bd)&&l.bd.length?`<br><small>Isi: ${esc(bdLbl(l.bd))}</small>`:''}</td><td>${money(l.price*l.qty)}</td></tr>`).join('')}</table>
   <table class="dl">
   <tr><td>Subtotal</td><td>${money(x.sub)}</td></tr>
   ${x.disc?`<tr><td>Diskon</td><td>−${money(x.disc)}</td></tr>`:''}${x.tax?`<tr><td>Pajak</td><td>${money(x.tax)}</td></tr>`:''}
@@ -1324,7 +1356,7 @@ function histDelDo(no){
   if(!isOwner())return;
   const i=db.orders.findIndex(o=>o.no===no);if(i<0){closeModal();return}
   const o=db.orders[i],back=!!($('#hdBack')||{}).checked,now=new Date().toISOString();
-  if(back)o.lines.forEach(l=>{const it=l.id&&find(l.id);if(it){it.stock+=l.qty;logAdd(it.name,l.qty,'Hapus transaksi '+no,it.stock,now)}});
+  if(back)o.lines.forEach(l=>{if(Array.isArray(l.bd)&&l.bd.length){l.bd.forEach(c=>{const x=find(c.id);if(x&&!isB(x)){const d=c.q*l.qty;x.stock+=d;logAdd(x.name,d,'Hapus transaksi '+no,x.stock,now)}});return}const it=l.id&&find(l.id);if(it&&!isB(it)){it.stock+=l.qty;logAdd(it.name,l.qty,'Hapus transaksi '+no,it.stock,now)}});
   db.log=db.log.slice(0,LOG_MAX);
   db.voided=[{no,t:o.t,total:o.total,method:o.method,by:(CL.me&&CL.me.name)||'Owner',at:now,back},...(db.voided||[])].slice(0,200);
   db.orders.splice(i,1);save();closeModal();toast('Transaksi dihapus');render();
@@ -1479,9 +1511,10 @@ function askYes(){const f=S.askFn;S.askFn=null;closeModal();if(f)f()}
 function delItem(id){
   if(!isOwner()){toast('Hanya owner yang boleh mengubah data menu');return}
   const i=find(id);if(!i)return;
+  {const u=bdUsedBy(id);if(u){toast('Tidak bisa dihapus: dipakai di paket "'+u.name+'". Ubah paketnya dulu.');return}}
   ask('Hapus item?',`"${i.name}" akan dihapus dari menu dan inventori. Riwayat penjualan tidak terpengaruh.`,'Hapus',()=>{
     db.items=db.items.filter(x=>x.id!==id);delete S.cart[id];S.sel.delete(id);
-    if(i.stock)logAdd(i.name,-i.stock,'Item dihapus',0);
+    if(i.stock&&!isB(i))logAdd(i.name,-i.stock,'Item dihapus',0);
     save();render();toast('Item dihapus');
   });
 }
@@ -1495,9 +1528,9 @@ function renderInvTable(){
   [...S.sel].forEach(id=>{if(!ids.has(id))S.sel.delete(id)});
   $('#invHead').innerHTML=emp?'<th></th><th>Nama</th><th>Kategori</th><th>Harga</th><th>Stok</th><th>Status</th>':'<th><input type="checkbox" id="selAllCk" onchange="selAll(this.checked)"></th><th></th><th>Nama</th><th>Kategori</th><th>Harga</th><th>Modal</th><th>Stok</th><th>Status</th><th></th>';
   $('#invBody').innerHTML=invList().map(i=>{const[s,t]=status(i);
-    const stk=`<td class="i-s"><span class="stkc"><input type="number" min="0" value="${i.stock}" aria-label="Stok ${esc(i.name)}" onchange="setStock('${i.id}',this.value)"></span></td>`;
-    return emp?`<tr><td class="i-th"><div class="th">${thumb(i)}</div></td><td class="i-n"><b>${esc(i.name)}</b></td><td class="i-c">${esc(i.cat)}</td><td class="i-p">${money(i.price)}</td>${stk}<td class="i-st"><span class="tag ${s}">${t}</span></td></tr>`
-    :`<tr><td class="i-ck"><input type="checkbox" ${S.sel.has(i.id)?'checked':''} onchange="selOne('${i.id}',this.checked)"></td><td class="i-th"><div class="th">${thumb(i)}</div></td><td class="i-n"><b>${esc(i.name)}</b></td><td class="i-c">${esc(i.cat)}</td><td class="i-p">${money(i.price)}</td><td class="i-m">${money(i.cost||0)}</td>
+    const stk=isB(i)?`<td class="i-s"><span class="stkc"><b title="Dihitung otomatis dari isi paket">${i.stock}</b></span></td>`:`<td class="i-s"><span class="stkc"><input type="number" min="0" value="${i.stock}" aria-label="Stok ${esc(i.name)}" onchange="setStock('${i.id}',this.value)"></span></td>`;
+    return emp?`<tr><td class="i-th"><div class="th">${thumb(i)}</div></td><td class="i-n"><b>${esc(i.name)}</b>${isB(i)?`<br><small class="bdl">Isi: ${esc(bdLbl(i.bundle))}</small>`:''}</td><td class="i-c">${esc(i.cat)}</td><td class="i-p">${money(i.price)}</td>${stk}<td class="i-st"><span class="tag ${s}">${t}</span></td></tr>`
+    :`<tr><td class="i-ck"><input type="checkbox" ${S.sel.has(i.id)?'checked':''} onchange="selOne('${i.id}',this.checked)"></td><td class="i-th"><div class="th">${thumb(i)}</div></td><td class="i-n"><b>${esc(i.name)}</b>${isB(i)?`<br><small class="bdl">Isi: ${esc(bdLbl(i.bundle))}</small>`:''}</td><td class="i-c">${esc(i.cat)}</td><td class="i-p">${money(i.price)}</td><td class="i-m">${money(i.cost||0)}</td>
     ${stk}
     <td class="i-st"><span class="tag ${s}">${t}</span></td>
     <td class="i-a" style="white-space:nowrap"><button class="ib" onclick="itemForm('${i.id}')">Edit</button><button class="ib d" onclick="delItem('${i.id}')">Hapus</button></td></tr>`}).join('')||`<tr><td colspan="${emp?6:9}" style="color:var(--mu)">Tidak ada item.</td></tr>`;
@@ -1513,6 +1546,7 @@ function updateBulk(){
 function bulkDel(){
   if(!isOwner()){toast('Hanya owner yang boleh mengubah data menu');return}
   const n=S.sel.size;if(!n)return;
+  {for(const id of S.sel){const u=bdUsedBy(id,S.sel);if(u){const x=find(id);toast('Tidak bisa dihapus: '+(x?x.name:'item')+' dipakai di paket "'+u.name+'"');return}}}
   ask('Hapus item terpilih?',`${n} item akan dihapus dari menu dan inventori.`,'Hapus',()=>{
     db.items=db.items.filter(i=>!S.sel.has(i.id));
     S.sel.forEach(id=>delete S.cart[id]);S.sel.clear();
@@ -1807,7 +1841,7 @@ const TR_ROWS=[
 ["Semua data saat ini akan ditimpa dengan isi file backup.","All current data will be overwritten with the backup file.","Semua data semasa akan ditimpa dengan fail sandaran."],["Pulihkan","Restore"],
 ["Reset semua data?","Reset all data?","Set semula semua data?"],["Semua item, riwayat, dan pengaturan dihapus lalu kembali ke data contoh.","All items, history and settings will be erased and reset to sample data.","Semua item, sejarah dan tetapan akan dipadam dan dikembalikan kepada data contoh."],
 ["Reset","Reset","Set Semula"],["Reset desain struk?","Reset receipt design?","Set semula reka bentuk resit?"],["Semua pengaturan tampilan struk kembali ke default (logo ikut dihapus).","All receipt display settings return to default (the logo is removed too).","Semua tetapan paparan resit kembali kepada asal (logo turut dipadam)."],["Ya","Yes"],
-["Penyimpanan penuh — kurangi gambar atau hapus data lama","Storage full — reduce images or delete old data","Storan penuh — kurangkan imej atau padam data lama"],["Stok tidak mencukupi","Not enough stock"],
+["Penyimpanan penuh — kurangi gambar atau hapus data lama","Storage full — reduce images or delete old data","Storan penuh — kurangkan imej atau padam data lama"],["Stok tidak mencukupi","Not enough stock"],["Item paket / set (berisi beberapa item)","Bundle / set item (contains several items)","Item paket / set (mengandungi beberapa item)"],["+ Tambah isi","+ Add content","+ Tambah kandungan"],["Pilih minimal 1 isi paket","Choose at least 1 bundle content","Pilih sekurang-kurangnya 1 kandungan paket"],["Isi paket tidak boleh berupa paket lain","A bundle cannot contain another bundle","Kandungan paket tidak boleh paket lain"],["Pilih item…","Choose item…","Pilih item…"],["Item ini sudah jadi isi paket lain, tidak bisa dijadikan paket","This item is already part of another bundle, so it cannot become a bundle","Item ini sudah menjadi kandungan paket lain, tidak boleh dijadikan paket"],
 ["Uang diterima kurang","Amount received is not enough","Wang diterima tidak mencukupi"],["Gambar tidak valid","Invalid image","Imej tidak sah"],["Nama wajib diisi","Name is required"],["Harga wajib diisi","Price is required"],
 ["Pilih / isi kategori","Choose / enter a category"],["Item disimpan","Item saved"],["Pengaturan disimpan","Settings saved","Tetapan disimpan"],["Data dipulihkan","Data restored"],["File backup tidak valid","Invalid backup file","Fail sandaran tidak sah"],
 ["Data direset","Data reset","Data disetel semula"],["Struk dikirim ke printer","Receipt sent to printer","Resit dihantar ke pencetak"],["Pemilihan printer dibatalkan","Printer selection cancelled","Pemilihan pencetak dibatalkan"],
