@@ -677,15 +677,16 @@ function seed(){
   };
 }
 function load(){try{const d=JSON.parse(localStorage.getItem(KEY));if(d&&d.items){globalThis.__lsok=true;return d}}catch(e){}globalThis.__lsok=false;return seed()}
-const RC_DEF={logo:'',showLogo:true,logoW:160,align:'center',font:'normal',divider:'dashed',itemLayout:'two',showAddr:true,line1:'',showNo:true,showDate:true,showType:true,showCust:true,showCashier:false,cashierAuto:true,cashier:'',showDisc:true,showTax:true,showPay:true,showFooter:true,line2:'',showQr:false,qrText:'Scan untuk memesan',showMapQr:false,mapQrText:'Scan untuk lokasi toko',bigTotal:true,feed:3};
+const RC_DEF={logo:'',showLogo:true,logoW:160,align:'center',font:'normal',divider:'dashed',itemLayout:'two',showAddr:true,line1:'',showNo:true,showDate:true,showType:true,showCust:true,showCashier:false,cashierAuto:true,cashier:'',showDisc:true,showTax:true,showPay:true,showFooter:true,line2:'',showQr:false,qrText:'Scan untuk memesan',bigTotal:true,feed:3};
 const LOG_MAX=1000;
-const PRN_DEF={mode:'browser',auto:false,autoNew:true,cut:true,drawer:false,baud:9600,chunk:100,delay:15,uuid:''};
+const PRN_DEF={mode:'browser',auto:false,autoNew:true,cut:true,drawer:false,baud:9600,chunk:100,delay:15,uuid:'',autoConn:true};
 const DEF_LOGO='data:image/jpeg;base64,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';
 const GV_DEF={mode:'grid',colsD:0,colsM:2,stock:true,cats:true,tap:'add'};
 function fixDb(d){d.set=d.set||{};if(d.set.fsAuto==null)d.set.fsAuto=true;if(d.set.logoApp==null)d.set.logoApp=true;if(d.set.rc&&d.set.rc.logo&&!d.set.logo){d.set.logo=d.set.rc.logo;d.set.rc.logo=''}d.set.logo=d.set.logo||'';d.set.gv={...GV_DEF,...(d.set.gv||{})};delete d.set.gv.size;d.set.lang=d.set.lang||'id';if(d.set.dec==null)d.set.dec=0;d.set.loc=d.set.loc||'id-ID';d.set.curPos=d.set.curPos||'before';d.set.cur=d.set.cur||'Rp';d.set.curCode=d.set.curCode||(d.set.cur==='Rp'?'IDR':'CUSTOM');d.set.rc={...RC_DEF,...(d.set.rc||{})};d.set.pay={on:false,qr:'',name:'',note:'',...(d.set.pay&&typeof d.set.pay==='object'?d.set.pay:{})};d.set.prn={...PRN_DEF,...(d.set.prn||{})};d.set.paper=d.set.paper||'80';d.log=d.log||[];d.orders=d.orders||[];d.cats=d.cats||[];
   if(d.set.store==='Sushi POS')d.set.store='POS SATE';
   if(!d.set.logo){d.set.logo=DEF_LOGO;if(!d.set.logoInit)d.set.rc.showLogo=false}
   d.set.logoInit=true;
+  delete d.set.map;if(d.set.rc){delete d.set.rc.showMapQr;delete d.set.rc.mapQrText}
   syncBundles(d);
   return d}
 let db=fixDb(load());
@@ -943,13 +944,11 @@ function receiptModel(o){
   if(r.showTax)m.push({t:'row',l:tr('Pajak ('+o.taxRate+'%)'),r:money(o.tax)});
   m.push({t:'row',l:tr('TOTAL'),r:money(o.total),b:true,big:r.bigTotal});
   if(r.showPay){hr();m.push({t:'row',l:tr('Bayar ('+o.method+')'),r:money(o.paid)});m.push({t:'row',l:tr('Kembali'),r:money(o.change)})}
-  const mq=r.showMapQr&&mapOk(s.map)&&s.map.length<=MAP_QR_MAX;
-  if((r.showFooter&&s.foot)||r.line2||r.showQr||mq){
+  if((r.showFooter&&s.foot)||r.line2||r.showQr){
     hr();
     if(r.showFooter&&s.foot)m.push({t:'text',x:s.foot,a:'center'});
     if(r.line2)m.push({t:'text',x:r.line2,a:'center'});
     if(r.showQr)m.push({t:'qr',x:coUrl(''),cap:r.qrText});
-    if(mq)m.push({t:'qr',x:s.map,cap:r.mapQrText});
   }
   return m;
 }
@@ -1062,39 +1061,70 @@ async function buildEscPos(o){
 }
 
 /* ---------- koneksi printer ---------- */
-const PRN={dev:null,ch:null,port:null,writer:null};
+const PRN={dev:null,ch:null,port:null,writer:null,st:''};
 const BLE_UUIDS=['000018f0-0000-1000-8000-00805f9b34fb','0000ff00-0000-1000-8000-00805f9b34fb','0000fee7-0000-1000-8000-00805f9b34fb','0000ffe0-0000-1000-8000-00805f9b34fb','0000fff0-0000-1000-8000-00805f9b34fb','0000ae30-0000-1000-8000-00805f9b34fb','e7810a71-73ae-499d-8c15-faa9aef0c3f2','49535343-fe7d-4ae5-8fa9-9fafd205e455'];
 
+const lsGet=k=>{try{return localStorage.getItem(k)||''}catch(e){return ''}};
+const lsSet=(k,v)=>{try{if(v==null)localStorage.removeItem(k);else localStorage.setItem(k,v)}catch(e){}};
+const PRN_BOUND=new WeakSet();
+function bleBind(dev){
+  PRN.dev=dev;PRN.ch=null;
+  if(PRN_BOUND.has(dev))return;PRN_BOUND.add(dev);
+  dev.addEventListener('gattserverdisconnected',()=>{PRN.ch=null;PRN.st='';updatePrnStatus();bleAutoSoon(1500)});
+}
+/* buka koneksi GATT + cari karakteristik tulis; ingat printer ini untuk sambung otomatis berikutnya */
+async function bleOpen(dev){
+  bleBind(dev);PRN.st='connecting';updatePrnStatus();
+  try{
+    const srv=await dev.gatt.connect(),cands=[];
+    for(const sv of await srv.getPrimaryServices()){
+      for(const c of await sv.getCharacteristics()){
+        if(c.properties.writeWithoutResponse||c.properties.write)cands.push(c);
+      }
+    }
+    const ch=cands.find(c=>c.properties.writeWithoutResponse)||cands[0];
+    if(!ch)throw new Error('Karakteristik tulis printer tidak ditemukan. Isi UUID service printer di opsi lanjutan.');
+    PRN.ch=ch;lsSet('pos_bleid',dev.id);lsSet('pos_blename',dev.name||'');lsSet('pos_bleoff',null);
+  }finally{PRN.st='';updatePrnStatus()}
+}
+async function bleSaved(){
+  const id=lsGet('pos_bleid');if(!id||!navigator.bluetooth||!navigator.bluetooth.getDevices)return null;
+  try{return (await navigator.bluetooth.getDevices()).find(d=>d.id===id)||null}catch(e){return null}
+}
 async function bleConnect(pick){
   if(!navigator.bluetooth)throw new Error('Web Bluetooth tidak didukung di browser ini. Pakai Chrome (Android/Windows/Mac) atau Bluefy (iPhone).');
+  for(let n=0;bleBusy&&n<100;n++)await sleep(100);
   if(!pick&&PRN.dev&&PRN.dev.gatt.connected&&PRN.ch)return;
-  if(pick&&PRN.dev&&PRN.dev.gatt.connected)PRN.dev.gatt.disconnect();
-  let dev=PRN.dev;
-  if(!pick&&!dev&&navigator.bluetooth.getDevices){
-    try{
-      const id=localStorage.getItem('pos_bleid'),ds=await navigator.bluetooth.getDevices();
-      dev=ds.find(d=>d.id===id)||null;
-      if(dev){PRN.dev=dev;PRN.ch=null;dev.addEventListener('gattserverdisconnected',()=>{PRN.ch=null;updatePrnStatus()})}
-    }catch(e){dev=null}
-  }
-  if(pick||!dev){
+  if(pick&&PRN.dev&&PRN.dev.gatt.connected){lsSet('pos_bleoff','1');PRN.dev.gatt.disconnect()}
+  let dev=pick?null:(PRN.dev||await bleSaved());
+  if(!dev){
     const opt=BLE_UUIDS.slice(),u=String(db.set.prn.uuid||'').trim().toLowerCase();
     if(u)opt.push(/^[0-9a-f]{4}$/.test(u)?parseInt(u,16):u);
     dev=await navigator.bluetooth.requestDevice({acceptAllDevices:true,optionalServices:opt});
-    PRN.dev=dev;PRN.ch=null;try{localStorage.setItem('pos_bleid',dev.id)}catch(e){}
-    dev.addEventListener('gattserverdisconnected',()=>{PRN.ch=null;updatePrnStatus()});
   }
-  const srv=await dev.gatt.connect();
-  const cands=[];
-  for(const sv of await srv.getPrimaryServices()){
-    for(const c of await sv.getCharacteristics()){
-      if(c.properties.writeWithoutResponse||c.properties.write)cands.push(c);
-    }
-  }
-  const ch=cands.find(c=>c.properties.writeWithoutResponse)||cands[0];
-  if(!ch)throw new Error('Karakteristik tulis printer tidak ditemukan. Isi UUID service printer di opsi lanjutan.');
-  PRN.ch=ch;updatePrnStatus();
+  await bleOpen(dev);
 }
+/* sambung otomatis ke printer sebelumnya (saat aplikasi dibuka, kembali ke aplikasi, atau koneksi putus) */
+let bleBusy=false,bleTry=0,bleTm=null;
+async function bleAuto(){
+  const p=db.set.prn;
+  if(p.mode!=='ble'||p.autoConn===false||bleBusy||document.hidden)return;
+  if(!navigator.bluetooth||!navigator.bluetooth.getDevices)return;
+  if(PRN.dev&&PRN.dev.gatt.connected&&PRN.ch)return;
+  if(!lsGet('pos_bleid')||lsGet('pos_bleoff'))return;
+  bleBusy=true;
+  try{
+    const dev=await bleSaved();
+    if(!dev)return;                    /* izin tidak tersimpan: perlu Cari & Hubungkan sekali lagi */
+    await bleOpen(dev);bleTry=0;
+  }catch(e){
+    PRN.ch=null;
+    if(++bleTry<=3&&!document.hidden){clearTimeout(bleTm);bleTm=setTimeout(bleAuto,[0,3000,8000,20000][bleTry])}
+    else bleTry=0;
+  }finally{bleBusy=false;updatePrnStatus()}
+}
+function bleAutoSoon(ms){clearTimeout(bleTm);bleTm=setTimeout(()=>{bleTry=0;bleAuto()},ms||0)}
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)bleAutoSoon(400)});
 async function sendBLE(data){
   await bleConnect(false);
   const p=db.set.prn;let size=Math.max(20,+p.chunk||100);
@@ -1149,6 +1179,11 @@ async function printReceipt(o){
   }
   updatePrnStatus();
 }
+function prnForget(){
+  lsSet('pos_bleid',null);lsSet('pos_blename',null);lsSet('pos_bleoff',null);
+  try{if(PRN.dev&&PRN.dev.gatt.connected)PRN.dev.gatt.disconnect()}catch(e){}
+  PRN.dev=null;PRN.ch=null;updatePrnStatus();toast('Printer yang tersimpan dilupakan');
+}
 async function prnConnect(){
   const m=db.set.prn.mode;
   try{
@@ -1161,6 +1196,7 @@ async function prnConnect(){
   updatePrnStatus();
 }
 async function prnDisconnect(){
+  lsSet('pos_bleoff','1');
   try{if(PRN.dev&&PRN.dev.gatt.connected)PRN.dev.gatt.disconnect()}catch(e){}
   PRN.ch=null;
   await serialClose();
@@ -1171,7 +1207,10 @@ function updatePrnStatus(){
   const m=db.set.prn.mode;let ok=true,t='';
   if(m==='browser')t='Memakai dialog cetak browser';
   else if(m==='rawbt')t='Dikirim lewat aplikasi RawBT';
-  else if(m==='ble'){ok=!!(PRN.dev&&PRN.dev.gatt.connected&&PRN.ch);t=ok?'Terhubung: '+(PRN.dev.name||'printer BLE'):'Belum terhubung'}
+  else if(m==='ble'){
+    ok=!!(PRN.dev&&PRN.dev.gatt.connected&&PRN.ch);const sv=lsGet('pos_blename');
+    t=ok?'Terhubung: '+(PRN.dev.name||'printer BLE'):PRN.st==='connecting'?'Menyambung ke '+(sv||'printer')+'…':'Belum terhubung'+(sv?' (tersimpan: '+sv+')':'');
+  }
   else{ok=!!PRN.writer;t=ok?'Terhubung: port serial':'Belum terhubung'}
   el.className='chg'+(ok?'':' neg');
   el.innerHTML='<span>Status</span><span>'+esc(t)+'</span>';
@@ -1403,14 +1442,12 @@ function renderSet(){
   $('#setForm').innerHTML=`<h3>Toko</h3>
   <label class="fl">Nama toko</label><input class="fi" id="sN" value="${esc(s.store)}">
   <label class="fl">Alamat / telepon (tampil di struk)</label><input class="fi" id="sA" value="${esc(s.addr)}">
-  <label class="fl">Lokasi di Maps (opsional)</label><input class="fi" id="sM" type="url" inputmode="url" maxlength="300" placeholder="Tempel link Google Maps" value="${esc(s.map||'')}" oninput="mapHint()">
-  <div class="chips" style="margin:6px 0 2px"><button class="chip" type="button" onclick="mapGeo(true)">📍 Alamat dari GPS</button><button class="chip" type="button" onclick="mapGeo()">📍 Lokasi saya</button><button class="chip" type="button" onclick="mapOpen()">🗺️ Buka di Maps</button><button class="chip" type="button" onclick="mapClear()">Hapus</button></div>
-  <p class="hint" id="mapHint" style="margin:2px 0 2px"></p><p class="hint" style="margin:0 0 8px;font-size:11px">Alamat dari GPS memakai layanan gratis OpenStreetMap (data © OpenStreetMap contributors).</p>
+  <div class="chips" style="margin:6px 0 2px"><button class="chip" type="button" onclick="addrGps()">📍 Isi alamat dari GPS</button></div>
+  <p class="hint" style="margin:2px 0 8px;font-size:11px">Alamat diambil dari lokasi GPS perangkat lewat layanan gratis OpenStreetMap (data © OpenStreetMap contributors). Periksa hasilnya, lalu tekan Simpan Pengaturan.</p>
   <div class="two"><div><label class="fl">Pajak (%)</label><input class="fi" id="sT" type="number" min="0" step="0.1" value="${s.tax}"></div>
   <div></div></div>
   <div class="two"><div><label class="fl">Batas stok menipis (default)</label><input class="fi" id="sL" type="number" min="0" value="${s.low}"></div><div></div></div>
   <button class="btn" onclick="saveSet()">Simpan Pengaturan</button>`;
-  mapHint();
   renderScr();
   renderLogo();
   renderDb();
@@ -1420,57 +1457,31 @@ function renderSet(){
   renderCoSet();renderPay();applySetTab();
   $('#catMgr').innerHTML=db.cats.map(c=>`<span class="chip" style="display:inline-flex;gap:8px;margin:0 6px 6px 0">${esc(c)} <button style="color:var(--bad)" onclick="delCat('${esc(c).replace(/'/g,"\\'")}')"><i class="ic solo" data-ic="x"></i></button></span>`).join('')||'<span style="color:var(--mu)">Belum ada kategori</span>';
 }
-/* ---------- lokasi toko di Maps (tanpa kunci API: hanya tautan) ---------- */
-const MAP_QR_MAX=180;
-function mapOk(u){
-  if(!u)return false;
-  try{const x=new URL(u);return x.protocol==='https:'&&/(^|\.)(google\.[a-z.]+|goo\.gl|openstreetmap\.org|waze\.com|apple\.com)$/i.test(x.hostname)}catch(e){return false}
-}
-function mapSearchUrl(){const a=($('#sA')||{}).value||db.set.addr||'';return a.trim()?'https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(a.trim()):''}
-function mapHint(){
-  const e=$('#mapHint'),i=$('#sM');if(!e||!i)return;const v=i.value.trim();
-  if(!v){e.style.color='';e.textContent='Kosong: tombol Buka di Maps mencari berdasarkan alamat di atas.';return}
-  if(!mapOk(v)){e.style.color='var(--bad)';e.textContent='Link harus diawali https:// dan berasal dari Google Maps, Waze, OpenStreetMap, atau Apple Maps.';return}
-  e.style.color='';e.textContent=v.length>MAP_QR_MAX?'Link terlalu panjang untuk QR di struk. Pakai tombol Bagikan di Maps lalu salin link pendek (maps.app.goo.gl).':'Link tersimpan setelah Anda menekan Simpan Pengaturan.';
-}
-function mapOpen(){
-  const v=($('#sM')||{}).value.trim(),u=v?(mapOk(v)?v:''):mapSearchUrl();
-  if(!u){toast(v?'Link Maps tidak valid':'Isi alamat atau link Maps dulu');return}
-  window.open(u,'_blank','noopener');
-}
-/* alamat dari koordinat GPS: layanan gratis OpenStreetMap Nominatim (tanpa kunci API) */
-function mapAddr(j){
+/* ---------- alamat toko dari GPS: layanan gratis OpenStreetMap Nominatim (tanpa kunci API) ---------- */
+function addrFrom(j){
   const a=(j&&j.address)||{},road=[a.road||a.pedestrian||a.footway,a.house_number].filter(Boolean).join(' No. ');
   const parts=[road,a.neighbourhood||a.quarter,a.suburb||a.village||a.city_district,a.city||a.town||a.municipality||a.county,a.state,a.postcode].filter(Boolean);
   const out=parts.length>=2?parts.join(', '):String((j&&j.display_name)||'');
   return out.slice(0,160);
 }
-async function mapGeoAddr(la,lo){
+async function addrFetch(la,lo){
   const ac=new AbortController(),tm=setTimeout(()=>ac.abort(),9000);
   try{
     const r=await fetch('https://nominatim.openstreetmap.org/reverse?format=jsonv2&addressdetails=1&accept-language=id&lat='+la+'&lon='+lo,{signal:ac.signal,headers:{Accept:'application/json'}});
-    if(!r.ok)throw 0;const t=mapAddr(await r.json());if(!t)throw 0;return t;
+    if(!r.ok)throw 0;const t=addrFrom(await r.json());if(!t)throw 0;return t;
   }catch(e){return ''}finally{clearTimeout(tm)}
 }
-function mapGeo(addr){
+function addrGps(){
   if(!navigator.geolocation){toast('Perangkat ini tidak mendukung lokasi');return}
   toast('Mencari lokasi…');
   navigator.geolocation.getCurrentPosition(async p=>{
-    const i=$('#sM');if(!i)return;
-    const la=p.coords.latitude.toFixed(6),lo=p.coords.longitude.toFixed(6);
-    i.value='https://www.google.com/maps?q='+la+','+lo;mapHint();
-    if(addr===true){
-      const t=await mapGeoAddr(la,lo),a=$('#sA');
-      if(t&&a){a.value=t;toast('Alamat & lokasi terisi. Periksa lalu tekan Simpan Pengaturan.')}
-      else toast('Alamat tidak bisa diambil (butuh internet). Link lokasi tetap terisi.');
-    }else toast('Lokasi terisi. Tekan Simpan Pengaturan.');
+    const t=await addrFetch(p.coords.latitude.toFixed(6),p.coords.longitude.toFixed(6)),a=$('#sA');
+    if(t&&a){a.value=t;toast('Alamat terisi. Periksa lalu tekan Simpan Pengaturan.')}
+    else toast('Alamat tidak bisa diambil (butuh internet).');
   },er=>toast(er&&er.code===1?'Izin lokasi ditolak. Aktifkan di pengaturan browser.':'Lokasi tidak ditemukan'),{enableHighAccuracy:true,timeout:15000,maximumAge:60000});
 }
-function mapClear(){const i=$('#sM');if(i){i.value='';mapHint()}}
 function saveSet(){
-  const mv=($('#sM')||{value:''}).value.trim();
-  if(mv&&!mapOk(mv)){toast('Link Maps tidak valid');return}
-  Object.assign(db.set,{map:mv,store:$('#sN').value.trim()||'Toko',addr:$('#sA').value,tax:Math.max(0,+$('#sT').value||0),low:Math.max(0,+$('#sL').value||0)});
+  Object.assign(db.set,{store:$('#sN').value.trim()||'Toko',addr:$('#sA').value,tax:Math.max(0,+$('#sT').value||0),low:Math.max(0,+$('#sL').value||0)});
   save();applyBrand();toast('Pengaturan disimpan');render();
 }
 function addCat(){const v=$('#newCat').value.trim();if(!v)return;if(!db.cats.includes(v))db.cats.push(v);$('#newCat').value='';save();renderSet()}
@@ -1637,7 +1648,7 @@ function setOpt(obj,key,val){
   if(['logoW','feed','baud','chunk','delay'].includes(key))val=+val;
   db.set[obj][key]=val;save();
   if(obj==='rc')renderRcPrev();
-  if(obj==='prn'&&key==='mode')renderPrn();
+  if(obj==='prn'&&(key==='mode'||key==='autoConn')){if(key==='mode')renderPrn();bleAutoSoon(200)}
 }
 function setPaper(v){db.set.paper=v;save();setPageSize();if(S.view==='rc')renderRcPrev()}
 
@@ -1666,12 +1677,11 @@ function renderRc(){
   <div class="panel"><h3>Rincian &amp; Pembayaran</h3>
     <div class="tgls">${ck('showDisc','Baris diskon')}${ck('showTax','Baris pajak')}${ck('showPay','Bayar &amp; kembalian')}${ck('bigTotal','Total dengan huruf besar')}</div></div>
   <div class="panel"><h3>Footer &amp; Baris Tambahan</h3>
-    <div class="tgls">${ck('showFooter','Tampilkan pesan di bawah struk')}${ck('showQr','QR untuk pesan online')}${ck('showMapQr','QR lokasi toko (Maps)')}</div>
+    <div class="tgls">${ck('showFooter','Tampilkan pesan di bawah struk')}${ck('showQr','QR untuk pesan online')}</div>
     <label class="fl">Pesan di bawah struk</label><input class="fi" value="${esc(db.set.foot)}" oninput="setFoot(this.value)">
     ${tx('line2','Baris tambahan di footer','mis. WiFi: tokoku123')}
     ${tx('qrText','Tulisan di atas QR','mis. Scan untuk memesan')}
-    ${tx('mapQrText','Tulisan di atas QR lokasi','mis. Scan untuk lokasi toko')}
-    <p class="hint">QR mengarah ke halaman pesan pelanggan (tanpa nomor meja). Kartu QR per meja ada di Pesanan Online. QR lokasi memakai link Maps di Pengaturan &gt; Toko.</p></div>
+    <p class="hint">QR mengarah ke halaman pesan pelanggan (tanpa nomor meja). Kartu QR per meja ada di Pesanan Online.</p></div>
   <div class="panel"><h3>Tampilan</h3>
     ${sel('align','Perataan header',[['left','Kiri'],['center','Tengah'],['right','Kanan']])}
     ${sel('font','Ukuran huruf',[['small','Kecil'],['normal','Normal'],['large','Besar']])}
@@ -1733,10 +1743,13 @@ function renderPrn(){
       ${o('browser','Dialog browser (USB / Wi-Fi / driver)')}${o('ble','Bluetooth BLE (Web Bluetooth)')}${o('serial','Bluetooth klasik / USB (Web Serial, desktop)')}${o('rawbt','Android: aplikasi RawBT')}
     </select>
     <p class="hint">${help}</p>
+    <div class="tgls" style="margin-top:8px">${ck('autoConn','Sambung otomatis ke printer sebelumnya')}</div>
+    <p class="hint">${navigator.bluetooth&&navigator.bluetooth.getDevices?'Printer Bluetooth yang pernah dipilih disambung lagi otomatis saat aplikasi dibuka, saat kembali ke aplikasi, atau saat koneksi terputus. Tombol Putuskan menghentikan sambung otomatis sampai Anda menekan Cari &amp; Hubungkan atau mencetak lagi.':'Browser ini belum bisa menyambung otomatis (aturan keamanan browser). Tekan Cari &amp; Hubungkan setiap kali aplikasi dibuka, atau pakai Chrome di Android/komputer.'}</p>
     <div class="chg" id="prnStat"></div>
     <div class="acts" style="margin-top:10px;flex-wrap:wrap">
       <button class="btn sm" onclick="prnConnect()"><i class="ic" data-ic="search"></i>Cari &amp; Hubungkan</button>
       <button class="btn sm sec" onclick="prnDisconnect()">Putuskan</button>
+      <button class="btn sm sec" onclick="prnForget()">Lupakan printer</button>
       <button class="btn sm sec" onclick="testPrint()"><i class="ic" data-ic="print"></i>Tes Cetak</button>
     </div></div>
   <div class="panel"><h3>Opsi Cetak</h3>
@@ -1748,7 +1761,7 @@ function renderPrn(){
     <div><label class="fl">Ukuran paket BLE (byte)</label><input class="fi" type="number" min="20" max="512" value="${p.chunk}" onchange="setOpt('prn','chunk',this.value)"></div></div>
     <div class="two"><div><label class="fl">Jeda antar paket (ms)</label><input class="fi" type="number" min="0" value="${p.delay}" onchange="setOpt('prn','delay',this.value)"></div>
     <div><label class="fl">UUID service printer (opsional)</label><input class="fi" value="${esc(p.uuid)}" placeholder="mis. ffe0" onchange="setOpt('prn','uuid',this.value)"></div></div>
-    <p class="hint">Jika struk terpotong atau berantakan lewat BLE, turunkan ukuran paket ke 20 dan naikkan jeda ke 30. Setelah halaman dimuat ulang, sambungkan printer lagi (aturan keamanan browser).</p></div>`;
+    <p class="hint">Jika struk terpotong atau berantakan lewat BLE, turunkan ukuran paket ke 20 dan naikkan jeda ke 30.</p></div>`;
   updatePrnStatus();
 }
 
@@ -1900,7 +1913,7 @@ const TR_ROWS=[
 ["Semua data saat ini akan ditimpa dengan isi file backup.","All current data will be overwritten with the backup file.","Semua data semasa akan ditimpa dengan fail sandaran."],["Pulihkan","Restore"],
 ["Reset semua data?","Reset all data?","Set semula semua data?"],["Semua item, riwayat, dan pengaturan dihapus lalu kembali ke data contoh.","All items, history and settings will be erased and reset to sample data.","Semua item, sejarah dan tetapan akan dipadam dan dikembalikan kepada data contoh."],
 ["Reset","Reset","Set Semula"],["Reset desain struk?","Reset receipt design?","Set semula reka bentuk resit?"],["Semua pengaturan tampilan struk kembali ke default (logo ikut dihapus).","All receipt display settings return to default (the logo is removed too).","Semua tetapan paparan resit kembali kepada asal (logo turut dipadam)."],["Ya","Yes"],
-["Penyimpanan penuh — kurangi gambar atau hapus data lama","Storage full — reduce images or delete old data","Storan penuh — kurangkan imej atau padam data lama"],["Stok tidak mencukupi","Not enough stock"],["📍 Alamat dari GPS","📍 Address from GPS","📍 Alamat daripada GPS"],["Nama kasir otomatis dari akun yang login","Cashier name automatically from the signed-in account","Nama juruwang automatik daripada akaun yang log masuk"],["Alamat tidak bisa diambil (butuh internet). Link lokasi tetap terisi.","Could not fetch the address (needs internet). The location link is still filled.","Alamat tidak dapat diambil (perlu internet). Pautan lokasi tetap diisi."],["Alamat & lokasi terisi. Periksa lalu tekan Simpan Pengaturan.","Address and location filled. Check, then tap Save Settings.","Alamat & lokasi diisi. Semak kemudian tekan Simpan Tetapan."],["Lokasi di Maps (opsional)","Location on Maps (optional)","Lokasi di Peta (pilihan)"],["📍 Lokasi saya","📍 My location","📍 Lokasi saya"],["🗺️ Buka di Maps","🗺️ Open in Maps","🗺️ Buka di Peta"],["QR lokasi toko (Maps)","Store location QR (Maps)","QR lokasi kedai (Peta)"],["Tulisan di atas QR lokasi","Text above the location QR","Teks di atas QR lokasi"],["Link Maps tidak valid","Invalid Maps link","Pautan Peta tidak sah"],["Isi alamat atau link Maps dulu","Enter an address or Maps link first","Isi alamat atau pautan Peta dahulu"],["Mencari lokasi…","Finding location…","Mencari lokasi…"],["Lokasi tidak ditemukan","Location not found","Lokasi tidak dijumpai"],["Item paket / set (berisi beberapa item)","Bundle / set item (contains several items)","Item paket / set (mengandungi beberapa item)"],["+ Tambah isi","+ Add content","+ Tambah kandungan"],["Pilih minimal 1 isi paket","Choose at least 1 bundle content","Pilih sekurang-kurangnya 1 kandungan paket"],["Isi paket tidak boleh berupa paket lain","A bundle cannot contain another bundle","Kandungan paket tidak boleh paket lain"],["Pilih item…","Choose item…","Pilih item…"],["Item ini sudah jadi isi paket lain, tidak bisa dijadikan paket","This item is already part of another bundle, so it cannot become a bundle","Item ini sudah menjadi kandungan paket lain, tidak boleh dijadikan paket"],
+["Penyimpanan penuh — kurangi gambar atau hapus data lama","Storage full — reduce images or delete old data","Storan penuh — kurangkan imej atau padam data lama"],["Stok tidak mencukupi","Not enough stock"],["📍 Isi alamat dari GPS","📍 Fill address from GPS","📍 Isi alamat daripada GPS"],["Alamat terisi. Periksa lalu tekan Simpan Pengaturan.","Address filled. Check, then tap Save Settings.","Alamat diisi. Semak kemudian tekan Simpan Tetapan."],["Alamat tidak bisa diambil (butuh internet).","Could not fetch the address (needs internet).","Alamat tidak dapat diambil (perlu internet)."],["Mencari lokasi…","Finding location…","Mencari lokasi…"],["Sambung otomatis ke printer sebelumnya","Reconnect automatically to the previous printer","Sambung semula secara automatik ke pencetak sebelumnya"],["Lupakan printer","Forget printer","Lupakan pencetak"],["Printer yang tersimpan dilupakan","The saved printer was forgotten","Pencetak yang disimpan telah dilupakan"],["Nama kasir otomatis dari akun yang login","Cashier name automatically from the signed-in account","Nama juruwang automatik daripada akaun yang log masuk"],["Item paket / set (berisi beberapa item)","Bundle / set item (contains several items)","Item paket / set (mengandungi beberapa item)"],["+ Tambah isi","+ Add content","+ Tambah kandungan"],["Pilih minimal 1 isi paket","Choose at least 1 bundle content","Pilih sekurang-kurangnya 1 kandungan paket"],["Isi paket tidak boleh berupa paket lain","A bundle cannot contain another bundle","Kandungan paket tidak boleh paket lain"],["Pilih item…","Choose item…","Pilih item…"],["Item ini sudah jadi isi paket lain, tidak bisa dijadikan paket","This item is already part of another bundle, so it cannot become a bundle","Item ini sudah menjadi kandungan paket lain, tidak boleh dijadikan paket"],
 ["Uang diterima kurang","Amount received is not enough","Wang diterima tidak mencukupi"],["Gambar tidak valid","Invalid image","Imej tidak sah"],["Nama wajib diisi","Name is required"],["Harga wajib diisi","Price is required"],
 ["Pilih / isi kategori","Choose / enter a category"],["Item disimpan","Item saved"],["Pengaturan disimpan","Settings saved","Tetapan disimpan"],["Data dipulihkan","Data restored"],["File backup tidak valid","Invalid backup file","Fail sandaran tidak sah"],
 ["Data direset","Data reset","Data disetel semula"],["Struk dikirim ke printer","Receipt sent to printer","Resit dihantar ke pencetak"],["Pemilihan printer dibatalkan","Printer selection cancelled","Pemilihan pencetak dibatalkan"],
@@ -3183,7 +3196,7 @@ function render(){
   if(S.view==='acc')renderAccPage();
 }
 applyBrand();
-tick();go('pos');initI18n();dbBoot();updateFS();autoFS();setupPwa();cloudStart();coStart();applyAccess();
+tick();go('pos');initI18n();dbBoot();updateFS();autoFS();setupPwa();cloudStart();coStart();applyAccess();bleAutoSoon(1200);
 </script>
 </body>
 </html>
