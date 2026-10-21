@@ -50,6 +50,15 @@ alter table pos.co add column if not exists pst int not null default 0;
 alter table pos.co add column if not exists proof text not null default '';
 create index if not exists co_day on pos.co(day);
 create index if not exists co_status on pos.co(status, id);
+create table if not exists pos.att(
+  id bigint generated always as identity primary key,
+  uid bigint not null, uname text not null default '', name text not null default '',
+  day date not null, ts timestamptz not null default now(), type text not null,
+  shift_id text not null default '', shift_name text not null default '', sstart text not null default '', send text not null default '',
+  status text not null default 'none', mins int not null default 0,
+  lat double precision, lng double precision, acc int, dist int, photo text not null default '');
+create index if not exists att_uid on pos.att(uid, id);
+create index if not exists att_day on pos.att(day);
 create table if not exists pos.meta(k text primary key, v jsonb not null);
 insert into pos.meta(k, v) values ('rev', to_jsonb((extract(epoch from now()) * 1000)::bigint)) on conflict do nothing;
 create table if not exists pos.fails(ip text primary key, n int not null default 0, until timestamptz);
@@ -60,7 +69,7 @@ alter table pos.users enable row level security;  alter table pos.sessions enabl
 alter table pos.audit enable row level security;  alter table pos.doc enable row level security;
 alter table pos.snapshots enable row level security; alter table pos.co enable row level security;
 alter table pos.meta enable row level security;   alter table pos.fails enable row level security;
-alter table pos.hits enable row level security;
+alter table pos.hits enable row level security;  alter table pos.att enable row level security;
 
 -- ---------------------------------------------------------------- pembantu
 create or replace function pos.r(s int, b jsonb) returns jsonb language sql immutable as
@@ -352,6 +361,94 @@ begin
 end $$;
 
 -- ------------------------------------------------------------ router utama
+
+-- ---------------------------------------------------------------- absensi karyawan
+create or replace function pos.att_view(a pos.att) returns jsonb language sql immutable as
+$$ select jsonb_build_object('id', a.id, 'uid', a.uid, 'uname', a.uname, 'name', a.name, 'day', a.day::text, 't', pos.iso(a.ts), 'type', a.type,
+     'shiftId', a.shift_id, 'shift', a.shift_name, 'sstart', a.sstart, 'send', a.send, 'status', a.status, 'mins', a.mins,
+     'lat', a.lat, 'lng', a.lng, 'acc', a.acc, 'dist', a.dist, 'hp', a.photo <> '') $$;
+
+create or replace function pos.att_state(v_uid bigint) returns jsonb language plpgsql stable as $$
+declare l pos.att; o boolean;
+begin
+  select * into l from pos.att where uid = v_uid order by id desc limit 1;
+  o := l.id is not null and l.type = 'in' and l.ts > now() - interval '18 hours';
+  return jsonb_build_object('open', o, 'since', case when o then pos.iso(l.ts) else '' end, 'shiftId', case when o then l.shift_id else '' end,
+    'last', case when l.id is null then null else pos.att_view(l) end);
+end $$;
+
+create or replace function pos.att_tz(cfg jsonb) returns text language sql stable as $$
+  select coalesce((select name from pg_timezone_names where name = cfg ->> 'tz' limit 1), pos.tz()) $$;
+
+create or replace function pos.att_do(me pos.users, b jsonb) returns jsonb language plpgsql as $$
+declare cfg jsonb; sh jsonb; sid text; typ text; ph text; la double precision; ln double precision; st jsonb; tzn text; lmin int; d int; grace int;
+  v_status text := 'none'; v_mins int := 0; v_dist int; clat double precision; clng double precision; rad int; nr pos.att; nshift int; asg text;
+  hh constant text := '^([01][0-9]|2[0-3]):[0-5][0-9]$'; v_day date;
+begin
+  select coalesce(json #> '{set,att}', '{}'::jsonb) into cfg from pos.doc where id = 1;
+  if jsonb_typeof(cfg) <> 'object' or cfg -> 'on' is distinct from 'true'::jsonb then return pos.r(403, '{"error":"Absensi belum diaktifkan oleh owner"}'); end if;
+  typ := case b ->> 'type' when 'in' then 'in' when 'out' then 'out' else '' end;
+  if typ = '' then return pos.r(400, '{"error":"Jenis absen tidak valid"}'); end if;
+  ph := coalesce(b ->> 'photo', '');
+  if length(ph) > 160000 or ph !~ '^data:image/jpeg;base64,[A-Za-z0-9+/=]+$' then return pos.r(400, '{"error":"Foto selfie wajib diambil lewat kamera"}'); end if;
+  if jsonb_typeof(b -> 'lat') is distinct from 'number' or jsonb_typeof(b -> 'lng') is distinct from 'number' then return pos.r(400, '{"error":"Lokasi GPS wajib diaktifkan"}'); end if;
+  la := (b ->> 'lat')::double precision; ln := (b ->> 'lng')::double precision;
+  if abs(la) > 90 or abs(ln) > 180 then return pos.r(400, '{"error":"Lokasi GPS wajib diaktifkan"}'); end if;
+  st := pos.att_state(me.id);
+  if typ = 'in' and (st ->> 'open')::boolean then return pos.r(409, '{"error":"Anda sudah absen masuk. Absen pulang dulu."}'); end if;
+  if typ = 'out' and not (st ->> 'open')::boolean then return pos.r(409, '{"error":"Anda belum absen masuk."}'); end if;
+  asg := cfg #>> array['assign', me.username];
+  sid := case when typ = 'out' then st ->> 'shiftId' else coalesce(nullif(asg, ''), pos.clean(b ->> 'shift', 20)) end;
+  select count(*) into nshift from jsonb_array_elements(case when jsonb_typeof(cfg -> 'shifts') = 'array' then cfg -> 'shifts' else '[]'::jsonb end) x
+    where coalesce(x ->> 'id', '') <> '' and x ->> 'start' ~ hh and x ->> 'end' ~ hh;
+  select x into sh from jsonb_array_elements(case when jsonb_typeof(cfg -> 'shifts') = 'array' then cfg -> 'shifts' else '[]'::jsonb end) x
+    where x ->> 'id' = sid and x ->> 'start' ~ hh and x ->> 'end' ~ hh limit 1;
+  if typ = 'in' and sh is null and nshift > 0 and coalesce(asg, '') = '' then return pos.r(400, '{"error":"Pilih shift Anda dulu"}'); end if;
+  if jsonb_typeof(cfg -> 'lat') = 'number' and jsonb_typeof(cfg -> 'lng') = 'number' then
+    clat := (cfg ->> 'lat')::double precision; clng := (cfg ->> 'lng')::double precision;
+    rad := least(5000, greatest(20, round(coalesce(pos.num(cfg -> 'radius'), 100))))::int;
+    v_dist := round(2 * 6371000 * asin(least(1, sqrt(power(sin(radians(la - clat) / 2), 2) + cos(radians(clat)) * cos(radians(la)) * power(sin(radians(ln - clng) / 2), 2)))))::int;
+    if cfg -> 'strict' = 'true'::jsonb and v_dist > rad then
+      return pos.r(403, jsonb_build_object('error', 'Anda berada ' || v_dist || ' m dari toko (maksimal ' || rad || ' m). Absen hanya bisa dari toko.'));
+    end if;
+  end if;
+  tzn := pos.att_tz(cfg);
+  v_day := (now() at time zone tzn)::date;
+  lmin := (extract(hour from (now() at time zone tzn)) * 60 + extract(minute from (now() at time zone tzn)))::int;
+  if sh is not null then
+    grace := least(120, greatest(0, round(coalesce(pos.num(sh -> 'grace'), 0))))::int;
+    if typ = 'in' then
+      d := (((lmin - (substr(sh ->> 'start', 1, 2)::int * 60 + substr(sh ->> 'start', 4, 2)::int)) % 1440) + 1440 + 720) % 1440 - 720;
+      if d > grace then v_status := 'late'; v_mins := d; else v_status := 'ontime'; end if;
+    else
+      d := (((lmin - (substr(sh ->> 'end', 1, 2)::int * 60 + substr(sh ->> 'end', 4, 2)::int)) % 1440) + 1440 + 720) % 1440 - 720;
+      if d < 0 then v_status := 'early'; v_mins := -d; else v_status := 'ok'; end if;
+    end if;
+  end if;
+  insert into pos.att(uid, uname, name, day, type, shift_id, shift_name, sstart, send, status, mins, lat, lng, acc, dist, photo)
+    values (me.id, me.username, me.name, v_day, typ, coalesce(sh ->> 'id', ''), pos.clean(sh ->> 'name', 30), coalesce(sh ->> 'start', ''), coalesce(sh ->> 'end', ''),
+      v_status, v_mins, la, ln, round(coalesce(pos.num(b -> 'acc'), 0))::int, v_dist, ph) returning * into nr;
+  if random() < 0.05 then
+    update pos.att set photo = '' where day < v_day - 60 and photo <> '';
+    delete from pos.att where day < v_day - 400;
+  end if;
+  perform pos.audit(me.id, me.username, case when typ = 'in' then 'absen-masuk' else 'absen-pulang' end,
+    coalesce(nullif(nr.shift_name, ''), '-') || ' ' || nr.status || case when nr.mins > 0 then ' ' || nr.mins || 'mnt' else '' end);
+  return pos.r(200, jsonb_build_object('rec', pos.att_view(nr) || '{"hp":true}'::jsonb, 'state', pos.att_state(me.id)));
+end $$;
+
+create or replace function pos.att_list(me pos.users, q jsonb, own boolean) returns jsonb language plpgsql stable as $$
+declare cfg jsonb; tzn text; v_to date; v_from date;
+begin
+  select coalesce(json #> '{set,att}', '{}'::jsonb) into cfg from pos.doc where id = 1;
+  tzn := pos.att_tz(cfg);
+  v_to := case when (q ->> 'to') ~ '^\d{4}-\d{2}-\d{2}$' then (q ->> 'to')::date else (now() at time zone tzn)::date end;
+  v_from := case when (q ->> 'from') ~ '^\d{4}-\d{2}-\d{2}$' then (q ->> 'from')::date else (now() at time zone tzn)::date - 40 end;
+  return pos.r(200, jsonb_build_object('tz', tzn, 'today', ((now() at time zone tzn)::date)::text, 'me', pos.att_state(me.id), 'rows', coalesce((
+    select jsonb_agg(pos.att_view(a) order by a.id desc) from (
+      select * from pos.att where day between v_from and v_to and (own or uid = me.id) order by id desc limit case when own then 2000 else 500 end) a), '[]')));
+end $$;
+
 create or replace function pos.route(m text, u text, q jsonb, b jsonb, t text) returns jsonb language plpgsql as $$
 declare me pos.users; mt text[]; r pos.co; tu pos.users; own boolean; nrole text; act boolean; nm text; nperms jsonb; un text; nsingle boolean;
   d pos.doc; gerr text; nv int; cnt int; rv bigint; wt numeric; ms bigint; x jsonb; v_proof text;
@@ -481,6 +578,15 @@ begin
     if not own then return pos.r(403, '{"error":"Anda tidak punya akses untuk ini"}'); end if;
     return pos.r(200, jsonb_build_object('log', coalesce((select jsonb_agg(jsonb_build_object('t', pos.iso(a.t), 'uname', a.uname, 'action', a.action, 'detail', a.detail) order by a.id desc)
       from (select * from pos.audit order by id desc limit 100) a), '[]')));
+  end if;
+
+  -- absensi
+  if u = '/api/att' and m = 'POST' then return pos.att_do(me, b); end if;
+  if u = '/api/att' and m = 'GET' then return pos.att_list(me, q, own); end if;
+  if u = '/api/att/photo' and m = 'GET' then
+    select jsonb_build_object('photo', a.photo) into x from pos.att a where a.id = pos.num(q -> 'id')::bigint and (own or a.uid = me.id);
+    if x is null then return pos.r(404, '{"error":"tidak ada"}'); end if;
+    return pos.r(200, x);
   end if;
 
   -- pesanan online (kasir)

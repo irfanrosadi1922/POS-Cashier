@@ -338,7 +338,15 @@ button[hidden]{display:none!important}
 .cob{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
 .cob .btn{width:auto;margin:0;padding:10px 16px;font-size:13px;flex:1 1 auto}
 .pst{font-size:11.5px;font-weight:700;border-radius:999px;padding:3px 9px;background:var(--chip);color:var(--tx2)}
-.pst.w{background:var(--peach2);color:var(--b)}.pst.ok{background:var(--greenbg);color:#15803d}
+.pst.w{background:var(--peach2);color:var(--b)}.pst.ok{background:var(--greenbg);color:#15803d}.pst.bad{background:var(--redbg);color:var(--bad)}
+.ic[data-ic=clock]{--m:url("data:image/svg+xml,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20viewBox=%220%200%2024%2024%22%20fill=%22none%22%20stroke=%22%23000%22%20stroke-width=%222%22%20stroke-linecap=%22round%22%20stroke-linejoin=%22round%22%3E%3Ccircle%20cx=%2212%22%20cy=%2212%22%20r=%2210%22/%3E%3Cpath%20d=%22M12%206v6l4%202%22/%3E%3C/svg%3E")}
+.attp{max-width:760px}.attclk{font-size:40px;font-weight:800;letter-spacing:1px;text-align:center;margin:2px 0}.attdt{text-align:center;color:var(--mu);font-size:13px;margin-bottom:10px}
+.attst{border-radius:18px;background:var(--peach);padding:12px 14px;margin:10px 0;font-size:14px}.attst b{display:block;font-size:15px}
+.attcam{position:relative;border-radius:22px;overflow:hidden;background:#000;aspect-ratio:3/4;max-height:50vh;margin:8px auto;width:100%}.attcam video,.attcam img{width:100%;height:100%;object-fit:cover;display:block}.attcam video{transform:scaleX(-1)}
+.attloc{font-size:13px;padding:8px 12px;border-radius:14px;background:var(--chip);margin:6px 0}.attloc.ok{background:var(--greenbg);color:#15803d}.attloc.bad{background:var(--redbg);color:var(--bad)}
+.atr{display:flex;gap:10px;padding:11px 0;border-top:1px solid var(--ln);align-items:flex-start}.atr:first-child{border-top:0}.atr .atm{flex:1;min-width:0;font-size:14px}.atr .atm small{color:var(--mu);display:block;font-size:12px}
+.atr .pst{display:inline-block;margin:3px 4px 0 0}.acs{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin:8px 0;padding:10px;border-radius:16px;background:var(--bg)}.acs .nm{grid-column:1/-1}.acs label{font-size:11px;color:var(--mu)}
+.asg{display:flex;align-items:center;gap:8px;margin:6px 0}.asg span{flex:1;font-size:14px}.asg select{flex:1}
 .qrbox{display:grid;place-items:center;margin:4px 0 8px}
 .qrbox svg{width:100%;max-width:280px;height:auto;border-radius:14px;border:1px solid var(--ln)}
 
@@ -516,6 +524,7 @@ html[data-theme=dark] img{color-scheme:light}
   <button data-v="co" id="coNav" onclick="go('co')" hidden><i class="ic" data-ic="bell"></i>Pesanan Online <span class="nb" id="coNavN" hidden></span></button>
   <button data-v="inv" onclick="go('inv')"><i class="ic" data-ic="box"></i>Inventori</button>
   <button data-v="hist" onclick="go('hist')"><i class="ic" data-ic="chart"></i>Riwayat Penjualan</button>
+  <button data-v="att" id="attNav" onclick="go('att')" hidden><i class="ic" data-ic="clock"></i>Absensi</button>
   <div class="dg">Pengaturan</div>
   <button data-v="set" onclick="go('set')"><i class="ic" data-ic="sliders"></i>Toko</button>
   <button data-v="rc" onclick="go('rc')"><i class="ic" data-ic="receipt"></i>Desain Struk</button>
@@ -606,6 +615,11 @@ html[data-theme=dark] img{color-scheme:light}
       <div id="coStat"></div>
       <div id="coList"></div>
       <details class="panel" id="coDev" style="margin-top:18px"><summary>Pengaturan perangkat ini</summary><div id="coTop"></div></details>
+    </section>
+
+    <section id="v-att" hidden>
+      <div class="bar"><h2><i class="ic" data-ic="clock"></i>Absensi</h2></div>
+      <div id="attBox"></div>
     </section>
 
     <section id="v-acc" hidden>
@@ -701,7 +715,7 @@ const LOG_MAX=1000;
 const PRN_DEF={mode:'browser',auto:false,autoNew:true,cut:true,drawer:false,baud:9600,chunk:100,delay:15,uuid:'',autoConn:true};
 const DEF_LOGO='data:image/jpeg;base64,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';
 const GV_DEF={mode:'grid',colsD:0,colsM:2,stock:true,cats:true,tap:'add'};
-function fixDb(d){d.set=d.set||{};if(d.set.fsAuto==null)d.set.fsAuto=true;if(d.set.logoApp==null)d.set.logoApp=true;if(d.set.rc&&d.set.rc.logo&&!d.set.logo){d.set.logo=d.set.rc.logo;d.set.rc.logo=''}d.set.logo=d.set.logo||'';d.set.gv={...GV_DEF,...(d.set.gv||{})};delete d.set.gv.size;d.set.lang=d.set.lang||'id';if(d.set.dec==null)d.set.dec=0;d.set.loc=d.set.loc||'id-ID';d.set.curPos=d.set.curPos||'before';d.set.cur=d.set.cur||'Rp';d.set.curCode=d.set.curCode||(d.set.cur==='Rp'?'IDR':'CUSTOM');d.set.rc={...RC_DEF,...(d.set.rc||{})};d.set.pay={on:false,qr:'',name:'',note:'',...(d.set.pay&&typeof d.set.pay==='object'?d.set.pay:{})};d.set.prn={...PRN_DEF,...(d.set.prn||{})};d.set.paper=d.set.paper||'80';d.log=d.log||[];d.orders=d.orders||[];d.cats=d.cats||[];
+function fixDb(d){d.set=d.set||{};if(d.set.fsAuto==null)d.set.fsAuto=true;if(d.set.logoApp==null)d.set.logoApp=true;if(d.set.rc&&d.set.rc.logo&&!d.set.logo){d.set.logo=d.set.rc.logo;d.set.rc.logo=''}d.set.logo=d.set.logo||'';d.set.gv={...GV_DEF,...(d.set.gv||{})};delete d.set.gv.size;d.set.lang=d.set.lang||'id';if(d.set.dec==null)d.set.dec=0;d.set.loc=d.set.loc||'id-ID';d.set.curPos=d.set.curPos||'before';d.set.cur=d.set.cur||'Rp';d.set.curCode=d.set.curCode||(d.set.cur==='Rp'?'IDR':'CUSTOM');d.set.rc={...RC_DEF,...(d.set.rc||{})};d.set.pay={on:false,qr:'',name:'',note:'',...(d.set.pay&&typeof d.set.pay==='object'?d.set.pay:{})};d.set.prn={...PRN_DEF,...(d.set.prn||{})};d.set.att={on:false,tz:'',lat:'',lng:'',radius:100,strict:false,shifts:[],assign:{},...(d.set.att&&typeof d.set.att==='object'?d.set.att:{})};d.set.paper=d.set.paper||'80';d.log=d.log||[];d.orders=d.orders||[];d.cats=d.cats||[];
   if(d.set.store==='Sushi POS')d.set.store='POS SATE';
   if(!d.set.logo){d.set.logo=DEF_LOGO;if(!d.set.logoInit)d.set.rc.showLogo=false}
   d.set.logoInit=true;
@@ -752,7 +766,7 @@ function go(v){
   if(v==='acc'&&!(CL.on&&CL.me))v='set';
   if(!canView(v)){if(v!=='pos')toast('Anda tidak punya akses ke halaman itu');v='pos'}
   S.view=v;closeAll();toggleInv(false);
-  ['pos','inv','hist','rc','prn','set','co','usr','acc'].forEach(x=>$('#v-'+x).hidden=x!==v);
+  ['pos','inv','hist','rc','prn','set','co','usr','acc','att'].forEach(x=>$('#v-'+x).hidden=x!==v);
   document.querySelectorAll('.drawer button,.bnav button').forEach(b=>b.classList.toggle('on',b.dataset.v===v));
   navDot(v);
   $('#invoice').style.display=v==='pos'?'':'none';
@@ -2934,6 +2948,7 @@ function setMe(m){CL.me=m||null;try{if(m)localStorage.setItem('pos_me',JSON.stri
 function isOwner(){return !CL.on||(!!CL.me&&CL.me.role==='owner')}
 function can(p){return !CL.on||(!!CL.me&&(CL.me.role==='owner'||(CL.me.perms||[]).includes(p)))}
 function canView(v){
+  if(v==='att')return !!CL.on&&!!CL.me;
   const p=VIEW_PERM[v];if(p===undefined||p===null)return true;
   if(v==='co'||v==='usr')return CL.on&&(p==='#owner'?isOwner():can(p));
   return p==='#owner'?isOwner():can(p);
@@ -3147,6 +3162,204 @@ function restrictToServer(M,S){
   out.set=set;return out;
 }
 
+
+/* ----- absensi: selfie kamera + lokasi GPS + shift (jam shift hanya diatur owner) ----- */
+const ATT={rows:[],me:null,tz:'',today:'',range:'7',who:'',busy:0,last:0,built:false,users:[],stream:null,pos:null,photo:'',mode:'in',gpsOn:false};
+const ATT_TZ=[['','Ikut zona waktu server'],['Asia/Jakarta','WIB (Jakarta)'],['Asia/Makassar','WITA (Makassar/Bali)'],['Asia/Jayapura','WIT (Jayapura)'],['Asia/Kuala_Lumpur','Malaysia (Kuala Lumpur)'],['Asia/Singapore','Singapura']];
+function attC(){return db.set.att||{}}
+function attTzv(){return ATT.tz||attC().tz||undefined}
+function attT(iso){try{return new Date(iso).toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit',hour12:false,timeZone:attTzv()})}catch(e){return ''}}
+function attD(day){try{return new Date(day+'T00:00:00Z').toLocaleDateString('id-ID',{weekday:'short',day:'numeric',month:'short',timeZone:'UTC'})}catch(e){return day}}
+function attAdd(day,n){const d=new Date(day+'T00:00:00Z');d.setUTCDate(d.getUTCDate()+n);return d.toISOString().slice(0,10)}
+function attMn(n){n=Math.round(n);return n>=60?Math.floor(n/60)+' jam '+(n%60?n%60+' mnt':''):n+' mnt'}
+function attDist(a,b,c,d){const R=6371000,r=x=>x*Math.PI/180,dl=r(c-a),dn=r(d-b),h=Math.sin(dl/2)**2+Math.cos(r(a))*Math.cos(r(c))*Math.sin(dn/2)**2;return Math.round(2*R*Math.asin(Math.min(1,Math.sqrt(h))))}
+function attStore(){const c=attC(),la=parseFloat(c.lat),ln=parseFloat(c.lng);return(Number.isFinite(la)&&Number.isFinite(ln)&&String(c.lat)!==''&&String(c.lng)!=='')?{lat:la,lng:ln,rad:Math.max(20,+c.radius||100),strict:!!c.strict}:null}
+function attBadge(r){
+  if(r.type==='in')return r.status==='late'?`<span class="pst bad">Terlambat ${esc(attMn(r.mins))}</span>`:r.status==='ontime'?'<span class="pst ok">Tepat waktu</span>':'<span class="pst">Tanpa shift</span>';
+  return r.status==='early'?`<span class="pst w">Pulang cepat ${esc(attMn(r.mins))}</span>`:r.status==='ok'?'<span class="pst ok">Pulang sesuai jadwal</span>':'<span class="pst">Pulang</span>';
+}
+function attLocChip(r){
+  const st=attStore(),co=(r.lat!=null?`<small>${(+r.lat).toFixed(5)}, ${(+r.lng).toFixed(5)}${r.acc?' (±'+r.acc+' m)':''}</small>`:'');
+  if(r.dist==null||!st)return co;
+  return (r.dist<=st.rad?`<span class="pst ok">${r.dist} m dari toko</span>`:`<span class="pst bad">Di luar area toko · ${r.dist} m</span>`)+co;
+}
+function attRowHtml(r){
+  return `<div class="atr"><span class="av">${esc((r.name||'?').trim().charAt(0).toUpperCase())}</span><div class="atm"><b>${esc(r.name)}</b> <small style="display:inline">${esc(attD(r.day))}</small><br>
+    ${r.type==='in'?'Masuk':'Pulang'} <b>${esc(attT(r.t))}</b>${r.shift?` · ${esc(r.shift)} ${esc(r.sstart)}–${esc(r.send)}`:''}<br>${attBadge(r)}${attLocChip(r)}
+    ${r.hp?`<br><button class="lnk" type="button" onclick="attPhoto(${r.id})">Lihat foto selfie</button>`:''}</div></div>`;
+}
+function attFiltered(){
+  const from=ATT.range==='today'?ATT.today:ATT.range==='30'?attAdd(ATT.today,-29):attAdd(ATT.today,-6);
+  return ATT.rows.filter(r=>r.day>=from&&(!ATT.who||r.uname===ATT.who));
+}
+function attDraw(){
+  const st=$('#attStat'),hs=$('#attHist');if(!st||!hs)return;
+  const c=attC(),me=CL.me||{},m=ATT.me||{},shs=(c.shifts||[]).filter(x=>x.id),asg=(c.assign||{})[me.username],ash=shs.find(x=>x.id===asg);
+  let h=`<div class="attclk" id="attClock"></div><div class="attdt" id="attDate"></div>`;
+  if(!c.on)h+=`<div class="attst"><b>Absensi belum aktif</b>${isOwner()?'Aktifkan di "Pengaturan Absensi & Shift" di bawah.':'Hubungi owner untuk mengaktifkannya.'}</div>`;
+  else{
+    const cur=m.open?shs.find(x=>x.id===m.shiftId):ash;
+    if(m.open)h+=`<div class="attst"><b>Sedang bertugas sejak ${esc(attT(m.since))}</b>${cur?esc(cur.name)+' · '+esc(cur.start)+'–'+esc(cur.end):'Tanpa shift'}${m.last?'<br>'+attBadge(m.last):''}</div><button class="btn red" onclick="attOpen('out')"><i class="ic" data-ic="clock"></i>Absen Pulang</button>`;
+    else{
+      h+=`<div class="attst"><b>${m.last&&m.last.type==='out'?'Terakhir pulang '+esc(attD(m.last.day))+' '+esc(attT(m.last.t)):'Belum absen masuk'}</b>`;
+      if(ash)h+=`Shift Anda: ${esc(ash.name)} · ${esc(ash.start)}–${esc(ash.end)} (toleransi ${ash.grace||0} mnt)`;
+      else if(shs.length)h+=`<label class="fl" for="attShift" style="margin-top:6px">Pilih shift</label><select class="fi" id="attShift"><option value="">— pilih shift —</option>${shs.map(x=>`<option value="${esc(x.id)}">${esc(x.name)} · ${esc(x.start)}–${esc(x.end)}</option>`).join('')}</select>`;
+      else h+='Owner belum mengatur shift, kehadiran dicatat tanpa jam shift.';
+      h+=`</div><button class="btn" onclick="attOpen('in')"><i class="ic" data-ic="clock"></i>Absen Masuk</button>`;
+    }
+  }
+  st.innerHTML=h;attClock();
+  const rows=attFiltered(),ins=rows.filter(r=>r.type==='in'),late=ins.filter(r=>r.status==='late').length,ont=ins.filter(r=>r.status==='ontime').length;
+  const names=[...new Map(ATT.rows.map(r=>[r.uname,r.name])).entries()];
+  hs.innerHTML=`<h3>${isOwner()?'Rekap Absensi Karyawan':'Riwayat Absensi Saya'}</h3>
+  <div class="chips">${[['today','Hari ini'],['7','7 hari'],['30','30 hari']].map(x=>`<button type="button" class="chip ${ATT.range===x[0]?'on':''}" onclick="ATT.range='${x[0]}';attDraw()">${x[1]}</button>`).join('')}</div>
+  ${isOwner()&&names.length?`<select class="fi" onchange="ATT.who=this.value;attDraw()" aria-label="Filter karyawan"><option value="">Semua karyawan</option>${names.map(n=>`<option value="${esc(n[0])}" ${ATT.who===n[0]?'selected':''}>${esc(n[1])}</option>`).join('')}</select>`:''}
+  <div class="chips"><span class="pst ok">Tepat waktu: ${ont}</span><span class="pst bad">Terlambat: ${late}</span><span class="pst">Masuk: ${ins.length}</span></div>
+  ${rows.length?rows.map(attRowHtml).join(''):'<div class="empty">Belum ada data absensi</div>'}`;
+}
+function attClock(){
+  const e=$('#attClock');if(!e)return;
+  try{const n=new Date(),z=attTzv();e.textContent=n.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false,timeZone:z});$('#attDate').textContent=n.toLocaleDateString('id-ID',{weekday:'long',day:'numeric',month:'long',year:'numeric',timeZone:z})}catch(x){}
+}
+setInterval(attClock,1000);
+async function attLoad(force){
+  if(ATT.busy||(!force&&Date.now()-ATT.last<4000))return;
+  ATT.busy=1;
+  try{
+    const r=await api('/api/att'),j=await r.json();
+    if(r.ok){ATT.rows=j.rows||[];ATT.me=j.me||null;ATT.today=j.today||'';ATT.tz=j.tz||'';ATT.last=Date.now()}
+  }catch(e){}
+  finally{ATT.busy=0}
+  if(S.view==='att')attDraw();
+}
+function renderAtt(){
+  const box=$('#attBox');if(!box)return;
+  if(!ATT.built||!$('#attStat')){
+    ATT.built=true;
+    box.innerHTML=`<div class="panel attp" id="attStat"></div>${isOwner()?'<div class="panel attp" id="attCfgBox"></div>':''}<div class="panel attp" id="attHist"></div>`;
+    if(isOwner())attCfgDraw();
+    ATT.last=0;
+  }
+  if(!ATT.today)ATT.today=new Date().toISOString().slice(0,10);
+  attDraw();attLoad();
+}
+/* --- kamera + GPS --- */
+function attStop(){try{if(ATT.stream){ATT.stream.getTracks().forEach(t=>t.stop());ATT.stream=null}}catch(e){}}
+function attOpen(type){
+  const c=attC(),sh=$('#attShift');
+  if(type==='in'&&sh&&!sh.value){toast('Pilih shift dulu');return}
+  ATT.mode=type;ATT.photo='';ATT.pos=null;ATT.shiftSel=sh?sh.value:'';
+  openModal(`<h3>${type==='in'?'Absen Masuk':'Absen Pulang'}</h3>
+  <div class="attcam"><video id="attVid" playsinline muted autoplay></video><img id="attSnap" alt="Foto selfie" hidden></div>
+  <div class="attloc" id="attLoc">Mencari lokasi…</div>
+  <p class="hint" id="attErr" style="color:var(--bad);min-height:16px;margin:4px 0"></p>
+  <button class="btn" id="attShot" onclick="attShot()" disabled>Ambil Foto</button>
+  <button class="btn sec" id="attRetake" onclick="attRetake()" hidden>Ulangi Foto</button>
+  <button class="btn" id="attSend" onclick="attSend()" hidden disabled>Kirim Absen</button>
+  <button class="btn sec" onclick="closeModal()">Batal</button>`);
+  attCam();attGps();
+}
+async function attCam(){
+  const er=$('#attErr');
+  try{
+    if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia)throw {name:window.isSecureContext===false?'Insecure':'NoApi'};
+    const st=await navigator.mediaDevices.getUserMedia({video:{facingMode:'user',width:{ideal:640},height:{ideal:640}},audio:false});
+    if(!$('#attVid')){st.getTracks().forEach(t=>t.stop());return}
+    ATT.stream=st;const v=$('#attVid');v.srcObject=st;try{await v.play()}catch(e){}
+    const b=$('#attShot');if(b)b.disabled=false;
+  }catch(e){
+    if(er)er.textContent=e&&e.name==='NotAllowedError'?'Kamera diblokir. Izinkan akses kamera di pengaturan browser, lalu buka absen lagi.':e&&e.name==='Insecure'?'Kamera hanya bisa dipakai lewat alamat https.':'Kamera tidak ditemukan atau tidak bisa dibuka.';
+  }
+}
+function attGps(){
+  const el=$('#attLoc');
+  if(!navigator.geolocation){if(el){el.className='attloc bad';el.textContent='Perangkat ini tidak mendukung GPS'}return}
+  if(el){el.className='attloc';el.textContent='Mencari lokasi…'}
+  navigator.geolocation.getCurrentPosition(p=>{
+    ATT.pos={lat:p.coords.latitude,lng:p.coords.longitude,acc:Math.round(p.coords.accuracy||0)};
+    const e=$('#attLoc');if(!e)return;const st=attStore();let t='Lokasi terdeteksi · akurasi ±'+ATT.pos.acc+' m',cls='ok';
+    if(st){const d=attDist(ATT.pos.lat,ATT.pos.lng,st.lat,st.lng);ATT.pos.d=d;if(d<=st.rad)t+=' · '+d+' m dari toko';else{t='Di luar area toko: '+d+' m (maks. '+st.rad+' m)';cls='bad'}}
+    e.className='attloc '+cls;e.textContent=t;attReadySend();
+  },err=>{
+    const e=$('#attLoc');if(!e)return;e.className='attloc bad';
+    e.innerHTML=(err&&err.code===1?'Izin lokasi ditolak. Aktifkan GPS/lokasi untuk browser ini. ':'Lokasi belum didapat. ')+'<button class="lnk" type="button" onclick="attGps()">Coba lagi</button>';
+  },{enableHighAccuracy:true,timeout:15000,maximumAge:0});
+}
+function attShot(){
+  const v=$('#attVid');if(!v||!v.videoWidth){$('#attErr').textContent='Kamera belum siap';return}
+  const W=320,H=Math.round(v.videoHeight*W/v.videoWidth),c=document.createElement('canvas');c.width=W;c.height=H;c.getContext('2d').drawImage(v,0,0,W,H);
+  ATT.photo=c.toDataURL('image/jpeg',.65);
+  const im=$('#attSnap');im.src=ATT.photo;im.hidden=false;v.hidden=true;$('#attShot').hidden=true;$('#attRetake').hidden=false;$('#attSend').hidden=false;$('#attErr').textContent='';attReadySend();
+}
+function attRetake(){ATT.photo='';$('#attSnap').hidden=true;$('#attVid').hidden=false;$('#attShot').hidden=false;$('#attRetake').hidden=true;$('#attSend').hidden=true}
+function attReadySend(){const b=$('#attSend');if(!b)return;const st=attStore(),out=st&&st.strict&&ATT.pos&&ATT.pos.d!=null&&ATT.pos.d>st.rad;b.disabled=!(ATT.photo&&ATT.pos)||!!out}
+async function attSend(){
+  if(!ATT.photo||!ATT.pos)return;const b=$('#attSend'),er=$('#attErr');b.disabled=true;b.textContent='Mengirim…';er.textContent='';
+  try{
+    const r=await api('/api/att',{method:'POST',body:JSON.stringify({type:ATT.mode,photo:ATT.photo,lat:ATT.pos.lat,lng:ATT.pos.lng,acc:ATT.pos.acc,shift:ATT.shiftSel||''})}),j=await r.json();
+    if(!r.ok){er.textContent=j.error||'Gagal mengirim absen';b.disabled=false;b.textContent='Kirim Absen';return}
+    const rec=j.rec;closeModal();
+    toast((rec.type==='in'?'Absen masuk ':'Absen pulang ')+'tercatat'+(rec.status==='late'?' · Terlambat '+attMn(rec.mins):rec.status==='ontime'?' · Tepat waktu':rec.status==='early'?' · Pulang cepat '+attMn(rec.mins):''));
+    attLoad(true);
+  }catch(e){if(e.message!=='auth'){er.textContent='Tidak bisa terhubung ke server';b.disabled=false;b.textContent='Kirim Absen'}}
+}
+async function attPhoto(id){
+  const r0=ATT.rows.find(x=>x.id===id)||{};
+  openModal(`<h3>${esc(r0.name||'Foto absen')}</h3><div class="hint">Memuat foto…</div><button class="btn sec" onclick="closeModal()">Tutup</button>`);
+  try{
+    const r=await api('/api/att/photo?id='+id),j=await r.json();
+    if(!r.ok||!j.photo){openModal(`<h3>${esc(r0.name||'Foto absen')}</h3><div class="hint">Foto tidak tersedia (foto lama otomatis dihapus setelah 60 hari).</div><button class="btn sec" onclick="closeModal()">Tutup</button>`);return}
+    openModal(`<h3>${esc(r0.name||'Foto absen')}</h3><div class="hint">${r0.type==='in'?'Masuk':'Pulang'} ${esc(attD(r0.day))} ${esc(attT(r0.t))}</div><img src="${esc(j.photo)}" alt="Foto selfie absen" style="width:100%;border-radius:20px;margin:8px 0"><button class="btn sec" onclick="closeModal()">Tutup</button>`);
+  }catch(e){}
+}
+/* --- pengaturan (khusus owner): jam shift, lokasi toko, pembagian shift --- */
+async function attCfgDraw(){
+  const b=$('#attCfgBox');if(!b||!isOwner())return;
+  const c=attC();
+  try{const j=await (await api('/api/users')).json();ATT.users=(j.users||[]).filter(u=>u.active)}catch(e){}
+  b.innerHTML=`<h3>Pengaturan Absensi &amp; Shift <span class="pst w">khusus owner</span></h3>
+  <label class="tgl"><input type="checkbox" id="acOn" ${c.on?'checked':''}><span>Aktifkan absensi karyawan</span></label>
+  <label class="fl" for="acTz">Zona waktu toko</label><select class="fi" id="acTz">${ATT_TZ.map(z=>`<option value="${z[0]}" ${(c.tz||'')===z[0]?'selected':''}>${z[1]}</option>`).join('')}</select>
+  <label class="fl">Lokasi toko (untuk cek jarak absen)</label>
+  <div style="display:flex;gap:6px"><input class="fi" id="acLat" inputmode="decimal" placeholder="Latitude" value="${esc(String(c.lat==null?'':c.lat))}"><input class="fi" id="acLng" inputmode="decimal" placeholder="Longitude" value="${esc(String(c.lng==null?'':c.lng))}"></div>
+  <button class="btn sec" type="button" onclick="acHere()">📍 Pakai lokasi saya sekarang (GPS)</button>
+  <label class="fl" for="acRad">Radius area toko (meter)</label><input class="fi" id="acRad" type="number" min="20" max="5000" value="${+c.radius||100}">
+  <label class="tgl"><input type="checkbox" id="acStrict" ${c.strict?'checked':''}><span>Absen hanya boleh dari dalam area toko</span></label>
+  <label class="fl">Shift</label><div id="acShifts">${(c.shifts||[]).map(acShiftRow).join('')}</div>
+  <button class="btn sec" type="button" onclick="acAdd()">+ Tambah shift</button>
+  <label class="fl">Shift tiap karyawan</label><div class="hint" style="margin:0 0 4px">Kalau tidak diatur, karyawan memilih shift sendiri saat absen masuk.</div><div id="acAssign"></div>
+  <p class="hint" id="acErr" style="color:var(--bad);min-height:16px"></p>
+  <button class="btn" onclick="acSave()">Simpan Pengaturan Absensi</button>`;
+  acAssignDraw();
+}
+function acShiftRow(x){
+  return `<div class="acs" data-id="${esc(x.id)}"><div class="nm"><input class="fi acn" maxlength="30" placeholder="Nama shift, mis. Pagi" value="${esc(x.name||'')}" oninput="acAssignDraw()"></div>
+  <div><label>Mulai</label><input class="fi act1" type="time" value="${esc(x.start||'')}"></div><div><label>Selesai</label><input class="fi act2" type="time" value="${esc(x.end||'')}"></div>
+  <div><label>Toleransi (mnt)</label><input class="fi acg" type="number" min="0" max="120" value="${+x.grace||0}"></div>
+  <button class="btn sec" type="button" style="grid-column:1/-1;margin:2px 0 0" onclick="this.closest('.acs').remove();acAssignDraw()">Hapus shift</button></div>`;
+}
+function acAdd(){const id='s'+Date.now().toString(36)+Math.random().toString(36).slice(2,5);$('#acShifts').insertAdjacentHTML('beforeend',acShiftRow({id,name:'',start:'08:00',end:'16:00',grace:10}));acAssignDraw()}
+function acRead(){return [...document.querySelectorAll('#acShifts .acs')].map((e,i)=>({id:e.dataset.id,name:e.querySelector('.acn').value.trim()||('Shift '+(i+1)),start:e.querySelector('.act1').value,end:e.querySelector('.act2').value,grace:Math.max(0,Math.min(120,Math.round(+e.querySelector('.acg').value||0)))}))}
+function acAssignDraw(){
+  const box=$('#acAssign');if(!box)return;const shs=acRead(),cur={...(attC().assign||{})};
+  box.querySelectorAll('select[data-u]').forEach(s=>{cur[s.dataset.u]=s.value});
+  box.innerHTML=ATT.users.length?ATT.users.map(u=>`<div class="asg"><span>${esc(u.name)} <small style="color:var(--mu)">@${esc(u.username)}</small></span><select class="fi" data-u="${esc(u.username)}"><option value="">Pilih sendiri</option>${shs.map(x=>`<option value="${esc(x.id)}" ${cur[u.username]===x.id?'selected':''}>${esc(x.name)}</option>`).join('')}</select></div>`).join(''):'<div class="hint">Belum ada karyawan.</div>';
+}
+function acHere(){
+  if(!navigator.geolocation){toast('GPS tidak didukung perangkat ini');return}
+  toast('Mencari lokasi…');
+  navigator.geolocation.getCurrentPosition(p=>{$('#acLat').value=p.coords.latitude.toFixed(6);$('#acLng').value=p.coords.longitude.toFixed(6);toast('Lokasi toko diisi dari GPS')},()=>toast('Lokasi tidak didapat. Izinkan akses lokasi.'),{enableHighAccuracy:true,timeout:15000,maximumAge:0});
+}
+function acSave(){
+  if(!isOwner())return;const er=$('#acErr'),shs=acRead();
+  for(const x of shs){if(!x.start||!x.end){er.textContent='Isi jam mulai dan selesai untuk setiap shift';return}if(x.start===x.end){er.textContent='Jam mulai dan selesai tidak boleh sama ('+x.name+')';return}}
+  const la=$('#acLat').value.trim().replace(',','.'),ln=$('#acLng').value.trim().replace(',','.');
+  if((la||ln)&&(!(Math.abs(+la)<=90)||!(Math.abs(+ln)<=180)||!la||!ln)){er.textContent='Latitude/longitude tidak valid';return}
+  const assign={};document.querySelectorAll('#acAssign select[data-u]').forEach(s=>{if(s.value&&shs.some(x=>x.id===s.value))assign[s.dataset.u]=s.value});
+  db.set.att={on:$('#acOn').checked,tz:$('#acTz').value,lat:la?+la:'',lng:ln?+ln:'',radius:Math.max(20,Math.min(5000,Math.round(+$('#acRad').value||100))),strict:$('#acStrict').checked,shifts:shs,assign};
+  er.textContent='';save();toast('Pengaturan absensi disimpan');attDraw();
+}
+
 /* ----- halaman Pengguna (owner) ----- */
 const USR={list:[],log:[]};
 const ACT_LBL={'ubah-profil':'Ubah profil','login':'Masuk','logout':'Keluar','login-gagal':'Gagal masuk','tambah-user':'Tambah pengguna','ubah-user':'Ubah pengguna','hapus-user':'Hapus pengguna','reset-sandi':'Reset sandi','ganti-sandi':'Ganti sandi','ditolak':'Perubahan ditolak','reset-owner':'Reset sandi owner'};
@@ -3218,7 +3431,7 @@ function usrDel(id){
 
 /* ---------- modal & boot ---------- */
 function openModal(h){$('#modal').innerHTML=h;$('#mw').classList.add('on')}
-function closeModal(){$('#mw').classList.remove('on')}
+function closeModal(){attStop();$('#mw').classList.remove('on')}
 function render(){
   renderCats();renderGrid();renderInvoice();
   if(S.view==='inv')renderInv();
@@ -3229,6 +3442,7 @@ function render(){
   if(S.view==='co')renderCo(true);
   if(S.view==='usr')renderUsr();
   if(S.view==='acc')renderAccPage();
+  if(S.view==='att')renderAtt();else ATT.built=false;
 }
 applyBrand();
 tick();go('pos');initI18n();dbBoot();updateFS();autoFS();setupPwa();cloudStart();coStart();applyAccess();bleAutoSoon(1200);
