@@ -345,8 +345,7 @@ button[hidden]{display:none!important}
 .attcam{position:relative;border-radius:22px;overflow:hidden;background:#000;aspect-ratio:3/4;max-height:50vh;margin:8px auto;width:100%}.attcam video,.attcam img{width:100%;height:100%;object-fit:cover;display:block}.attcam video{transform:scaleX(-1)}
 .attloc{font-size:13px;padding:8px 12px;border-radius:14px;background:var(--chip);margin:6px 0}.attloc.ok{background:var(--greenbg);color:#15803d}.attloc.bad{background:var(--redbg);color:var(--bad)}
 .atr{display:flex;gap:10px;padding:11px 0;border-top:1px solid var(--ln);align-items:flex-start}.atr:first-child{border-top:0}.atr .atm{flex:1;min-width:0;font-size:14px}.atr .atm small{color:var(--mu);display:block;font-size:12px}
-.atr .pst{display:inline-block;margin:3px 4px 0 0}.acs{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin:8px 0;padding:10px;border-radius:16px;background:var(--bg)}.acs .nm{grid-column:1/-1}.acs label{font-size:11px;color:var(--mu)}
-.asg{display:flex;align-items:center;gap:8px;margin:6px 0}.asg span{flex:1;font-size:14px}.asg select{flex:1}
+.atr .pst{display:inline-block;margin:3px 4px 0 0}.acs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px 8px;margin:10px 0;padding:12px;border-radius:16px;background:var(--bg);border:1px solid var(--ln)}.acs>div{min-width:0}.acs .nm{grid-column:1/-1}.acs label{display:block;font-size:11px;font-weight:600;color:var(--mu);margin:0 0 3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.acs .fi{min-width:0;padding:9px 6px;font-size:14px;text-align:center;height:42px;box-sizing:border-box}.acs .nm .fi{text-align:left;padding:9px 12px}.acs input[type=time]{-webkit-appearance:none;appearance:none}.acs .acdel{grid-column:1/-1;justify-self:end;width:auto;margin:0;padding:6px 12px;font-size:12px;color:var(--bad)}.asg{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);align-items:center;gap:8px;margin:6px 0}.asg span{font-size:14px;min-width:0;overflow-wrap:anywhere}.asg select{min-width:0;width:100%}.acll{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px;margin-bottom:8px}.acll .fi{min-width:0}.attp .fl{margin-top:12px}.attp .tgl{padding:6px 2px}.atx{margin-top:12px;padding:12px;border-radius:16px;background:var(--bg);border:1px solid var(--ln)}.atx .acll{margin:6px 0}.atx label{display:block;font-size:11px;font-weight:600;color:var(--mu);margin-bottom:3px}.acs input[type=time]::-webkit-calendar-picker-indicator{display:none}.acs input[type=time]{font-variant-numeric:tabular-nums;letter-spacing:0;font-size:13px;padding-left:4px;padding-right:4px}.acll input[type=date]{font-size:13px;padding-left:8px;padding-right:6px}@media(max-width:340px){.acs{grid-template-columns:repeat(2,minmax(0,1fr))}.acs .nm{grid-column:1/-1}.asg{grid-template-columns:1fr}}
 .qrbox{display:grid;place-items:center;margin:4px 0 8px}
 .qrbox svg{width:100%;max-width:280px;height:auto;border-radius:14px;border:1px solid var(--ln)}
 
@@ -3213,6 +3212,7 @@ function attDraw(){
   const names=[...new Map(ATT.rows.map(r=>[r.uname,r.name])).entries()];
   hs.innerHTML=`<h3>${isOwner()?'Rekap Absensi Karyawan':'Riwayat Absensi Saya'}</h3>
   <div class="chips">${[['today','Hari ini'],['7','7 hari'],['30','30 hari']].map(x=>`<button type="button" class="chip ${ATT.range===x[0]?'on':''}" onclick="ATT.range='${x[0]}';attDraw()">${x[1]}</button>`).join('')}</div>
+  ${isOwner()?attXlsxBox():''}
   ${isOwner()&&names.length?`<select class="fi" onchange="ATT.who=this.value;attDraw()" aria-label="Filter karyawan"><option value="">Semua karyawan</option>${names.map(n=>`<option value="${esc(n[0])}" ${ATT.who===n[0]?'selected':''}>${esc(n[1])}</option>`).join('')}</select>`:''}
   <div class="chips"><span class="pst ok">Tepat waktu: ${ont}</span><span class="pst bad">Terlambat: ${late}</span><span class="pst">Masuk: ${ins.length}</span></div>
   ${rows.length?rows.map(attRowHtml).join(''):'<div class="empty">Belum ada data absensi</div>'}`;
@@ -3227,7 +3227,7 @@ async function attLoad(force){
   ATT.busy=1;
   try{
     const r=await api('/api/att'),j=await r.json();
-    if(r.ok){ATT.rows=j.rows||[];ATT.me=j.me||null;ATT.today=j.today||'';ATT.tz=j.tz||'';ATT.last=Date.now()}
+    if(r.ok){ATT.rows=j.rows||[];ATT.me=j.me||null;ATT.today=j.today||'';ATT.tz=j.tz||'';ATT.last=Date.now();if(!ATT.xman&&ATT.today){ATT.xf=ATT.today.slice(0,8)+'01';ATT.xt=ATT.today;const a=$('#axF'),b=$('#axT');if(a)a.value=ATT.xf;if(b)b.value=ATT.xt}}
   }catch(e){}
   finally{ATT.busy=0}
   if(S.view==='att')attDraw();
@@ -3242,6 +3242,72 @@ function renderAtt(){
   }
   if(!ATT.today)ATT.today=new Date().toISOString().slice(0,10);
   attDraw();attLoad();
+}
+
+/* --- rekap absensi ke Excel (owner): rentang tanggal bebas, ringkasan per karyawan + harian + semua catatan --- */
+function attXlsxBox(){
+  const t=ATT.today||new Date().toISOString().slice(0,10);
+  if(!ATT.xf)ATT.xf=t.slice(0,8)+'01';if(!ATT.xt)ATT.xt=t;
+  return `<div class="atx"><b style="font-size:14px">Rekap Excel</b>
+  <div class="acll"><div><label for="axF">Dari tanggal</label><input class="fi" type="date" id="axF" value="${esc(ATT.xf)}" onchange="ATT.xf=this.value;ATT.xman=1"></div><div><label for="axT">Sampai tanggal</label><input class="fi" type="date" id="axT" value="${esc(ATT.xt)}" onchange="ATT.xt=this.value;ATT.xman=1"></div></div>
+  <div class="chips"><button type="button" class="chip" onclick="attXr('month')">Bulan ini</button><button type="button" class="chip" onclick="attXr('last')">Bulan lalu</button><button type="button" class="chip" onclick="attXr('7')">7 hari</button></div>
+  <button class="btn" type="button" id="axBtn" onclick="attXlsx()"><i class="ic" data-ic="download"></i>Unduh Rekap Excel</button>
+  <div class="hint" style="margin-top:6px">${ATT.who?'Hanya karyawan yang dipilih di filter di bawah.':'Semua karyawan.'}</div></div>`;
+}
+function attXr(k){
+  const t=ATT.today||new Date().toISOString().slice(0,10);let f=t,to=t;
+  if(k==='month')f=t.slice(0,8)+'01';
+  else if(k==='7')f=attAdd(t,-6);
+  else if(k==='last'){const d=new Date(t.slice(0,8)+'01T00:00:00Z');d.setUTCDate(0);to=d.toISOString().slice(0,10);f=to.slice(0,8)+'01'}
+  ATT.xf=f;ATT.xt=to;ATT.xman=1;const a=$('#axF'),b=$('#axT');if(a)a.value=f;if(b)b.value=to;
+}
+function attXlsxData(rows,from,to){
+  const lbl=r=>r.type==='in'?(r.status==='late'?'Terlambat':r.status==='ontime'?'Tepat waktu':'Tanpa shift'):(r.status==='early'?'Pulang cepat':r.status==='ok'?'Sesuai jadwal':'Pulang');
+  rows=rows.slice().sort((a,b)=>a.t<b.t?-1:a.t>b.t?1:0);
+  const all=[['Tanggal','Karyawan','Username','Jenis','Jam','Shift','Jadwal','Keterangan','Selisih (mnt)','Jarak dari toko (m)','Latitude','Longitude','Akurasi GPS (m)']];
+  rows.forEach(r=>all.push([r.day,r.name,r.uname,r.type==='in'?'Masuk':'Pulang',attT(r.t),r.shift||'',r.shift?r.sstart+'–'+r.send:'',lbl(r),+r.mins||0,r.dist==null?'':+r.dist,r.lat==null?'':+r.lat,r.lng==null?'':+r.lng,r.acc==null?'':+r.acc]));
+  // pasangkan masuk → pulang per karyawan
+  const open={},days=[];
+  rows.forEach(r=>{
+    if(r.type==='in'){const d={day:r.day,name:r.name,uname:r.uname,shift:r.shift||'',sched:r.shift?r.sstart+'–'+r.send:'',in:r,out:null};open[r.uname]=d;days.push(d)}
+    else{const d=open[r.uname];if(d&&!d.out){d.out=r;delete open[r.uname]}else days.push({day:r.day,name:r.name,uname:r.uname,shift:r.shift||'',sched:r.shift?r.sstart+'–'+r.send:'',in:null,out:r})}
+  });
+  days.sort((a,b)=>a.day<b.day?-1:a.day>b.day?1:a.name<b.name?-1:a.name>b.name?1:0);
+  const dh=[['Tanggal','Karyawan','Shift','Jadwal','Masuk','Ket. Masuk','Telat (mnt)','Pulang','Ket. Pulang','Pulang cepat (mnt)','Durasi kerja (mnt)','Durasi kerja']];
+  days.forEach(d=>{const mn=d.in&&d.out?Math.max(0,Math.round((new Date(d.out.t)-new Date(d.in.t))/60000)):'';
+    dh.push([d.day,d.name,d.shift,d.sched,d.in?attT(d.in.t):'',d.in?lbl(d.in):'',d.in&&d.in.status==='late'?+d.in.mins||0:0,d.out?attT(d.out.t):'',d.out?lbl(d.out):'',d.out&&d.out.status==='early'?+d.out.mins||0:0,mn,mn===''?'':attMn(mn)])});
+  // ringkasan per karyawan
+  const by={};
+  days.forEach(d=>{const k=d.uname,e=by[k]=by[k]||{name:d.name,n:0,ot:0,late:0,lm:0,early:0,ns:0,work:0};
+    if(d.in){e.n++;if(d.in.status==='late'){e.late++;e.lm+=+d.in.mins||0}else if(d.in.status==='ontime')e.ot++;else e.ns++}
+    if(d.out&&d.out.status==='early')e.early++;
+    if(d.in&&d.out)e.work+=Math.max(0,Math.round((new Date(d.out.t)-new Date(d.in.t))/60000))});
+  const names=Object.keys(by).sort((a,b)=>by[a].name<by[b].name?-1:1),n=names.length;
+  const sm=[['Karyawan','Hari masuk','Tepat waktu','Terlambat','Total telat (mnt)','Pulang cepat','Tanpa shift','Total jam kerja (mnt)','Total jam kerja']];
+  names.forEach(k=>{const e=by[k];sm.push([e.name,e.n,e.ot,e.late,e.lm,e.early,e.ns,e.work,attMn(e.work)])});
+  if(n){const C=i=>String.fromCharCode(65+i),f=i=>({f:`SUM(${C(i)}2:${C(i)}${n+1})`,v:names.reduce((a,k)=>a+[0,by[k].n,by[k].ot,by[k].late,by[k].lm,by[k].early,by[k].ns,by[k].work][i],0)});
+    sm.push([{t:'TOTAL',b:1},f(1),f(2),f(3),f(4),f(5),f(6),f(7),''])}
+  sm.push(['']);sm.push([{t:'Toko',b:1},db.set.store||'']);sm.push([{t:'Periode',b:1},from+' s/d '+to]);sm.push([{t:'Diekspor',b:1},new Date().toLocaleString('id-ID',{timeZone:attTzv()})]);
+  return{n:rows.length,sheets:[{name:'Ringkasan',rows:sm,head:1,w:[24,12,12,11,16,13,12,20,18]},{name:'Harian',rows:dh,head:1,w:[12,20,14,13,9,13,12,9,15,18,17,15]},{name:'Semua Catatan',rows:all,head:1,w:[12,20,14,9,8,14,13,14,13,17,12,12,14]}]};
+}
+async function attXlsx(){
+  if(!isOwner())return;
+  const from=ATT.xf,to=ATT.xt;
+  if(!/^\d{4}-\d{2}-\d{2}$/.test(from||'')||!/^\d{4}-\d{2}-\d{2}$/.test(to||'')){toast('Pilih tanggal dulu');return}
+  if(from>to){toast('Tanggal awal harus sebelum tanggal akhir');return}
+  const b=$('#axBtn');if(b)b.disabled=true;
+  try{
+    const r=await api('/api/att?from='+from+'&to='+to),j=await r.json();
+    if(!r.ok){toast(j.error||'Gagal mengambil data absensi');return}
+    if(j.tz)ATT.tz=j.tz;
+    let rows=j.rows||[];if(ATT.who)rows=rows.filter(x=>x.uname===ATT.who);
+    if(!rows.length){toast('Tidak ada data absensi pada tanggal ini');return}
+    const x=attXlsxData(rows,from,to),a=document.createElement('a');
+    a.href=URL.createObjectURL(xlsxBuild(x.sheets,0));a.download='rekap-absensi-'+from+'_sd_'+to+'.xlsx';
+    document.body.appendChild(a);a.click();setTimeout(()=>{a.remove();URL.revokeObjectURL(a.href)},4000);
+    toast('Excel diunduh ('+x.n+' catatan)');
+  }catch(e){if(e.message!=='auth')toast('Tidak bisa terhubung ke server')}
+  finally{const b2=$('#axBtn');if(b2)b2.disabled=false}
 }
 /* --- kamera + GPS --- */
 function attStop(){try{if(ATT.stream){ATT.stream.getTracks().forEach(t=>t.stop());ATT.stream=null}}catch(e){}}
@@ -3321,7 +3387,7 @@ async function attCfgDraw(){
   <label class="tgl"><input type="checkbox" id="acOn" ${c.on?'checked':''}><span>Aktifkan absensi karyawan</span></label>
   <label class="fl" for="acTz">Zona waktu toko</label><select class="fi" id="acTz">${ATT_TZ.map(z=>`<option value="${z[0]}" ${(c.tz||'')===z[0]?'selected':''}>${z[1]}</option>`).join('')}</select>
   <label class="fl">Lokasi toko (untuk cek jarak absen)</label>
-  <div style="display:flex;gap:6px"><input class="fi" id="acLat" inputmode="decimal" placeholder="Latitude" value="${esc(String(c.lat==null?'':c.lat))}"><input class="fi" id="acLng" inputmode="decimal" placeholder="Longitude" value="${esc(String(c.lng==null?'':c.lng))}"></div>
+  <div class="acll"><input class="fi" id="acLat" inputmode="decimal" placeholder="Latitude" value="${esc(String(c.lat==null?'':c.lat))}"><input class="fi" id="acLng" inputmode="decimal" placeholder="Longitude" value="${esc(String(c.lng==null?'':c.lng))}"></div>
   <button class="btn sec" type="button" onclick="acHere()">📍 Pakai lokasi saya sekarang (GPS)</button>
   <label class="fl" for="acRad">Radius area toko (meter)</label><input class="fi" id="acRad" type="number" min="20" max="5000" value="${+c.radius||100}">
   <label class="tgl"><input type="checkbox" id="acStrict" ${c.strict?'checked':''}><span>Absen hanya boleh dari dalam area toko</span></label>
@@ -3333,10 +3399,10 @@ async function attCfgDraw(){
   acAssignDraw();
 }
 function acShiftRow(x){
-  return `<div class="acs" data-id="${esc(x.id)}"><div class="nm"><input class="fi acn" maxlength="30" placeholder="Nama shift, mis. Pagi" value="${esc(x.name||'')}" oninput="acAssignDraw()"></div>
+  return `<div class="acs" data-id="${esc(x.id)}"><div class="nm"><label>Nama shift</label><input class="fi acn" maxlength="30" placeholder="Mis. Pagi" value="${esc(x.name||'')}" oninput="acAssignDraw()"></div>
   <div><label>Mulai</label><input class="fi act1" type="time" value="${esc(x.start||'')}"></div><div><label>Selesai</label><input class="fi act2" type="time" value="${esc(x.end||'')}"></div>
-  <div><label>Toleransi (mnt)</label><input class="fi acg" type="number" min="0" max="120" value="${+x.grace||0}"></div>
-  <button class="btn sec" type="button" style="grid-column:1/-1;margin:2px 0 0" onclick="this.closest('.acs').remove();acAssignDraw()">Hapus shift</button></div>`;
+  <div><label title="Toleransi telat, dalam menit">Toleransi mnt</label><input class="fi acg" type="number" inputmode="numeric" min="0" max="120" value="${+x.grace||0}"></div>
+  <button class="btn sec acdel" type="button" onclick="this.closest('.acs').remove();acAssignDraw()">Hapus shift</button></div>`;
 }
 function acAdd(){const id='s'+Date.now().toString(36)+Math.random().toString(36).slice(2,5);$('#acShifts').insertAdjacentHTML('beforeend',acShiftRow({id,name:'',start:'08:00',end:'16:00',grace:10}));acAssignDraw()}
 function acRead(){return [...document.querySelectorAll('#acShifts .acs')].map((e,i)=>({id:e.dataset.id,name:e.querySelector('.acn').value.trim()||('Shift '+(i+1)),start:e.querySelector('.act1').value,end:e.querySelector('.act2').value,grace:Math.max(0,Math.min(120,Math.round(+e.querySelector('.acg').value||0)))}))}
