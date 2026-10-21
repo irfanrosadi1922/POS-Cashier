@@ -241,7 +241,7 @@ proofSent:['⏳ Bukti pembayaran terkirim. Kasir sedang memeriksanya…','⏳ Pa
 wrongPhoto:['Salah foto?','Wrong photo?','Salah gambar?','拍错了？'],
 resend:['Kirim ulang bukti','Resend proof','Hantar semula bukti','重新提交凭证'],
 altProof:['Bukti pembayaran Anda','Your payment proof','Bukti pembayaran anda','您的付款凭证'],
-rejected:['Bukti pembayaran sebelumnya ditolak kasir. Pastikan foto jelas dan jumlahnya sesuai, lalu unggah lagi.','The previous payment proof was rejected by the cashier. Make sure the photo is clear and the amount matches, then upload again.','Bukti pembayaran sebelum ini ditolak juruwang. Pastikan gambar jelas dan jumlahnya sepadan, kemudian muat naik semula.','上一份付款凭证被收银员拒绝。请确保照片清晰且金额一致，然后重新上传。'],
+rejected:['Bukti ditolak kasir. Unggah foto yang jelas.','Proof rejected by the cashier. Upload a clear photo.','Bukti ditolak juruwang. Muat naik gambar yang jelas.','凭证被收银员拒绝，请上传清晰照片。'],
 paidQ:['Sudah bayar? Unggah bukti pembayaran','Already paid? Upload your payment proof','Sudah bayar? Muat naik bukti pembayaran','已付款？请上传付款凭证'],
 changePhoto:['Ganti foto','Change photo','Tukar gambar','更换照片'],
 pickPhoto:['Pilih foto / screenshot','Choose photo / screenshot','Pilih gambar / tangkap layar','选择照片/截图'],
@@ -250,7 +250,7 @@ sendProof:['Kirim bukti pembayaran','Send payment proof','Hantar bukti pembayara
 payTitle:['Bayar dengan DuitNow / Touch \'n Go','Pay with DuitNow / Touch \'n Go','Bayar dengan DuitNow / Touch \'n Go','使用 DuitNow / Touch \'n Go 付款'],
 altQr:['QR DuitNow untuk pembayaran','DuitNow QR for payment','QR DuitNow untuk pembayaran','DuitNow 付款二维码'],
 saveQr:['⬇ Simpan gambar QR','⬇ Save QR image','⬇ Simpan imej QR','⬇ 保存二维码图片'],
-exactAmt:['Masukkan jumlah <b>persis</b> sesuai total, dan cantumkan nomor pesanan <b>{0}</b> bila ada kolom catatan.','Enter the <b>exact</b> total amount, and include order number <b>{0}</b> if there is a note field.','Masukkan jumlah <b>tepat</b> mengikut jumlah keseluruhan, dan nyatakan nombor pesanan <b>{0}</b> jika ada ruang catatan.','请输入<b>准确</b>的总金额，如有备注栏请填写订单号 <b>{0}</b>。'],
+exactAmt:['Bayar sesuai total · {0}','Pay the exact total · {0}','Bayar mengikut jumlah · {0}','按总额付款 · {0}'],
 s1:['Buka Touch \'n Go eWallet atau aplikasi bank Anda.','Open Touch \'n Go eWallet or your banking app.','Buka Touch \'n Go eWallet atau aplikasi bank anda.','打开 Touch \'n Go eWallet 或您的银行应用。'],
 s2:['Pilih <b>Scan</b> lalu arahkan ke QR di atas (atau pilih gambar QR dari galeri).','Choose <b>Scan</b> and point it at the QR above (or pick the QR image from your gallery).','Pilih <b>Imbas</b> kemudian halakan ke QR di atas (atau pilih imej QR dari galeri).','选择<b>扫描</b>并对准上方二维码（或从相册选择二维码图片）。'],
 s3:['Bayar sesuai total, lalu screenshot bukti pembayarannya.','Pay the total, then take a screenshot of the payment proof.','Bayar mengikut jumlah, kemudian tangkap layar bukti pembayaran.','按总额付款，然后截图保存付款凭证。'],
@@ -406,8 +406,7 @@ function renderCart(){
   <label class="fl" for="cNote">${esc(t('note'))}</label><textarea class="fi" id="cNote" rows="2" maxlength="200" placeholder="${esc(t('noteEx'))}">${esc(nt)}</textarea>
   <input id="hp" name="website" tabindex="-1" autocomplete="off" style="position:absolute;left:-9999px;width:1px;height:1px" aria-hidden="true">
   <div class="sum"><div><span>${esc(t('subtotal'))}</span><span>${money(t0.sub)}</span></div>${M.tax?`<div><span>${esc(t('tax',M.tax))}</span><span>${money(t0.tax)}</span></div>`:''}<div class="t"><span>${esc(t('total'))}</span><span>${money(t0.total)}</span></div></div>
-  ${payOn()?`<label class="fl" id="pyL">${esc(t('payment'))}</label><div class="seg" role="group" aria-labelledby="pyL"><button type="button" class="${payM==='cash'?'on':''}" onclick="setPayM('cash')">${esc(t('payCash'))}</button><button type="button" class="${payM==='duitnow'?'on':''}" onclick="setPayM('duitnow')">${esc(t('payOnline'))}</button></div>
-  <div class="note">${payM==='duitnow'?t('noteOnline'):esc(t('noteCash'))}</div>`:`<div class="note">${esc(t('noteCash'))}</div>`}`;
+  ${payOn()?`<label class="fl" id="pyL">${esc(t('payment'))}</label><div class="seg" role="group" aria-labelledby="pyL"><button type="button" class="${payM==='cash'?'on':''}" onclick="setPayM('cash')">${esc(t('payCash'))}</button><button type="button" class="${payM==='duitnow'?'on':''}" onclick="setPayM('duitnow')">${esc(t('payOnline'))}</button></div>`:''}`;
   if(U.has('debug')){const y=M.pay,m=!y?'TIDAK ADA di server: setup.sql belum dijalankan ulang di Supabase':!y.qr?'server menerima pengaturan tapi QR kosong / bukan gambar valid (simpan ulang QR, tunggu Tersinkron)':!y.on?'QR ada tapi opsi bayar online belum dicentang/belum tersinkron':'AKTIF';$('#shBody').insertAdjacentHTML('beforeend','<div class="note" style="background:#e8f0ff;color:#123">Diagnosa bayar online: '+esc(m)+'</div>')}
   $('#sendBtn').textContent=t('send')+' · '+money(t0.total);
 }
@@ -453,8 +452,8 @@ function payCard(o){
   :`${o.pst===3?`<p class="rj">${esc(t('rejected'))}</p>`:''}<div class="up"><b>${esc(t('paidQ'))}</b><label class="pick">${esc(proofData?t('changePhoto'):t('pickPhoto'))}<input type="file" accept="image/*" hidden onchange="pickProof(this)"></label>${proofData?`<img class="pf" src="${proofData}" alt="${esc(t('altPreview'))}"><button class="go" style="margin-top:10px" onclick="sendProof()">${esc(t('sendProof'))}</button>`:''}</div>`;
   return `<div class="payc"><h3>${esc(t('payTitle'))}</h3>${rcp}
   ${y.qr?`<img class="qr" src="${esc(y.qr)}" alt="${esc(t('altQr'))}"><a class="dl" href="${esc(y.qr)}" download="qr-pembayaran.png">${esc(t('saveQr'))}</a>`:''}
-  <div class="amt">${money(o.total)}</div><div class="rcp">${t('exactAmt',esc(o.num))}</div>
-  <ol><li>${t('s1')}</li><li>${t('s2')}</li><li>${t('s3')}</li><li>${t('s4')}</li></ol>
+  <div class="amt">${money(o.total)}</div><div class="rcp">${esc(t('exactAmt',o.num))}</div>
+  
   ${y.note?`<div class="note">${esc(y.note)}</div>`:''}${wait}</div>`;
 }
 function shrinkImg(file){return new Promise((ok,no)=>{

@@ -150,7 +150,7 @@ td .th{width:42px;height:42px;border-radius:10px;background:var(--peach);display
 td .th img{width:100%;height:100%;object-fit:cover}
 .tag{display:inline-block;padding:2px 9px;border-radius:999px;font-size:11px;font-weight:700}
 .tag.ok{background:var(--greenbg);color:var(--ok)}.tag.low{background:var(--yelbg);color:#b45309}.tag.out{background:var(--redbg);color:var(--bad)}
-.stkc{display:flex;align-items:center;gap:6px}
+.phr{display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr);gap:8px}.phr .fi{min-width:0}.logbar#usrLogBar{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 10px}#usrLogBar .logsel{flex:1 1 120px;min-width:0}.stkc{display:flex;align-items:center;gap:6px}.stkc b{font-size:15px;min-width:28px;text-align:right}.stkadd{display:flex;justify-content:space-between;align-items:center;padding:12px 14px;border-radius:14px;background:var(--bg);margin-bottom:4px}.stkadd b{font-size:20px}
 .stkc input{width:60px;text-align:center;border:1px solid var(--ln);border-radius:8px;padding:5px;outline:0}
 .logbar{display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap;margin-bottom:10px}
 .logsel{height:38px;padding:0 30px 0 12px;border:1px solid var(--ln);border-radius:12px;background:var(--card);font:inherit;font-size:13.5px;font-weight:500;color:var(--tx);outline:0;cursor:pointer}
@@ -259,7 +259,11 @@ td .th img{width:100%;height:100%;object-fit:cover}
 .rcside{position:sticky;top:12px}
 .tgls{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:0 10px;margin-bottom:4px}
 .tgl{display:flex;align-items:center;gap:10px;padding:8px 2px;font-size:13.5px;cursor:pointer}
-.tgl input{width:18px;height:18px;accent-color:var(--b);flex:none}
+.tgl{flex-direction:row-reverse;justify-content:space-between}.tgl>span{flex:1;min-width:0}
+.tgl input[type=checkbox]{-webkit-appearance:none;appearance:none;position:relative;width:46px;height:28px;border-radius:999px;background:#c8c8cd;border:0;margin:0;flex:none;cursor:pointer;transition:background .2s;outline:0}
+.tgl input[type=checkbox]::before{content:"";position:absolute;top:3px;left:3px;width:22px;height:22px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.3);transition:transform .2s}
+.tgl input[type=checkbox]:checked{background:var(--b)}html[data-theme=dark] .tgl input[type=checkbox]:not(:checked){background:#43434c}.tgl input[type=checkbox]:checked::before{transform:translateX(18px)}
+.tgl input[type=checkbox]:disabled{opacity:.45;cursor:not-allowed}.tgl input[type=checkbox]:focus-visible{box-shadow:0 0 0 3px rgba(255,107,0,.35)}
 .hint{color:var(--mu);font-size:12px;line-height:1.5;margin:8px 0}
 @media (max-width:1000px){.rcgrid{grid-template-columns:1fr}.rcside{position:static;order:-1}}
 @media print{
@@ -335,7 +339,7 @@ button[hidden]{display:none!important}
 .coc ul{list-style:none;margin:8px 0;padding:0}.coc li{display:flex;gap:8px;padding:3px 0;font-size:14px}.coc li b{min-width:32px;color:var(--b)}
 .coc .nt{background:var(--peach);border-radius:12px;padding:8px 10px;font-size:13px;margin:6px 0}
 .cof{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:6px;font-weight:700}
-.cob{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.cob{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}.coc .cob{display:grid;grid-template-columns:repeat(auto-fit,minmax(112px,1fr))}.coc .cob .btn{margin:0;width:100%;white-space:nowrap;justify-content:center}#coStat .chg{display:flex;align-items:center;padding:8px 12px;font-size:13.5px}#coStat .chg>span{flex:1 1 auto;min-width:0;white-space:normal;overflow-wrap:anywhere;text-align:left}
 .cob .btn{width:auto;margin:0;padding:10px 16px;font-size:13px;flex:1 1 auto}
 .pst{font-size:11.5px;font-weight:700;border-radius:999px;padding:3px 9px;background:var(--chip);color:var(--tx2)}
 .pst.w{background:var(--peach2);color:var(--b)}.pst.ok{background:var(--greenbg);color:#15803d}.pst.bad{background:var(--redbg);color:var(--bad)}
@@ -376,7 +380,7 @@ button[hidden]{display:none!important}
 .lgi{width:64px;height:64px;border-radius:50%;background:var(--redbg);color:var(--bad);display:grid;place-items:center;margin:4px auto 0}
 .drawer button.bot{margin-top:auto}
 .drawer button.bot[hidden]+.lgout{margin-top:auto}
-.drawer .av.dv{width:24px;height:24px;font-size:12px;flex:none}
+.drawer .av.dv{width:20px;height:20px;font-size:11px;flex:none}
 .drawer button .anm{flex:1;text-align:left}
 .drawer button.lgout{margin:0 0 8px;padding:10px 12px;background:var(--redbg);color:#dc2626;gap:10px;font-weight:700}
 .drawer button.lgout[hidden]{display:none}
@@ -627,9 +631,9 @@ html[data-theme=dark] img{color-scheme:light}
     </section>
     <section id="v-usr" hidden>
       <div class="bar"><h2><i class="ic" data-ic="users"></i>Pengguna</h2><button class="btn sm" style="width:auto;margin:0" onclick="usrForm(0)"><i class="ic" data-ic="plus"></i>Tambah</button></div>
-      <div class="panel"><div class="hint" style="margin:0"><b>Owner</b>: akses penuh, termasuk harga, riwayat, pengaturan, backup, dan pengguna.<br><b>Karyawan</b>: hanya kasir, ditambah izin yang Anda pilih. Karyawan tidak bisa mengubah harga atau menghapus riwayat penjualan.</div></div>
+      
       <div id="usrList"></div>
-      <div class="panel" style="margin-top:14px"><h3>Aktivitas terbaru</h3><div id="usrLog"></div></div>
+      <div class="panel" style="margin-top:14px"><h3>Aktivitas</h3><div class="logbar" id="usrLogBar"></div><div id="usrLog"></div></div>
     </section>
 
     <section id="v-set" hidden>
@@ -1324,6 +1328,21 @@ function setStock(id,v){
 }
 
 /* ---------- add / edit item ---------- */
+/* karyawan: hanya boleh menambah stok (tidak bisa kurangi/hapus/ubah item) */
+function stockForm(id){
+  const i=find(id);if(!i||isB(i))return;
+  openModal(`<h3>${esc(i.name)}</h3>
+  <div class="stkadd"><span>Stok sekarang</span><b>${i.stock}</b></div>
+  <label class="fl" for="sAdd">Tambah stok</label><input class="fi" id="sAdd" type="number" inputmode="numeric" min="1" step="1" placeholder="0" autofocus>
+  <p class="hint" id="sAddE" style="color:var(--bad);min-height:16px;margin:4px 0"></p>
+  <button class="btn" onclick="stockAdd('${id}')">Simpan</button><button class="btn sec" onclick="closeModal()">Batal</button>`);
+  setTimeout(()=>{const e=$('#sAdd');if(e)e.focus()},60);
+}
+function stockAdd(id){
+  const i=find(id);if(!i||isB(i))return;const n=Math.floor(+$('#sAdd').value||0);
+  if(n<1){$('#sAddE').textContent='Isi jumlah stok yang ditambah';return}
+  const v=i.stock+n;i.stock=v;logAdd(i.name,n,'Tambah stok',v);db.log=db.log.slice(0,LOG_MAX);save();closeModal();renderInv();toast('Stok +'+n);
+}
 function itemForm(id){
   if(!isOwner()){toast('Hanya owner yang boleh mengubah data menu');return}
   const i=id?find(id):{name:'',cat:db.cats[0]||'',price:'',cost:'',stock:0,min:db.set.low,img:'',emoji:'🍽️'};
@@ -1339,8 +1358,7 @@ function itemForm(id){
   <div class="two"><div><label class="fl">Harga jual *</label><input class="fi" id="fP" type="number" step="any" min="0" value="${i.price}"></div>
   <div><label class="fl">Harga modal</label><input class="fi" id="fK" type="number" step="any" min="0" value="${i.cost||''}"></div></div>
   <label class="tgl"><input type="checkbox" id="fB" ${isB(i)?'checked':''} onchange="bdToggle()"><span>Item paket / set (berisi beberapa item)</span></label>
-  <div id="bdBox" ${isB(i)?'':'hidden'}><p class="hint" style="margin:0 0 6px">Pilih isi paket. Stok paket dihitung otomatis dari stok isinya, dan saat paket terjual stok isinya yang berkurang. Tulis isi di nama agar pelanggan tahu, mis. "Set Otak-otak (10 pcs)". Harga modal kosong = dihitung dari modal isinya.</p>
-  <div id="bdRows"></div><button class="btn sm sec" type="button" onclick="bdAdd()">+ Tambah isi</button></div>
+  <div id="bdBox" ${isB(i)?'':'hidden'}>  <div id="bdRows"></div><button class="btn sm sec" type="button" onclick="bdAdd()">+ Tambah isi</button></div>
   <div id="stkRow" style="${isB(i)?'display:none':''}"><div class="two"><div><label class="fl">Stok</label><input class="fi" id="fS" type="number" min="0" value="${isB(i)?0:i.stock}"></div>
   <div><label class="fl">Batas stok menipis</label><input class="fi" id="fM" type="number" min="0" value="${i.min}"></div></div></div>
   <button class="btn" onclick="saveItem()">Simpan</button><button class="btn sec" onclick="closeModal()">Batal</button>${id?`<button class="btn red" onclick="delItem('${id}')">Hapus Item</button>`:''}`);
@@ -1422,7 +1440,6 @@ function histOpen(no){
 function histDel(no){
   const x=db.orders.find(o=>o.no===no);if(!x||!isOwner())return;
   openModal(`<h3>Hapus transaksi?</h3>
-  <p class="hint" style="margin:0 0 10px"><b>${esc(x.no)}</b> · ${money(x.total)} · ${esc(x.method)}<br>Transaksi hilang dari riwayat dan laporan. Tindakan ini tidak bisa dibatalkan (catatan penghapusan tetap tersimpan untuk owner).</p>
   <label class="tgl"><input type="checkbox" id="hdBack" checked><span>Kembalikan stok item ke inventori</span></label>
   <button class="btn" style="background:var(--bad)" onclick="histDelDo('${esc(x.no)}')">Ya, hapus</button>
   <button class="btn sec" onclick="histOpen('${esc(x.no)}')">Batal</button>`);
@@ -1475,7 +1492,6 @@ function renderSet(){
   <label class="fl">Nama toko</label><input class="fi" id="sN" value="${esc(s.store)}">
   <label class="fl">Alamat / telepon (tampil di struk)</label><input class="fi" id="sA" value="${esc(s.addr)}">
   <div class="chips" style="margin:6px 0 2px"><button class="chip" type="button" onclick="addrGps()">📍 Isi alamat dari GPS</button></div>
-  <p class="hint" style="margin:2px 0 8px;font-size:11px">Alamat diambil dari lokasi GPS perangkat lewat layanan gratis OpenStreetMap (data © OpenStreetMap contributors). Periksa hasilnya, lalu tekan Simpan Pengaturan.</p>
   <div class="two"><div><label class="fl">Pajak (%)</label><input class="fi" id="sT" type="number" min="0" step="0.1" value="${s.tax}"></div>
   <div></div></div>
   <div class="two"><div><label class="fl">Batas stok menipis (default)</label><input class="fi" id="sL" type="number" min="0" value="${s.low}"></div><div></div></div>
@@ -1627,14 +1643,14 @@ function renderInvTable(){
   if(S.view!=='inv')return;
   const emp=isStaffMode(),ids=new Set(db.items.map(i=>i.id));
   [...S.sel].forEach(id=>{if(!ids.has(id))S.sel.delete(id)});
-  $('#invHead').innerHTML=emp?'<th></th><th>Nama</th><th>Kategori</th><th>Harga</th><th>Stok</th><th>Status</th>':'<th><input type="checkbox" id="selAllCk" onchange="selAll(this.checked)"></th><th></th><th>Nama</th><th>Kategori</th><th>Harga</th><th>Modal</th><th>Stok</th><th>Status</th><th></th>';
+  $('#invHead').innerHTML=emp?'<th></th><th>Nama</th><th>Kategori</th><th>Harga</th><th>Stok</th><th>Status</th><th></th>':'<th><input type="checkbox" id="selAllCk" onchange="selAll(this.checked)"></th><th></th><th>Nama</th><th>Kategori</th><th>Harga</th><th>Modal</th><th>Stok</th><th>Status</th><th></th>';
   $('#invBody').innerHTML=invList().map(i=>{const[s,t]=status(i);
-    const stk=isB(i)?`<td class="i-s"><span class="stkc"><b title="Dihitung otomatis dari isi paket">${i.stock}</b></span></td>`:`<td class="i-s"><span class="stkc"><input type="number" min="0" value="${i.stock}" aria-label="Stok ${esc(i.name)}" onchange="setStock('${i.id}',this.value)"></span></td>`;
-    return emp?`<tr><td class="i-th"><div class="th">${thumb(i)}</div></td><td class="i-n"><b>${esc(i.name)}</b>${isB(i)?`<br><small class="bdl">Isi: ${esc(bdLbl(i.bundle))}</small>`:''}</td><td class="i-c">${esc(i.cat)}</td><td class="i-p">${money(i.price)}</td>${stk}<td class="i-st"><span class="tag ${s}">${t}</span></td></tr>`
+    const stk=isB(i)?`<td class="i-s"><span class="stkc"><b>${i.stock}</b></span></td>`:`<td class="i-s"><span class="stkc"><b>${i.stock}</b></span></td>`;
+    return emp?`<tr><td class="i-th"><div class="th">${thumb(i)}</div></td><td class="i-n"><b>${esc(i.name)}</b>${isB(i)?`<br><small class="bdl">Isi: ${esc(bdLbl(i.bundle))}</small>`:''}</td><td class="i-c">${esc(i.cat)}</td><td class="i-p">${money(i.price)}</td>${stk}<td class="i-st"><span class="tag ${s}">${t}</span></td><td class="i-a">${isB(i)?'':`<button class="ib" onclick="stockForm('${i.id}')">Edit</button>`}</td></tr>`
     :`<tr><td class="i-ck"><input type="checkbox" ${S.sel.has(i.id)?'checked':''} onchange="selOne('${i.id}',this.checked)"></td><td class="i-th"><div class="th">${thumb(i)}</div></td><td class="i-n"><b>${esc(i.name)}</b>${isB(i)?`<br><small class="bdl">Isi: ${esc(bdLbl(i.bundle))}</small>`:''}</td><td class="i-c">${esc(i.cat)}</td><td class="i-p">${money(i.price)}</td><td class="i-m">${money(i.cost||0)}</td>
     ${stk}
     <td class="i-st"><span class="tag ${s}">${t}</span></td>
-    <td class="i-a" style="white-space:nowrap"><button class="ib" onclick="itemForm('${i.id}')">Edit</button><button class="ib d" onclick="delItem('${i.id}')">Hapus</button></td></tr>`}).join('')||`<tr><td colspan="${emp?6:9}" style="color:var(--mu)">Tidak ada item.</td></tr>`;
+    <td class="i-a" style="white-space:nowrap"><button class="ib" onclick="itemForm('${i.id}')">Edit</button><button class="ib d" onclick="delItem('${i.id}')">Hapus</button></td></tr>`}).join('')||`<tr><td colspan="${emp?7:9}" style="color:var(--mu)">Tidak ada item.</td></tr>`;
   updateBulk();
 }
 function selOne(id,on){if(on)S.sel.add(id);else S.sel.delete(id);updateBulk()}
@@ -1698,11 +1714,11 @@ function renderRc(){
     <div><button class="btn sm sec" onclick="go('set')">Ubah logo di Pengaturan</button></div></div>
     <div class="tgls" style="margin-top:8px">${ck('showLogo','Tampilkan logo di struk')}</div>
     ${sel('logoW','Ukuran logo',[['100','Kecil'],['160','Sedang'],['240','Besar'],['320','Sangat besar']])}
-    <p class="hint">Logo perusahaan diatur di Pengaturan &gt; Logo Perusahaan. Logo hitam-putih paling bagus untuk printer thermal.</p></div>
+</div>
   <div class="panel"><h3>Header</h3>
     <div class="tgls">${ck('showAddr','Alamat toko')}</div>
     ${tx('line1','Baris tambahan di header','mis. Telp 0812-xxxx / @instagram')}
-    <p class="hint">Nama toko dan alamat diatur di Pengaturan &gt; Toko.</p></div>
+</div>
   <div class="panel"><h3>Info Transaksi</h3>
     <div class="tgls">${ck('showNo','No. invoice')}${ck('showDate','Tanggal &amp; jam')}${ck('showType','Tipe order')}${ck('showCust','Nama pelanggan')}${ck('showCashier','Nama kasir')}</div>
     <label class="tgl"><input type="checkbox" ${r.cashierAuto!==false?'checked':''} onchange="setOpt('rc','cashierAuto',this.checked)"><span>Nama kasir otomatis dari akun yang login</span></label>
@@ -1714,7 +1730,7 @@ function renderRc(){
     <label class="fl">Pesan di bawah struk</label><input class="fi" value="${esc(db.set.foot)}" oninput="setFoot(this.value)">
     ${tx('line2','Baris tambahan di footer','mis. WiFi: tokoku123')}
     ${tx('qrText','Tulisan di atas QR','mis. Scan untuk memesan')}
-    <p class="hint">QR mengarah ke halaman pesan pelanggan (tanpa nomor meja). Kartu QR per meja ada di Pesanan Online.</p></div>
+</div>
   <div class="panel"><h3>Tampilan</h3>
     ${sel('align','Perataan header',[['left','Kiri'],['center','Tengah'],['right','Kanan']])}
     ${sel('font','Ukuran huruf',[['small','Kecil'],['normal','Normal'],['large','Besar']])}
@@ -1752,7 +1768,7 @@ function renderLogo(){
   <div class="tgls" style="margin-top:8px">
   <label class="tgl"><input type="checkbox" ${s.logoApp!==false?'checked':''} onchange="setLogoApp(this.checked)"><span>Tampilkan logo di aplikasi</span></label>
   <label class="tgl"><input type="checkbox" ${s.rc.showLogo?'checked':''} onchange="setOpt('rc','showLogo',this.checked)"><span>Tampilkan logo di struk</span></label></div>
-  <p class="hint">Logo dipakai di menu aplikasi dan struk. Ukuran logo di struk diatur di Desain Struk.</p>`;
+`;
 }
 function resetRc(){
   ask('Reset desain struk?','Semua pengaturan tampilan struk kembali ke default.','Reset',()=>{db.set.rc={...RC_DEF};save();renderRc();renderLogo()});
@@ -1775,9 +1791,7 @@ function renderPrn(){
     <select class="fi" onchange="setOpt('prn','mode',this.value)">
       ${o('browser','Dialog browser (USB / Wi-Fi / driver)')}${o('ble','Bluetooth BLE (Web Bluetooth)')}${o('serial','Bluetooth klasik / USB (Web Serial, desktop)')}${o('rawbt','Android: aplikasi RawBT')}
     </select>
-    <p class="hint">${help}</p>
     <div class="tgls" style="margin-top:8px">${ck('autoConn','Sambung otomatis ke printer sebelumnya')}</div>
-    <p class="hint">${navigator.bluetooth&&navigator.bluetooth.getDevices?'Printer Bluetooth yang pernah dipilih disambung lagi otomatis saat aplikasi dibuka, saat kembali ke aplikasi, atau saat koneksi terputus. Tombol Putuskan menghentikan sambung otomatis sampai Anda menekan Cari &amp; Hubungkan atau mencetak lagi.':'Browser ini belum bisa menyambung otomatis (aturan keamanan browser). Tekan Cari &amp; Hubungkan setiap kali aplikasi dibuka, atau pakai Chrome di Android/komputer.'}</p>
     <div class="chg" id="prnStat"></div>
     <div class="acts" style="margin-top:10px;flex-wrap:wrap">
       <button class="btn sm" onclick="prnConnect()"><i class="ic" data-ic="search"></i>Cari &amp; Hubungkan</button>
@@ -1794,7 +1808,7 @@ function renderPrn(){
     <div><label class="fl">Ukuran paket BLE (byte)</label><input class="fi" type="number" min="20" max="512" value="${p.chunk}" onchange="setOpt('prn','chunk',this.value)"></div></div>
     <div class="two"><div><label class="fl">Jeda antar paket (ms)</label><input class="fi" type="number" min="0" value="${p.delay}" onchange="setOpt('prn','delay',this.value)"></div>
     <div><label class="fl">UUID service printer (opsional)</label><input class="fi" value="${esc(p.uuid)}" placeholder="mis. ffe0" onchange="setOpt('prn','uuid',this.value)"></div></div>
-    <p class="hint">Jika struk terpotong atau berantakan lewat BLE, turunkan ukuran paket ke 20 dan naikkan jeda ke 30.</p></div>`;
+</div>`;
   updatePrnStatus();
 }
 
@@ -1835,7 +1849,7 @@ function renderCur(){
   <div class="two"><div><label class="fl">Angka desimal</label><select class="fi" onchange="setCur('dec',+this.value,1)">${[0,1,2,3,4].map(n=>op(n,n+(n?' desimal':' (bulat)'),s.dec)).join('')}</select></div>
   <div><label class="fl">Format angka</label><select class="fi" onchange="setCur('loc',this.value,1)">${op('id-ID','1.234,56 (titik ribuan)',s.loc)}${op('en-US','1,234.56 (koma ribuan)',s.loc)}</select></div></div>
   <div class="chg" style="background:var(--chip);color:var(--tx)"><span>Contoh</span><span id="curEx"></span></div>
-  <p class="hint">Dengan desimal, harga jual, diskon, pajak, dan total tidak dibulatkan ke bilangan bulat. Harga yang sudah tersimpan tidak dikonversi otomatis saat mata uang diganti; edit harga item jika perlu.</p>`;
+`;
   curEx();
 }
 
@@ -1865,8 +1879,6 @@ function gridForm(){
   <label class="fl">Jumlah kolom: layar besar (PC / tablet)</label>${row('colsD',[[0,'Auto'],[2,'2'],[3,'3'],[4,'4'],[5,'5'],[6,'6'],[8,'8']])}
   <label class="fl">Jumlah kolom: HP</label>${row('colsM',[[1,'1'],[2,'2'],[3,'3'],[4,'4']])}
   <div class="tgls" style="margin-top:6px">${ck('stock','Tampilkan stok')}${ck('cats','Tampilkan bar kategori')}</div>
-  <p class="hint">Tambah 1 langsung: sekali ketuk gambar, item masuk ke pesanan. Pilih jumlah: muncul kotak untuk mengatur jumlah. Lihat detail: tampil gambar besar dan info dulu. Tombol + dan − di kartu tetap bisa dipakai di semua mode.</p>
-  <p class="hint">Kolom tidak berlaku di mode Daftar. Menu yang lebih banyak dari kolom akan bisa di-scroll ke bawah.</p>
   <button class="btn" onclick="closeModal()">Selesai</button>`);
 }
 
@@ -2048,7 +2060,7 @@ function renderLang(){
   const el=$('#langForm');if(!el)return;
   el.innerHTML=`<h3>Bahasa / Language</h3><label class="fl">Bahasa aplikasi</label>
   <select class="fi" onchange="setLang(this.value)">${Object.keys(LANGS).map(k=>`<option value="${k}" ${lang()===k?'selected':''}>${LANGS[k]}</option>`).join('')}</select>
-  <p class="hint">Mengubah bahasa menu, tombol, dan struk. Nama item, kategori, dan nama toko tidak diterjemahkan.</p>`;
+`;
 }
 
 /* ---------- database: cadangan IndexedDB, snapshot harian, file tertaut ---------- */
@@ -2135,7 +2147,7 @@ async function renderDb(){
   if(CL.on&&!isOwner()){
     el.innerHTML=`<h3>Sinkron Online</h3><div class="dbr"><span>Status</span><b class="${CL.st==='ok'?'ok':'warn'}">${({ok:'Tersinkron',sync:'Menyinkronkan…',offline:'Offline',auth:'Perlu login',err:'Gagal sinkron'})[CL.st]||''}</b></div>
     <div class="acts" style="margin-top:12px"><button class="btn sm" onclick="syncNow()"><i class="ic" data-ic="cloud"></i>Sinkron Sekarang</button></div>
-    <p class="hint">Unduh backup, pulihkan, dan reset data hanya bisa dilakukan owner.</p>`;
+`;
     return;
   }
   let per=null,est=null,snaps=[],idbOk=true,hasMain=false;
@@ -2156,7 +2168,7 @@ async function renderDb(){
   if(CL.on&&CL.tok){try{srv=(await (await api('/api/snapshots')).json()).snapshots||[]}catch(e){}}
   const cloudRows=CL.on?row('Sinkron online',({ok:'Tersinkron',sync:'Menyinkronkan…',offline:'Offline',auth:'Perlu login',err:'Gagal sinkron'})[CL.st]+(CL.st==='ok'&&CL.last?' · '+new Date(CL.last).toLocaleTimeString(dloc(),{hour:'2-digit',minute:'2-digit'}):''),CL.st==='ok'?'ok':'warn')+row('Server',(globalThis.POS_SB?'Database Supabase':'Database SQLite di server'),'ok'):'';
   const cloudBtns=CL.on?'<button class="btn sm" onclick="syncNow()"><i class="ic" data-ic="cloud"></i>Sinkron Sekarang</button><button class="btn sm sec" onclick="downloadServerExport()"><i class="ic" data-ic="download"></i>Unduh dari Server</button><button class="btn sm sec" onclick="doLogout()">Keluar</button>':'';
-  const srvSnaps=CL.on&&srv.length?'<label class="fl" style="margin-top:12px">Snapshot Server</label>'+srv.map(x=>`<div class="dbs"><span>${new Date(x.created_at).toLocaleString(dloc(),{day:'2-digit',month:'short',year:'numeric'})} · ${Math.round(x.size/1024)} KB</span><button class="chip" onclick="srvSnapRestore('${x.day}')">Pulihkan</button></div>`).join('')+'<p class="hint">Snapshot server dibuat sekali sehari (30 hari terakhir), berisi kondisi sebelum perubahan pertama hari itu.</p>':'';
+  const srvSnaps=CL.on&&srv.length?'<label class="fl" style="margin-top:12px">Snapshot Server</label>'+srv.map(x=>`<div class="dbs"><span>${new Date(x.created_at).toLocaleString(dloc(),{day:'2-digit',month:'short',year:'numeric'})} · ${Math.round(x.size/1024)} KB</span><button class="chip" onclick="srvSnapRestore('${x.day}')">Pulihkan</button></div>`).join('')+'':'';
   el.innerHTML=`<h3>Database & Penyimpanan</h3>
   ${cloudRows}
   ${row('Penyimpanan utama (browser)','Aktif · '+kb+' KB','ok')}
@@ -2173,13 +2185,10 @@ async function renderDb(){
     <button class="btn sm red" onclick="resetAll()">Reset Semua</button>
     <input type="file" id="restoreF" accept=".json,application/json" hidden onchange="restore(this)">
   </div>
-  <p class="hint">Data disimpan di dua tempat: penyimpanan browser dan database IndexedDB. Jika salah satunya terhapus, data dipulihkan otomatis dari yang lain.</p>
-  <p class="hint">${fs?'Tautkan file database agar setiap perubahan otomatis ditulis ke file .json di perangkat ini (Chrome atau Edge di komputer).':'Perangkat ini tidak mendukung penulisan file otomatis. Unduh file database secara berkala dan simpan di Google Drive atau flash disk.'}</p>
-  <p class="hint">Menghapus data situs atau cache browser, atau meng-uninstall aplikasi, dapat menghapus kedua penyimpanan. File database yang diunduh tetap aman.</p>
   ${srvSnaps}
   <label class="fl" style="margin-top:12px">Snapshot Otomatis</label>
-  ${snaps.length?snaps.map(([k,v])=>v?`<div class="dbs"><span>${k==='snap-prerestore'?'<b>Sebelum pemulihan</b> · ':''}${new Date(v.t).toLocaleString(dloc(),{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'})} · <span>${v.i}</span> <span>Item</span> · <span>${v.n}</span> <span>Transaksi</span></span><button class="chip" onclick="snapRestore('${k}')">Pulihkan</button></div>`:'').join(''):'<p class="hint">Belum ada snapshot.</p>'}
-  <p class="hint">Snapshot dibuat otomatis setiap hari saat aplikasi pertama dibuka (14 hari terakhir).</p>`;
+  ${snaps.length?snaps.map(([k,v])=>v?`<div class="dbs"><span>${k==='snap-prerestore'?'<b>Sebelum pemulihan</b> · ':''}${new Date(v.t).toLocaleString(dloc(),{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'})} · <span>${v.i}</span> <span>Item</span> · <span>${v.n}</span> <span>Transaksi</span></span><button class="chip" onclick="snapRestore('${k}')">Pulihkan</button></div>`:'').join(''):''}
+`;
 }
 
 /* ---------- layar penuh ---------- */
@@ -2219,7 +2228,7 @@ function renderTheme(){
   const el=$('#themeForm');if(!el)return;const t=themePref();
   const o=(v,l,i)=>`<button class="chip ${t===v?'on':''}" onclick="setTheme('${v}')">${i} ${l}</button>`;
   el.innerHTML=`<h3>Tema</h3><div class="thm">${o('light','Terang','☀️')}${o('dark','Gelap','🌙')}${o('auto','Otomatis','🌓')}</div>
-  <p class="hint">Gelap nyaman dipakai malam hari. Otomatis mengikuti pengaturan tampilan HP atau komputer. Pilihan ini hanya berlaku di perangkat ini; struk yang dicetak tetap putih.</p>`;
+`;
 }
 try{if(window.matchMedia)matchMedia('(prefers-color-scheme: dark)').addEventListener('change',()=>{if(themePref()==='auto')applyTheme()})}catch(e){}
 function renderScr(){
@@ -2227,8 +2236,7 @@ function renderScr(){
   el.innerHTML=`<h3>Layar</h3>
   <div class="acts" style="flex-wrap:wrap"><button class="btn sm" onclick="toggleFS()"><i class="ic" data-ic="expand"></i>Layar Penuh</button></div>
   <div class="tgls" style="margin-top:8px"><label class="tgl"><input type="checkbox" ${db.set.fsAuto!==false?'checked':''} onchange="setFsAuto(this.checked)"><span>Layar penuh otomatis saat layar pertama disentuh</span></label></div>
-  <p class="hint">Gunakan tombol Layar Penuh di bar atas, atau tekan F11 di komputer. Browser mewajibkan layar penuh dimulai dari sentuhan atau klik, jadi tidak bisa aktif sendiri tanpa interaksi.</p>
-  <p class="hint">iPhone/iPad (Safari) tidak mendukung layar penuh untuk web: pilih Bagikan &gt; Tambahkan ke Layar Utama. Di Android: Chrome &gt; menu ⋮ &gt; Tambahkan ke layar utama, lalu buka dari ikonnya agar tanpa bilah browser.</p>`;
+`;
 }
 function autoFS(){
   if(isApp()||!fsCan())return;
@@ -2260,10 +2268,9 @@ function orderForm(cat){
   const c=S.ro.cat,l=roList(),mb=$('#modal'),ml=$('#rlist'),sc=ml?ml.scrollTop:0,ms=mb?mb.scrollTop:0;
   const chip=(k,t)=>`<button class="chip ${c===k?'on':''}" onclick="orderForm('${esc(k).replace(/'/g,"\\'")}')">${esc(t)}</button>`;
   openModal(`<h3>Atur Urutan Menu</h3>
-  <p class="hint" style="margin-top:0">Seret ⠿ untuk memindahkan posisi, atau pakai tombol ▲ ▼. Urutan ini sama dengan susunan menu di Kasir (kiri ke kanan, atas ke bawah).</p>
   <div class="chips" style="margin-bottom:8px">${chip('all','Semua')}${db.cats.map(k=>chip(k,k)).join('')}</div>
   <div class="chips" style="margin-bottom:8px"><button class="chip" onclick="orderSort('name')">A–Z</button><button class="chip" onclick="orderSort('price')">Harga ↑</button><button class="chip" onclick="orderSort('stock')">Stok ↓</button></div>
-  <div class="rlist" id="rlist">${l.map((i,n)=>`<div class="rrow" data-id="${i.id}"><span class="rn">${n+1}</span><div class="th">${thumb(i)}</div><div class="rnm"><b>${esc(i.name)}</b><small>${esc(i.cat)}</small></div><button class="rmv" onclick="orderMove('${i.id}',-1)">▲</button><button class="rmv" onclick="orderMove('${i.id}',1)">▼</button><span class="rh" onpointerdown="orderDrag(event)">⠿</span></div>`).join('')||'<p class="hint">Belum ada item.</p>'}</div>
+  <div class="rlist" id="rlist">${l.map((i,n)=>`<div class="rrow" data-id="${i.id}"><span class="rn">${n+1}</span><div class="th">${thumb(i)}</div><div class="rnm"><b>${esc(i.name)}</b><small>${esc(i.cat)}</small></div><button class="rmv" onclick="orderMove('${i.id}',-1)">▲</button><button class="rmv" onclick="orderMove('${i.id}',1)">▼</button><span class="rh" onpointerdown="orderDrag(event)">⠿</span></div>`).join('')||''}</div>
   <button class="btn" onclick="closeModal()">Selesai</button>`);
   const nl=$('#rlist'),nm=$('#modal');if(nl)nl.scrollTop=sc;if(nm)nm.scrollTop=ms;
 }
@@ -2831,16 +2838,15 @@ function renderCo(full){
   if(full||!$('#coTop').innerHTML){
     const ck=(k,d,l,fn)=>`<label class="tgl"><input type="checkbox" ${coPref(k,d)?'checked':''} onchange="${fn||`coSetPref('${k}',this.checked)`}"><span>${l}</span></label>`;
     $('#coTop').innerHTML=`<div class="tgls">${ck('auto',true,'Cetak tiket otomatis')}${ck('sound',true,'Bunyi saat pesanan masuk')}${ck('notif',false,'Notifikasi sistem',"coSetNotif(this.checked)")}${ck('awake',true,'Layar tetap menyala',"coSetAwake(this.checked)")}</div>
-    <p class="hint">Matikan “Cetak tiket otomatis” di perangkat yang tidak terhubung ke printer. Bila beberapa perangkat terbuka sekaligus, satu pesanan hanya dicetak oleh satu perangkat.</p>
     <div class="cob"><button class="btn sec" onclick="coBeep()"><i class="ic" data-ic="bell"></i>Tes bunyi</button><button class="btn sec" onclick="coTestPrint()"><i class="ic" data-ic="print"></i>Tes tiket</button><button class="btn sec" onclick="prnConnect().then(()=>renderCo(false))"><i class="ic" data-ic="plug"></i>Sambungkan printer</button></div>`;
   }
   const gear=$('#coGear');if(gear)gear.hidden=!can('set');
   {const o=$('#coOn');if(o&&document.activeElement!==o)o.checked=!!st.on}
   const un=CO.list.filter(o=>(o.status==='new'||o.status==='accepted')&&o.printed===0).length,msgs=[];
-  msgs.push(CO.err?['neg','<i class="ic" data-ic="alert"></i>Server tidak terhubung, mencoba lagi…']:['','<i class="ic" data-ic="dot"></i>Terhubung. Pesanan baru muncul otomatis.']);
-  if(!CO.aud||CO.aud.state!=='running')msgs.push(['neg','<i class="ic" data-ic="mute"></i>Ketuk layar sekali agar bunyi aktif.']);
-  if(coPref('auto',true)&&!coReady())msgs.push(['neg','<i class="ic" data-ic="print"></i>Printer belum terhubung. Tekan “Sambungkan printer”, lalu tiket akan tercetak.']);
-  if(un&&coPref('auto',true))msgs.push(['neg','<i class="ic" data-ic="clock"></i>'+un+' tiket menunggu dicetak.']);
+  msgs.push(CO.err?['neg','<i class="ic" data-ic="alert"></i>Server tidak terhubung']:['','<i class="ic" data-ic="dot"></i>Terhubung']);
+  if(!CO.aud||CO.aud.state!=='running')msgs.push(['neg','<i class="ic" data-ic="mute"></i>Ketuk layar untuk aktifkan bunyi']);
+  if(coPref('auto',true)&&!coReady())msgs.push(['neg','<i class="ic" data-ic="print"></i>Printer belum terhubung']);
+  if(un&&coPref('auto',true))msgs.push(['neg','<i class="ic" data-ic="clock"></i>'+un+' tiket belum tercetak']);
   $('#coStat').innerHTML=msgs.map(m=>`<div class="chg ${m[0]}" style="margin:0 0 8px"><span>${m[1]}</span></div>`).join('');
   const L=CO.list,act=L.filter(o=>o.status==='new'||o.status==='accepted').sort((a,b)=>a.id-b.id),
     fin=L.filter(o=>o.status==='done'||o.status==='cancelled').sort((a,b)=>b.id-a.id).slice(0,40);
@@ -2911,7 +2917,7 @@ function renderPay(){
     <input class="fi" value="${esc(y.name||'')}" maxlength="60" placeholder="mis. Street Sate Original" onchange="setPay('name',this.value.trim())">
     <label class="fl">Petunjuk tambahan (opsional)</label>
     <textarea class="fi" rows="2" maxlength="300" placeholder="mis. Tulis nomor pesanan di kolom catatan transfer" onchange="setPay('note',this.value.trim())">${esc(y.note||'')}</textarea>
-    <p class="hint">Upload gambar QR DuitNow milik toko (dari aplikasi Touch 'n Go eWallet: Receive &gt; DuitNow QR &gt; simpan gambar, atau tangkapan layar QR merchant dari bank). Pelanggan membayar sendiri lewat aplikasi bank/TNG, lalu menekan "Saya sudah bayar". <b>Uang tidak diperiksa otomatis</b>: kasir wajib mengecek mutasi/notifikasi lalu menekan "Pembayaran diterima" di halaman Pesanan Online.</p>`;
+`;
 }
 function renderCoSet(){
   const p=$('#coForm');if(!p)return;
@@ -2922,7 +2928,7 @@ function renderCoSet(){
     <label class="fl">Pesan saat ditutup (tampil ke pelanggan)</label>
     <input class="fi" id="coMsg" value="${esc(st.msg||'')}" maxlength="200" placeholder="mis. Dapur tutup, silakan pesan ke kasir" onchange="coSetOpen($('#coOn').checked)">
     <div class="cob"><button class="btn" onclick="coQr()"><i class="ic" data-ic="qr"></i>Tampilkan / Cetak QR</button><button class="btn sec" onclick="coCopy()"><i class="ic" data-ic="copy"></i>Salin tautan</button></div>
-    <p class="hint">Bunyi, cetak tiket otomatis, dan notifikasi diatur per perangkat di halaman Pesanan Online.</p>`;
+`;
 }
 function coStart(){
   if(!CL.on)return;
@@ -3063,7 +3069,7 @@ function renderSec(){
   p.innerHTML=`<h3>Keamanan Sesi</h3>
   <label class="fl">Keluar otomatis bila tidak dipakai</label>
   <select class="fi" id="secIdle" onchange="secSet(this.value)">${opts.map(o=>`<option value="${o[0]}"${o[0]===m?' selected':''}>${o[1]}</option>`).join('')}</select>
-  <p class="hint">Berlaku untuk semua perangkat. Bila layar tidak disentuh selama waktu ini, pengguna otomatis keluar dan harus masuk lagi. Sebelumnya muncul peringatan 1 menit dengan tombol "Tetap masuk". Halaman Pesanan Online yang sedang terbuka tidak ikut keluar, supaya pesanan tetap masuk dan tercetak.</p>`;
+`;
 }
 function secSet(v){db.set.idle=Math.max(0,+v||0);save();ssStamp();toast('Pengaturan keamanan disimpan')}
 
@@ -3081,7 +3087,7 @@ function renderAccPage(){
     <button class="lnk" type="button" id="accRm" onclick="accPhotoDel()">Hapus foto</button></div></div>
   <label class="fl">Nama lengkap</label><input class="fi" id="accName" maxlength="60" value="${esc(m.name)}" autocomplete="name">
   <label class="fl">Alamat email</label><input class="fi" id="accEmail" type="email" inputmode="email" maxlength="120" placeholder="nama@contoh.com" value="${esc(m.email||'')}" autocomplete="email">
-  <label class="fl">Nomor telepon</label><input class="fi" id="accPhone" type="tel" inputmode="tel" maxlength="20" placeholder="+60 12-345 6789" value="${esc(m.phone||'')}" autocomplete="tel">
+  <label class="fl">Nomor telepon</label><div class="phr"><select class="fi" id="accCc" aria-label="Kode negara">${phCcOpts(phSplit(m.phone).cc)}</select><input class="fi" id="accPhone" type="tel" inputmode="tel" maxlength="14" placeholder="812 3456 7890" value="${esc(phSplit(m.phone).num)}" autocomplete="tel-national"></div>
   <p class="hint" id="accErr" style="color:var(--bad);min-height:16px;margin:6px 0 0"></p>
   <button class="btn" id="accSave" onclick="accSave()">Simpan Perubahan</button>
   <details class="accpw"><summary>Ubah password</summary>
@@ -3109,12 +3115,23 @@ function accPhoto(inp){
   rd.onerror=()=>{$('#accErr').textContent='Foto tidak bisa dibaca'};
   rd.readAsDataURL(f);
 }
+/* nomor telepon: kode negara + nomor, disimpan seperti "+62 812 3456 7890" */
+const PH_CC=[['62','🇮🇩 Indonesia'],['60','🇲🇾 Malaysia'],['65','🇸🇬 Singapura'],['673','🇧🇳 Brunei'],['66','🇹🇭 Thailand'],['63','🇵🇭 Filipina'],['84','🇻🇳 Vietnam'],['855','🇰🇭 Kamboja'],['91','🇮🇳 India'],['86','🇨🇳 Tiongkok'],['852','🇭🇰 Hong Kong'],['81','🇯🇵 Jepang'],['82','🇰🇷 Korea Selatan'],['61','🇦🇺 Australia'],['966','🇸🇦 Arab Saudi'],['971','🇦🇪 UEA'],['44','🇬🇧 Inggris'],['1','🇺🇸 AS / Kanada']];
+function phDefCc(){let z='';try{z=Intl.DateTimeFormat().resolvedOptions().timeZone||''}catch(e){}return /Kuala_Lumpur|Kuching/.test(z)?'60':/Singapore/.test(z)?'65':/Brunei/.test(z)?'673':'62'}
+function phSplit(v){
+  v=String(v||'').trim();const dg=v.replace(/\D/g,'');
+  if(!dg)return{cc:phDefCc(),num:''};
+  if(v[0]==='+'){const c=PH_CC.map(x=>x[0]).sort((a,b)=>b.length-a.length).find(c=>dg.startsWith(c));if(c)return{cc:c,num:phFmt(dg.slice(c.length))};return{cc:phDefCc(),num:phFmt(dg)}}
+  return{cc:phDefCc(),num:phFmt(dg.replace(/^0+/,''))};
+}
+function phFmt(d){d=String(d).replace(/\D/g,'');return d.replace(/^(\d{3})(\d{1,4})?(\d{1,4})?(\d*)$/,(m,a,b,c,r)=>[a,b,c,r].filter(Boolean).join(' '))}
+function phCcOpts(sel){return PH_CC.map(([c,n])=>`<option value="${c}" ${c===sel?'selected':''}>${n} (+${c})</option>`).join('')}
 function accPhotoDel(){ACC.photo='';accAvDraw()}
 async function accSave(){
-  const e=$('#accErr'),btn=$('#accSave'),name=$('#accName').value.trim(),email=$('#accEmail').value.trim(),phone=$('#accPhone').value.trim();
+  const e=$('#accErr'),btn=$('#accSave'),name=$('#accName').value.trim(),email=$('#accEmail').value.trim(),phoneN=$('#accPhone').value.replace(/\D/g,'').replace(/^0+/,''),phone=phoneN?'+'+$('#accCc').value+' '+phFmt(phoneN):'';
   if(!name){e.textContent='Nama lengkap wajib diisi';return}
   if(email&&!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)){e.textContent='Format alamat email tidak valid';return}
-  if(phone&&(!/^[0-9+\-() ]{6,20}$/.test(phone)||phone.replace(/\D/g,'').length<6)){e.textContent='Nomor telepon tidak valid';return}
+  if(phoneN&&(phoneN.length<6||phone.length>20)){e.textContent='Nomor telepon tidak valid';return}
   btn.disabled=true;e.textContent='';
   try{
     const r=await api('/api/me',{method:'PUT',body:JSON.stringify({name,email,phone,photo:ACC.photo||''})}),j=await r.json();
@@ -3252,7 +3269,7 @@ function attXlsxBox(){
   <div class="acll"><div><label for="axF">Dari tanggal</label><input class="fi" type="date" id="axF" value="${esc(ATT.xf)}" onchange="ATT.xf=this.value;ATT.xman=1"></div><div><label for="axT">Sampai tanggal</label><input class="fi" type="date" id="axT" value="${esc(ATT.xt)}" onchange="ATT.xt=this.value;ATT.xman=1"></div></div>
   <div class="chips"><button type="button" class="chip" onclick="attXr('month')">Bulan ini</button><button type="button" class="chip" onclick="attXr('last')">Bulan lalu</button><button type="button" class="chip" onclick="attXr('7')">7 hari</button></div>
   <button class="btn" type="button" id="axBtn" onclick="attXlsx()"><i class="ic" data-ic="download"></i>Unduh Rekap Excel</button>
-  <div class="hint" style="margin-top:6px">${ATT.who?'Hanya karyawan yang dipilih di filter di bawah.':'Semua karyawan.'}</div></div>`;
+  </div>`;
 }
 function attXr(k){
   const t=ATT.today||new Date().toISOString().slice(0,10);let f=t,to=t;
@@ -3354,10 +3371,10 @@ function attGps(){
 function attShot(){
   const v=$('#attVid');if(!v||!v.videoWidth){$('#attErr').textContent='Kamera belum siap';return}
   const W=320,H=Math.round(v.videoHeight*W/v.videoWidth),c=document.createElement('canvas');c.width=W;c.height=H;c.getContext('2d').drawImage(v,0,0,W,H);
-  ATT.photo=c.toDataURL('image/jpeg',.65);
+  ATT.photo=c.toDataURL('image/jpeg',.65);attStop();try{v.pause();v.srcObject=null}catch(e){}
   const im=$('#attSnap');im.src=ATT.photo;im.hidden=false;v.hidden=true;$('#attShot').hidden=true;$('#attRetake').hidden=false;$('#attSend').hidden=false;$('#attErr').textContent='';attReadySend();
 }
-function attRetake(){ATT.photo='';$('#attSnap').hidden=true;$('#attVid').hidden=false;$('#attShot').hidden=false;$('#attRetake').hidden=true;$('#attSend').hidden=true}
+function attRetake(){ATT.photo='';$('#attSnap').hidden=true;$('#attVid').hidden=false;$('#attShot').hidden=false;$('#attShot').disabled=true;$('#attRetake').hidden=true;$('#attSend').hidden=true;attCam()}
 function attReadySend(){const b=$('#attSend');if(!b)return;const st=attStore(),out=st&&st.strict&&ATT.pos&&ATT.pos.d!=null&&ATT.pos.d>st.rad;b.disabled=!(ATT.photo&&ATT.pos)||!!out}
 async function attSend(){
   if(!ATT.photo||!ATT.pos)return;const b=$('#attSend'),er=$('#attErr');b.disabled=true;b.textContent='Mengirim…';er.textContent='';
@@ -3393,7 +3410,7 @@ async function attCfgDraw(){
   <label class="tgl"><input type="checkbox" id="acStrict" ${c.strict?'checked':''}><span>Absen hanya boleh dari dalam area toko</span></label>
   <label class="fl">Shift</label><div id="acShifts">${(c.shifts||[]).map(acShiftRow).join('')}</div>
   <button class="btn sec" type="button" onclick="acAdd()">+ Tambah shift</button>
-  <label class="fl">Shift tiap karyawan</label><div class="hint" style="margin:0 0 4px">Kalau tidak diatur, karyawan memilih shift sendiri saat absen masuk.</div><div id="acAssign"></div>
+  <label class="fl">Shift tiap karyawan</label><div id="acAssign"></div>
   <p class="hint" id="acErr" style="color:var(--bad);min-height:16px"></p>
   <button class="btn" onclick="acSave()">Simpan Pengaturan Absensi</button>`;
   acAssignDraw();
@@ -3426,6 +3443,9 @@ function acSave(){
   er.textContent='';save();toast('Pengaturan absensi disimpan');attDraw();
 }
 
+/* gestur geser kiri/kanan (back/forward browser) dimatikan: tidak berpindah ke halaman lain seperti dashboard */
+(function(){try{history.replaceState({pos:1},'');history.pushState({pos:2},'');addEventListener('popstate',function(){try{history.pushState({pos:2},'')}catch(e){}});addEventListener('pageshow',function(e){if(e.persisted){try{history.pushState({pos:2},'')}catch(x){}}})}catch(e){}})();
+
 /* ----- halaman Pengguna (owner) ----- */
 const USR={list:[],log:[]};
 const ACT_LBL={'ubah-profil':'Ubah profil','login':'Masuk','logout':'Keluar','login-gagal':'Gagal masuk','tambah-user':'Tambah pengguna','ubah-user':'Ubah pengguna','hapus-user':'Hapus pengguna','reset-sandi':'Reset sandi','ganti-sandi':'Ganti sandi','ditolak':'Perubahan ditolak','reset-owner':'Reset sandi owner'};
@@ -3443,10 +3463,22 @@ async function renderUsr(){
       ${u.role==='owner'?'<span class="pchip on">Semua fitur</span>':'<span class="pchip on">Kasir</span>'+Object.keys(PERM_SHORT).map(p=>`<span class="pchip ${u.perms.includes(p)?'on':''}">${PERM_SHORT[p]}</span>`).join('')}</div>
     <div class="cob"><button class="btn sec" onclick="usrForm(${u.id})"><i class="ic" data-ic="edit"></i>Ubah</button><button class="btn sec" onclick="usrPw(${u.id})"><i class="ic" data-ic="key"></i>Reset sandi</button>
       ${u.id!==me?`<button class="btn sec" onclick="usrToggle(${u.id})">${u.active?'<i class="ic" data-ic="pause"></i>Nonaktifkan':'<i class="ic" data-ic="play"></i>Aktifkan'}</button><button class="btn sec" onclick="usrDel(${u.id})"><i class="ic" data-ic="trash"></i>Hapus</button>`:''}</div></div>`).join('')||'<div class="empty">Belum ada pengguna</div>';
-  $('#usrLog').innerHTML=USR.log.length?USR.log.slice(0,40).map(x=>`<div class="dbs"><span><b>${esc(ACT_LBL[x.action]||x.action)}</b>${x.uname?' · @'+esc(x.uname):''}${x.detail?' · <span style="color:var(--mu)">'+esc(x.detail)+'</span>':''}</span><span style="color:var(--mu);white-space:nowrap">${esc(fmtLast(x.t))}</span></div>`).join(''):'<div class="hint">Belum ada aktivitas.</div>';
+  usrLogDraw();
+}
+const ULOG={sort:'new',act:'',user:''};
+function usrLogDraw(){
+  const bar=$('#usrLogBar'),el=$('#usrLog');if(!bar||!el)return;
+  const acts=[...new Set(USR.log.map(x=>x.action))].sort((a,b)=>(ACT_LBL[a]||a).localeCompare(ACT_LBL[b]||b)),us=[...new Set(USR.log.map(x=>x.uname).filter(Boolean))].sort();
+  bar.innerHTML=`<select class="logsel" aria-label="Urutkan" onchange="ULOG.sort=this.value;usrLogDraw()">${[['new','Terbaru'],['old','Terlama'],['user','Pengguna A–Z'],['act','Aksi A–Z']].map(([v,t])=>`<option value="${v}" ${ULOG.sort===v?'selected':''}>${t}</option>`).join('')}</select>
+  <select class="logsel" aria-label="Filter aksi" onchange="ULOG.act=this.value;usrLogDraw()"><option value="">Semua aksi</option>${acts.map(a=>`<option value="${esc(a)}" ${ULOG.act===a?'selected':''}>${esc(ACT_LBL[a]||a)}</option>`).join('')}</select>
+  <select class="logsel" aria-label="Filter pengguna" onchange="ULOG.user=this.value;usrLogDraw()"><option value="">Semua pengguna</option>${us.map(u=>`<option value="${esc(u)}" ${ULOG.user===u?'selected':''}>@${esc(u)}</option>`).join('')}</select>`;
+  let l=USR.log.filter(x=>(!ULOG.act||x.action===ULOG.act)&&(!ULOG.user||x.uname===ULOG.user));
+  const tm=x=>String(x.t||''),nm=x=>String(x.uname||'').toLowerCase(),ac=x=>String(ACT_LBL[x.action]||x.action).toLowerCase();
+  l=l.slice().sort(ULOG.sort==='old'?(a,b)=>tm(a)<tm(b)?-1:tm(a)>tm(b)?1:0:ULOG.sort==='user'?(a,b)=>nm(a)<nm(b)?-1:nm(a)>nm(b)?1:(tm(a)<tm(b)?1:-1):ULOG.sort==='act'?(a,b)=>ac(a)<ac(b)?-1:ac(a)>ac(b)?1:(tm(a)<tm(b)?1:-1):(a,b)=>tm(a)<tm(b)?1:tm(a)>tm(b)?-1:0);
+  el.innerHTML=l.length?l.slice(0,100).map(x=>`<div class="dbs"><span><b>${esc(ACT_LBL[x.action]||x.action)}</b>${x.uname?' · @'+esc(x.uname):''}${x.detail?' · <span style="color:var(--mu)">'+esc(x.detail)+'</span>':''}</span><span style="color:var(--mu);white-space:nowrap">${esc(fmtLast(x.t))}</span></div>`).join(''):'<div class="empty">Tidak ada aktivitas</div>';
 }
 function permBoxes(sel){return Object.keys(PERM_LBL).map(p=>`<label class="tgl"><input type="checkbox" class="upm" value="${p}" ${sel.includes(p)?'checked':''}><span>${PERM_LBL[p]}</span></label>`).join('')}
-function usrRoleSw(){const o=$('#uRole').value==='owner';const sg=$('#uSingle');if(sg&&sg.dataset.t!=='1')sg.checked=!o;$('#uPerms').style.display=o?'none':'';$('#uOwnerHint').style.display=o?'':'none'}
+function usrRoleSw(){const o=$('#uRole').value==='owner';const sg=$('#uSingle');if(sg&&sg.dataset.t!=='1')sg.checked=!o;$('#uPerms').style.display=o?'none':''}
 function usrForm(id){
   const u=id?USR.list.find(x=>x.id===id):null;
   openModal(`<h3>${u?'Ubah Pengguna':'Tambah Pengguna'}</h3>
@@ -3455,10 +3487,8 @@ function usrForm(id){
   ${u?'':`<label class="fl">Kata sandi awal</label><input class="fi" id="uPw" type="text" autocomplete="off" placeholder="minimal 6 karakter">`}
   <label class="fl">Peran</label>
   <select class="fi" id="uRole" onchange="usrRoleSw()" ${u&&u.id===(CL.me||{}).id?'disabled':''}><option value="staff" ${!u||u.role==='staff'?'selected':''}>Karyawan: kasir + izin yang dipilih</option><option value="owner" ${u&&u.role==='owner'?'selected':''}>Owner: akses penuh + kelola pengguna</option></select>
-  <div id="uPerms"><label class="fl">Izin tambahan karyawan</label><div class="hint" style="margin:0 0 4px">Kasir (berjualan) selalu boleh.</div>${permBoxes(u?u.perms:['co','prn'])}</div>
+  <div id="uPerms"><label class="fl">Izin tambahan karyawan</label>${permBoxes(u?u.perms:['co','prn'])}</div>
   <label class="tgl" style="margin-top:10px"><input type="checkbox" id="uSingle" data-t="${u?'1':''}" ${u?(u.single?'checked':''):'checked'} onchange="this.dataset.t='1'"><span>Hanya boleh login di satu perangkat</span></label>
-  <p class="hint" style="margin:0">Bila aktif, login di perangkat baru otomatis mengeluarkan akun ini dari perangkat sebelumnya.</p>
-  <p class="hint" id="uOwnerHint" style="display:none">Owner bisa mengubah harga, riwayat, pengaturan, backup, dan mengelola pengguna.</p>
   <p class="hint" id="uErr" style="color:var(--bad);min-height:16px"></p>
   <button class="btn" onclick="usrSave(${id||0})">Simpan</button><button class="btn sec" onclick="closeModal()">Batal</button>`);
   usrRoleSw();
@@ -3475,7 +3505,7 @@ async function usrSave(id){
 }
 function usrPw(id){
   const u=USR.list.find(x=>x.id===id);
-  openModal(`<h3>Reset Sandi</h3><div class="hint">Pengguna <b>${esc(u.name)}</b> (@${esc(u.username)}) akan keluar dari semua perangkat dan harus login dengan sandi baru.</div>
+  openModal(`<h3>Reset Sandi</h3><div class="hint">Pengguna <b>${esc(u.name)}</b> (@${esc(u.username)})</div>
   <label class="fl">Sandi baru</label><input class="fi" id="rPw" type="text" autocomplete="off" placeholder="minimal 6 karakter">
   <p class="hint" id="rErr" style="color:var(--bad);min-height:16px"></p>
   <button class="btn" onclick="usrPwSave(${id})">Simpan</button><button class="btn sec" onclick="closeModal()">Batal</button>`);
