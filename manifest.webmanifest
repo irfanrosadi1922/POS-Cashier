@@ -1,6 +1,6 @@
 {
-  "name": "POS SATE",
-  "short_name": "POS SATE",
+  "name": "Street Sate Original",
+  "short_name": "Street Sate",
   "description": "Aplikasi kasir POS SATE",
   "start_url": "./",
   "scope": "./",
