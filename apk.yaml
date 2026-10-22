@@ -1,0 +1,60 @@
+name: Buat APK
+on:
+  workflow_dispatch:
+  push:
+    tags: ['v*']
+jobs:
+  apk:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 20 }
+      - uses: actions/setup-java@v4
+        with: { distribution: temurin, java-version: 17 }
+      - name: Siapkan isi aplikasi
+        run: |
+          mkdir www
+          echo '{"appId":"com.possate.app","appName":"POS SATE","webDir":"www","backgroundColor":"#ffffff"}' > capacitor.config.json
+          cp index.html dashboard.html order.html sw.js sbapi.js native.js config.js manifest.webmanifest icon-192.png icon-512.png www/
+          # Bila variabel APP_URL diisi, aplikasi membuka situs live (selalu terbaru)
+          if [ -n "${{ vars.APP_URL }}" ]; then
+            node -e "const c=require('./capacitor.config.json');c.server={url:'${{ vars.APP_URL }}',cleartext:false};require('fs').writeFileSync('capacitor.config.json',JSON.stringify(c,null,2))"
+          fi
+      - run: npm install --no-audit --no-fund
+      - run: npx cap add android
+      - name: Izin kamera, lokasi, ikon
+        run: |
+          M=android/app/src/main/AndroidManifest.xml
+          sed -i 's#<uses-permission android:name="android.permission.INTERNET" />#<uses-permission android:name="android.permission.INTERNET" />\n    <uses-permission android:name="android.permission.CAMERA" />\n    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />\n    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />\n    <uses-permission android:name="android.permission.BLUETOOTH" />\n    <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />\n    <uses-permission android:name="android.permission.BLUETOOTH_SCAN" />\n    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />\n    <uses-feature android:name="android.hardware.camera" android:required="false" />#' $M
+          for d in android/app/src/main/res/mipmap-*; do
+            case $d in *anydpi*) rm -rf $d; continue;; esac
+            for n in ic_launcher ic_launcher_round ic_launcher_foreground; do cp icon-512.png $d/$n.png; done
+          done
+          grep -c CAMERA $M
+      - run: npx cap sync android
+      - name: Bangun APK rilis
+        working-directory: android
+        run: ./gradlew assembleRelease --no-daemon
+      - name: Tandatangani APK
+        env:
+          KS_B64: ${{ secrets.KEYSTORE_BASE64 }}
+          KS_PASS: ${{ secrets.KEYSTORE_PASSWORD }}
+        run: |
+          BT=$(ls -d $ANDROID_HOME/build-tools/* | sort -V | tail -1)
+          if [ -n "$KS_B64" ]; then
+            echo "$KS_B64" | base64 -d > ks.jks; PASS="$KS_PASS"
+          else
+            PASS=possate123
+            keytool -genkeypair -keystore ks.jks -alias pos -keyalg RSA -keysize 2048 -validity 10000 -storepass $PASS -keypass $PASS -dname "CN=POS SATE"
+          fi
+          mkdir out
+          IN=$(ls android/app/build/outputs/apk/release/*.apk | head -1)
+          $BT/zipalign -p 4 "$IN" aligned.apk
+          $BT/apksigner sign --ks ks.jks --ks-key-alias pos --ks-pass pass:$PASS --key-pass pass:$PASS --out out/POS-SATE.apk aligned.apk
+          $BT/apksigner verify out/POS-SATE.apk
+          [ -n "$KS_B64" ] || cp ks.jks out/KUNCI-SIMPAN-INI.jks
+      - uses: actions/upload-artifact@v4
+        with:
+          name: POS-SATE-apk
+          path: out/*
