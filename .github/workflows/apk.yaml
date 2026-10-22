@@ -15,12 +15,13 @@ jobs:
       - name: Siapkan isi aplikasi
         run: |
           mkdir www
+          echo '{"appId":"com.possate.app","appName":"POS SATE","webDir":"www","backgroundColor":"#ffffff"}' > capacitor.config.json
           cp index.html dashboard.html order.html sw.js sbapi.js config.js manifest.webmanifest icon-192.png icon-512.png www/
           # Bila variabel APP_URL diisi, aplikasi membuka situs live (selalu terbaru)
           if [ -n "${{ vars.APP_URL }}" ]; then
             node -e "const c=require('./capacitor.config.json');c.server={url:'${{ vars.APP_URL }}',cleartext:false};require('fs').writeFileSync('capacitor.config.json',JSON.stringify(c,null,2))"
           fi
-      - run: npm install
+      - run: npm install --no-audit --no-fund
       - run: npx cap add android
       - name: Izin kamera, lokasi, ikon
         run: |
