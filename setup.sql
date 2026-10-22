@@ -732,6 +732,7 @@ end $$;
 drop trigger if exists co_push on pos.co;
 create trigger co_push after insert on pos.co for each row execute function pos.push_new();
 -- Aktifkan:  select pos.admin_push('https://XXXX.supabase.co/functions/v1/notify-order', 'kunci-rahasia-Anda');
+drop function if exists pos.admin_push(text, text);
 create or replace function pos.admin_push(pu text, pk text) returns text language plpgsql as $$
 begin
   if pu !~ '^https://' or length(coalesce(pk, '')) < 8 then raise exception 'url harus https dan kunci minimal 8 karakter'; end if;
