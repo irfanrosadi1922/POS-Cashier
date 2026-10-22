@@ -732,10 +732,10 @@ end $$;
 drop trigger if exists co_push on pos.co;
 create trigger co_push after insert on pos.co for each row execute function pos.push_new();
 -- Aktifkan:  select pos.admin_push('https://XXXX.supabase.co/functions/v1/notify-order', 'kunci-rahasia-Anda');
-create or replace function pos.admin_push(u text, k text) returns text language plpgsql as $$
+create or replace function pos.admin_push(pu text, pk text) returns text language plpgsql as $$
 begin
-  if u !~ '^https://' or length(coalesce(k, '')) < 8 then raise exception 'url harus https dan kunci minimal 8 karakter'; end if;
-  insert into pos.meta(k, v) values ('push', jsonb_build_object('url', u, 'key', k)) on conflict (k) do update set v = excluded.v;
+  if pu !~ '^https://' or length(coalesce(pk, '')) < 8 then raise exception 'url harus https dan kunci minimal 8 karakter'; end if;
+  insert into pos.meta(k, v) values ('push', jsonb_build_object('url', pu, 'key', pk)) on conflict (k) do update set v = excluded.v;
   return 'notifikasi APK aktif';
 end $$;
 
