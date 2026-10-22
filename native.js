@@ -5,6 +5,27 @@
   if(!C||!C.isNativePlatform||!C.isNativePlatform())return;
   var P=C.Plugins||{};
   try{if(P.KeepAwake&&P.KeepAwake.keepAwake)P.KeepAwake.keepAwake()}catch(e){}
+  /* notifikasi native (FCM) — aktif bila APK dibuat dengan google-services.json (window.POS_FCM) */
+  if(P.PushNotifications&&window.POS_FCM){
+    var PN=P.PushNotifications,cur='',hooked=false;
+    window.nativePush={
+      async sync(api,want){
+        try{
+          if(!want){await this.off(api);return}
+          var pr=await PN.requestPermissions();if(pr.receive!=='granted')return;
+          if(!hooked){hooked=true;
+            PN.addListener('registration',function(t){cur=t.value;try{localStorage.setItem('pos_fcm',cur)}catch(e){};
+              api('/api/push/fcm',{method:'POST',body:JSON.stringify({token:cur})}).catch(function(){})})}
+          await PN.register();
+          if(cur)api('/api/push/fcm',{method:'POST',body:JSON.stringify({token:cur})}).catch(function(){});
+        }catch(e){}
+      },
+      async off(api){
+        var t=cur;try{t=t||localStorage.getItem('pos_fcm')||''}catch(e){}
+        if(t)try{await api('/api/push/fcm',{method:'DELETE',body:JSON.stringify({token:t})})}catch(e){}
+      }
+    };
+  }
   var BLE=P.BluetoothLe;if(!BLE)return;
   var ready=null,devs={};
   function init(){return ready||(ready=BLE.initialize({androidNeverForLocation:true}))}

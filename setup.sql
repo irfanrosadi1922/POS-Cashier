@@ -60,6 +60,7 @@ create table if not exists pos.att(
 create index if not exists att_uid on pos.att(uid, id);
 create index if not exists att_day on pos.att(day);
 create table if not exists pos.meta(k text primary key, v jsonb not null);
+create table if not exists pos.push_tokens(tok text primary key, uid bigint not null, created_at timestamptz not null default now());
 insert into pos.meta(k, v) values ('rev', to_jsonb((extract(epoch from now()) * 1000)::bigint)) on conflict do nothing;
 create table if not exists pos.fails(ip text primary key, n int not null default 0, until timestamptz);
 create table if not exists pos.hits(id bigint generated always as identity primary key, ip text not null, t timestamptz not null default now());
@@ -590,6 +591,19 @@ begin
   end if;
 
   -- pesanan online (kasir)
+  if u = '/api/push/fcm' then   -- token notifikasi Android (APK)
+    if not pos.can(me, 'co') then return pos.r(403, '{"error":"Anda tidak punya izin Pesanan Online"}'); end if;
+    nm := btrim(coalesce(b ->> 'token', ''));
+    if length(nm) < 20 or length(nm) > 4096 then return pos.r(400, '{"error":"token tidak valid"}'); end if;
+    if m = 'POST' then
+      insert into pos.push_tokens(tok, uid) values (nm, me.id) on conflict (tok) do update set uid = excluded.uid, created_at = now();
+    elsif m = 'DELETE' then
+      delete from pos.push_tokens where tok = nm and uid = me.id;
+    else
+      return pos.r(405, '{"error":"method"}');
+    end if;
+    return pos.r(200, '{"ok":true}');
+  end if;
   if u like '/api/co%' and not pos.can(me, 'co') then return pos.r(403, '{"error":"Anda tidak punya izin Pesanan Online"}'); end if;
   if u = '/api/co' and m = 'GET' then
     rv := pos.rev(); wt := least(25, pos.num(q -> 'wait'));
@@ -695,6 +709,34 @@ begin
 exception when others then
   return pos.r(500, jsonb_build_object('error', 'server error',
     'detail', case when exists (select 1 from pos.meta where k = 'debug') then sqlerrm end));
+end $$;
+
+-- ------------------------------------------------------------ notifikasi pesanan online ke APK (opsional)
+create extension if not exists pg_net with schema extensions;
+create or replace function pos.push_new() returns trigger language plpgsql as $$
+declare cfg jsonb; toks jsonb;
+begin
+  select v into cfg from pos.meta where k = 'push';
+  if cfg is null then return new; end if;
+  select coalesce(jsonb_agg(tok), '[]'::jsonb) into toks from pos.push_tokens;
+  if jsonb_array_length(toks) = 0 then return new; end if;
+  perform net.http_post(
+    url := cfg ->> 'url',
+    headers := jsonb_build_object('Content-Type', 'application/json', 'x-push-key', cfg ->> 'key'),
+    body := jsonb_build_object('tokens', toks, 'title', 'Pesanan online ' || new.num,
+      'body', new.name || case when new.tbl <> '' then ' · Meja ' || new.tbl else '' end || ' · ' || new.type));
+  return new;
+exception when others then
+  return new;   -- gagal kirim notifikasi tidak boleh menggagalkan pesanan
+end $$;
+drop trigger if exists co_push on pos.co;
+create trigger co_push after insert on pos.co for each row execute function pos.push_new();
+-- Aktifkan:  select pos.admin_push('https://XXXX.supabase.co/functions/v1/notify-order', 'kunci-rahasia-Anda');
+create or replace function pos.admin_push(u text, k text) returns text language plpgsql as $$
+begin
+  if u !~ '^https://' or length(coalesce(k, '')) < 8 then raise exception 'url harus https dan kunci minimal 8 karakter'; end if;
+  insert into pos.meta(k, v) values ('push', jsonb_build_object('url', u, 'key', k)) on conflict (k) do update set v = excluded.v;
+  return 'notifikasi APK aktif';
 end $$;
 
 -- ------------------------------------------------------------ hak akses

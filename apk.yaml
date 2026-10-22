@@ -32,6 +32,17 @@ jobs:
             for n in ic_launcher ic_launcher_round ic_launcher_foreground; do cp icon-512.png $d/$n.png; done
           done
           grep -c CAMERA $M
+      - name: Firebase (notifikasi) bila kunci tersedia
+        env:
+          GS: ${{ secrets.GOOGLE_SERVICES_JSON }}
+        run: |
+          if [ -n "$GS" ]; then
+            printf '%s' "$GS" > android/app/google-services.json
+            echo 'window.POS_FCM=true;' >> www/native.js
+            echo "Firebase aktif"
+          else
+            echo "Tanpa Firebase (notifikasi native nonaktif)"
+          fi
       - run: npx cap sync android
       - name: Bangun APK rilis
         working-directory: android

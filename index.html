@@ -2615,6 +2615,7 @@ async function coNotify(title,body){
 const b64ToU8=b=>{const p='='.repeat((4-b.length%4)%4),r=atob((b+p).replace(/-/g,'+').replace(/_/g,'/'));return Uint8Array.from(r,c=>c.charCodeAt(0))};
 async function coPushSync(){
   try{
+    if(window.nativePush&&CL.on&&CL.tok&&can('co')){await nativePush.sync(api,coPref('notif',true));return}
     if(!CL.on||!CL.tok||!can('co')||!('PushManager' in window)||!navigator.serviceWorker)return;
     const reg=await navigator.serviceWorker.getRegistration();if(!reg)return;
     const want=coPref('notif',true)&&'Notification' in window&&Notification.permission==='granted';
@@ -3057,6 +3058,7 @@ async function coPushOff(tok){
     await sub.unsubscribe()}catch(e){}
 }
 function cloudLogout(msg){
+  try{if(window.nativePush&&CL.tok)nativePush.off((p,o)=>fetch(p,{...o,headers:{'Content-Type':'application/json',Authorization:'Bearer '+CL.tok}}))}catch(e){}
   try{if(CL.tok&&'PushManager' in window)coPushOff(CL.tok)}catch(e){}
   serverLogout();ssWarnHide();
   CL.tok='';setMe(null);try{localStorage.removeItem('pos_tok');localStorage.removeItem('pos_act')}catch(e){}
