@@ -2595,10 +2595,25 @@ function coBeep(){
   });
 }
 async function coNotify(title,body){
-  if(!coPref('notif',false)||!('Notification' in window)||Notification.permission!=='granted')return;
+  if(!coPref('notif',true)||!('Notification' in window)||Notification.permission!=='granted')return;
   try{
     const reg=navigator.serviceWorker&&await navigator.serviceWorker.getRegistration(),o={body,tag:'co',renotify:true,icon:'icon-192.png',badge:'icon-192.png',vibrate:[200,100,200]};
     if(reg&&reg.showNotification)await reg.showNotification(title,o);else new Notification(title,o);
+  }catch(e){}
+}
+/* langganan push ke server: pesanan online masuk membangunkan perangkat ini walau aplikasi ditutup */
+const b64ToU8=b=>{const p='='.repeat((4-b.length%4)%4),r=atob((b+p).replace(/-/g,'+').replace(/_/g,'/'));return Uint8Array.from(r,c=>c.charCodeAt(0))};
+async function coPushSync(){
+  try{
+    if(!CL.on||!CL.tok||!can('co')||!('PushManager' in window)||!navigator.serviceWorker)return;
+    const reg=await navigator.serviceWorker.getRegistration();if(!reg)return;
+    const want=coPref('notif',true)&&'Notification' in window&&Notification.permission==='granted';
+    let sub=await reg.pushManager.getSubscription();
+    if(!want){if(sub){try{await api('/api/push/sub',{method:'DELETE',body:JSON.stringify({endpoint:sub.endpoint})})}catch(e){}try{await sub.unsubscribe()}catch(e){}}return}
+    const kr=await api('/api/push/key');if(!kr.ok)return;const k=(await kr.json()).key;if(!k)return;
+    if(!sub)sub=await reg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:b64ToU8(k)});
+    const j=sub.toJSON();
+    await api('/api/push/sub',{method:'POST',body:JSON.stringify({subscription:{endpoint:j.endpoint,keys:j.keys}})});
   }catch(e){}
 }
 async function coSetNotif(on){
@@ -2606,7 +2621,7 @@ async function coSetNotif(on){
     if(!('Notification' in window)){toast('Browser ini tidak mendukung notifikasi sistem');on=false}
     else{const p=Notification.permission==='granted'?'granted':await Notification.requestPermission();if(p!=='granted'){toast('Izin notifikasi ditolak. Aktifkan di pengaturan browser.');on=false}}
   }
-  coSetPref('notif',on);renderCo(true);
+  coSetPref('notif',on);coPushSync();renderCo(true);
 }
 async function coWake(){
   try{if(!coPref('awake',true)||!CL.on||!CL.tok||!navigator.wakeLock||document.hidden||CO.wl)return;CO.wl=await navigator.wakeLock.request('screen');CO.wl.addEventListener('release',()=>{CO.wl=null})}catch(e){CO.wl=null}
@@ -2837,13 +2852,17 @@ function renderCo(full){
   const st=CO.set||{on:true,msg:''};
   if(full||!$('#coTop').innerHTML){
     const ck=(k,d,l,fn)=>`<label class="tgl"><input type="checkbox" ${coPref(k,d)?'checked':''} onchange="${fn||`coSetPref('${k}',this.checked)`}"><span>${l}</span></label>`;
-    $('#coTop').innerHTML=`<div class="tgls">${ck('auto',true,'Cetak tiket otomatis')}${ck('sound',true,'Bunyi saat pesanan masuk')}${ck('notif',false,'Notifikasi sistem',"coSetNotif(this.checked)")}${ck('awake',true,'Layar tetap menyala',"coSetAwake(this.checked)")}</div>
+    $('#coTop').innerHTML=`<div class="tgls">${ck('auto',true,'Cetak tiket otomatis')}${ck('sound',true,'Bunyi saat pesanan masuk')}${ck('notif',true,'Notifikasi sistem',"coSetNotif(this.checked)")}${ck('awake',true,'Layar tetap menyala',"coSetAwake(this.checked)")}</div>
     <div class="cob"><button class="btn sec" onclick="coBeep()"><i class="ic" data-ic="bell"></i>Tes bunyi</button><button class="btn sec" onclick="coTestPrint()"><i class="ic" data-ic="print"></i>Tes tiket</button><button class="btn sec" onclick="prnConnect().then(()=>renderCo(false))"><i class="ic" data-ic="plug"></i>Sambungkan printer</button></div>`;
   }
   const gear=$('#coGear');if(gear)gear.hidden=!can('set');
   {const o=$('#coOn');if(o&&document.activeElement!==o)o.checked=!!st.on}
   const un=CO.list.filter(o=>(o.status==='new'||o.status==='accepted')&&o.printed===0).length,msgs=[];
   msgs.push(CO.err?['neg','<i class="ic" data-ic="alert"></i>Server tidak terhubung']:['','<i class="ic" data-ic="dot"></i>Terhubung']);
+  if(coPref('notif',true)&&'Notification' in window){
+    if(Notification.permission==='default')msgs.push(['neg','<i class="ic" data-ic="bell"></i>Notifikasi belum aktif <button class="tag" type="button" onclick="coSetNotif(true)">Aktifkan</button>']);
+    else if(Notification.permission==='denied')msgs.push(['neg','<i class="ic" data-ic="bell"></i>Notifikasi diblokir di browser']);
+  }
   if(!CO.aud||CO.aud.state!=='running')msgs.push(['neg','<i class="ic" data-ic="mute"></i>Ketuk layar untuk aktifkan bunyi']);
   if(coPref('auto',true)&&!coReady())msgs.push(['neg','<i class="ic" data-ic="print"></i>Printer belum terhubung']);
   if(un&&coPref('auto',true))msgs.push(['neg','<i class="ic" data-ic="clock"></i>'+un+' tiket belum tercetak']);
@@ -2934,7 +2953,7 @@ function coStart(){
   if(!CL.on)return;
   CO.title=document.title;
   try{CO.pend=JSON.parse(localStorage.getItem('pos_co_pend')||'[]')}catch(e){CO.pend=[]}
-  coBadge();coLoop();coWake();
+  coBadge();coLoop();coWake();coPushSync();
   setInterval(()=>{
     if(!CL.tok||!can('co'))return;
     if(S.view==='co')renderCo(false);
@@ -3022,7 +3041,13 @@ function serverLogout(){
   const t=CL.tok;if(!t)return;
   try{fetch('/api/logout',{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+t},body:'{}',keepalive:true}).catch(()=>{})}catch(e){}
 }
+async function coPushOff(tok){
+  try{const reg=await navigator.serviceWorker.getRegistration(),sub=reg&&await reg.pushManager.getSubscription();if(!sub)return;
+    try{await fetch('/api/push/sub',{method:'DELETE',headers:{'Content-Type':'application/json',Authorization:'Bearer '+tok},body:JSON.stringify({endpoint:sub.endpoint})})}catch(e){}
+    await sub.unsubscribe()}catch(e){}
+}
 function cloudLogout(msg){
+  try{if(CL.tok&&'PushManager' in window)coPushOff(CL.tok)}catch(e){}
   serverLogout();ssWarnHide();
   CL.tok='';setMe(null);try{localStorage.removeItem('pos_tok');localStorage.removeItem('pos_act')}catch(e){}
   CO.list=[];CO.rev=0;CO.seen.clear();
