@@ -1,0 +1,7 @@
+{
+  "appId": "com.possate.app",
+  "appName": "POS SATE",
+  "webDir": "www",
+  "backgroundColor": "#ffffff",
+  "android": { "allowMixedContent": false }
+}
