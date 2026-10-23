@@ -16,7 +16,7 @@ jobs:
         run: |
           mkdir www
           echo '{"appId":"com.possate.app","appName":"POS SATE","webDir":"www","backgroundColor":"#ffffff"}' > capacitor.config.json
-          cp index.html dashboard.html order.html sw.js sbapi.js config.js manifest.webmanifest icon-192.png icon-512.png www/
+          cp index.html dashboard.html order.html sw.js sbapi.js native.js config.js manifest.webmanifest icon-192.png icon-512.png www/
           # Bila variabel APP_URL diisi, aplikasi membuka situs live (selalu terbaru)
           if [ -n "${{ vars.APP_URL }}" ]; then
             node -e "const c=require('./capacitor.config.json');c.server={url:'${{ vars.APP_URL }}',cleartext:false};require('fs').writeFileSync('capacitor.config.json',JSON.stringify(c,null,2))"
@@ -32,11 +32,40 @@ jobs:
             for n in ic_launcher ic_launcher_round ic_launcher_foreground; do cp icon-512.png $d/$n.png; done
           done
           grep -c CAMERA $M
+      - name: Firebase (notifikasi) bila kunci tersedia
+        env:
+          GS: ${{ secrets.GOOGLE_SERVICES_JSON }}
+        run: |
+          if [ -n "$GS" ]; then
+            printf '%s' "$GS" > android/app/google-services.json
+            echo 'window.POS_FCM=true;' >> www/native.js
+            echo "Firebase aktif"
+          else
+            echo "Tanpa Firebase (notifikasi native nonaktif)"
+          fi
       - run: npx cap sync android
-      - name: Bangun APK
+      - name: Bangun APK rilis
         working-directory: android
-        run: ./gradlew assembleDebug --no-daemon
+        run: ./gradlew assembleRelease --no-daemon
+      - name: Tandatangani APK
+        env:
+          KS_B64: ${{ secrets.KEYSTORE_BASE64 }}
+          KS_PASS: ${{ secrets.KEYSTORE_PASSWORD }}
+        run: |
+          BT=$(ls -d $ANDROID_HOME/build-tools/* | sort -V | tail -1)
+          if [ -n "$KS_B64" ]; then
+            echo "$KS_B64" | base64 -d > ks.jks; PASS="$KS_PASS"
+          else
+            PASS=possate123
+            keytool -genkeypair -keystore ks.jks -alias pos -keyalg RSA -keysize 2048 -validity 10000 -storepass $PASS -keypass $PASS -dname "CN=POS SATE"
+          fi
+          mkdir out
+          IN=$(ls android/app/build/outputs/apk/release/*.apk | head -1)
+          $BT/zipalign -p 4 "$IN" aligned.apk
+          $BT/apksigner sign --ks ks.jks --ks-key-alias pos --ks-pass pass:$PASS --key-pass pass:$PASS --out out/POS-SATE.apk aligned.apk
+          $BT/apksigner verify out/POS-SATE.apk
+          [ -n "$KS_B64" ] || cp ks.jks out/KUNCI-SIMPAN-INI.jks
       - uses: actions/upload-artifact@v4
         with:
           name: POS-SATE-apk
-          path: android/app/build/outputs/apk/debug/app-debug.apk
+          path: out/*
