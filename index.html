@@ -1195,7 +1195,7 @@ async function serialConnect(pick){
   if(!navigator.serial)throw new Error('Web Serial tidak didukung. Pakai Chrome/Edge di komputer (Windows/Mac/Linux).');
   if(!pick&&PRN.port&&PRN.writer)return;
   if(PRN.port)await serialClose();
-  const port=await navigator.serial.requestPort();
+  const port=await navigator.serial.requestPort(pick?{}:{auto:true});
   await port.open({baudRate:+db.set.prn.baud||9600});
   PRN.port=port;PRN.writer=port.writable.getWriter();updatePrnStatus();
 }

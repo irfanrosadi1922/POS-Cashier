@@ -32,6 +32,213 @@ jobs:
             for n in ic_launcher ic_launcher_round ic_launcher_foreground; do cp icon-512.png $d/$n.png; done
           done
           grep -c CAMERA $M
+      - name: Plugin Bluetooth klasik (printer thermal)
+        run: |
+          D=android/app/src/main/java/com/possate/app
+          mkdir -p $D
+          cat > $D/ClassicBtPlugin.java <<'JAVAEOF'
+          package com.possate.app;
+
+          import android.Manifest;
+          import android.annotation.SuppressLint;
+          import android.bluetooth.BluetoothAdapter;
+          import android.bluetooth.BluetoothDevice;
+          import android.bluetooth.BluetoothSocket;
+          import android.os.Build;
+          import android.util.Base64;
+
+          import com.getcapacitor.JSArray;
+          import com.getcapacitor.JSObject;
+          import com.getcapacitor.PermissionState;
+          import com.getcapacitor.Plugin;
+          import com.getcapacitor.PluginCall;
+          import com.getcapacitor.PluginMethod;
+          import com.getcapacitor.annotation.CapacitorPlugin;
+          import com.getcapacitor.annotation.Permission;
+          import com.getcapacitor.annotation.PermissionCallback;
+
+          import java.io.OutputStream;
+          import java.util.Set;
+          import java.util.UUID;
+
+          @CapacitorPlugin(
+              name = "ClassicBt",
+              permissions = { @Permission(alias = "bt", strings = { Manifest.permission.BLUETOOTH_CONNECT }) }
+          )
+          public class ClassicBtPlugin extends Plugin {
+              private static final UUID SPP = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB");
+              private BluetoothSocket socket;
+              private OutputStream out;
+              private String addr = "";
+
+              private boolean needPerm() {
+                  return Build.VERSION.SDK_INT >= 31 && getPermissionState("bt") != PermissionState.GRANTED;
+              }
+
+              @PluginMethod
+              public void list(PluginCall call) {
+                  if (needPerm()) {
+                      requestPermissionForAlias("bt", call, "permCb");
+                      return;
+                  }
+                  doList(call);
+              }
+
+              @PluginMethod
+              public void connect(PluginCall call) {
+                  if (needPerm()) {
+                      requestPermissionForAlias("bt", call, "permCb");
+                      return;
+                  }
+                  doConnect(call);
+              }
+
+              @PermissionCallback
+              private void permCb(PluginCall call) {
+                  if (needPerm()) {
+                      call.reject("Izin Bluetooth ditolak. Izinkan di pengaturan aplikasi.");
+                      return;
+                  }
+                  if ("list".equals(call.getMethodName())) doList(call);
+                  else doConnect(call);
+              }
+
+              @SuppressLint("MissingPermission")
+              private void doList(PluginCall call) {
+                  BluetoothAdapter ad = BluetoothAdapter.getDefaultAdapter();
+                  if (ad == null) {
+                      call.reject("HP ini tidak punya Bluetooth");
+                      return;
+                  }
+                  if (!ad.isEnabled()) {
+                      call.reject("Bluetooth HP belum menyala");
+                      return;
+                  }
+                  JSArray arr = new JSArray();
+                  Set<BluetoothDevice> bonded = ad.getBondedDevices();
+                  if (bonded != null) {
+                      for (BluetoothDevice d : bonded) {
+                          JSObject o = new JSObject();
+                          String n = d.getName();
+                          o.put("name", n == null ? "" : n);
+                          o.put("address", d.getAddress());
+                          arr.put(o);
+                      }
+                  }
+                  JSObject res = new JSObject();
+                  res.put("devices", arr);
+                  call.resolve(res);
+              }
+
+              @SuppressLint("MissingPermission")
+              private void doConnect(final PluginCall call) {
+                  final String a = call.getString("address", "");
+                  if (a == null || a.length() < 11) {
+                      call.reject("Alamat printer kosong");
+                      return;
+                  }
+                  new Thread(new Runnable() {
+                      @Override
+                      public void run() {
+                          try {
+                              closeQuiet();
+                              BluetoothAdapter ad = BluetoothAdapter.getDefaultAdapter();
+                              if (ad == null || !ad.isEnabled()) {
+                                  call.reject("Bluetooth HP belum menyala");
+                                  return;
+                              }
+                              BluetoothDevice dev = ad.getRemoteDevice(a);
+                              ad.cancelDiscovery();
+                              BluetoothSocket s;
+                              try {
+                                  s = dev.createRfcommSocketToServiceRecord(SPP);
+                                  s.connect();
+                              } catch (Exception e1) {
+                                  s = (BluetoothSocket) dev.getClass()
+                                      .getMethod("createRfcommSocket", new Class[] { int.class })
+                                      .invoke(dev, Integer.valueOf(1));
+                                  s.connect();
+                              }
+                              socket = s;
+                              out = s.getOutputStream();
+                              addr = a;
+                              JSObject res = new JSObject();
+                              res.put("connected", true);
+                              call.resolve(res);
+                          } catch (Exception e) {
+                              closeQuiet();
+                              call.reject("Gagal menyambung ke printer: " + e.getMessage());
+                          }
+                      }
+                  }).start();
+              }
+
+              @PluginMethod
+              public void write(final PluginCall call) {
+                  final String b64 = call.getString("data", "");
+                  if (out == null || socket == null) {
+                      call.reject("Printer belum terhubung");
+                      return;
+                  }
+                  new Thread(new Runnable() {
+                      @Override
+                      public void run() {
+                          try {
+                              byte[] bytes = Base64.decode(b64, Base64.DEFAULT);
+                              int off = 0;
+                              while (off < bytes.length) {
+                                  int n = Math.min(512, bytes.length - off);
+                                  out.write(bytes, off, n);
+                                  out.flush();
+                                  off += n;
+                                  try { Thread.sleep(8); } catch (InterruptedException ie) { }
+                              }
+                              call.resolve();
+                          } catch (Exception e) {
+                              closeQuiet();
+                              call.reject("Gagal mengirim ke printer: " + e.getMessage());
+                          }
+                      }
+                  }).start();
+              }
+
+              @PluginMethod
+              public void disconnect(PluginCall call) {
+                  closeQuiet();
+                  call.resolve();
+              }
+
+              @PluginMethod
+              public void status(PluginCall call) {
+                  JSObject res = new JSObject();
+                  res.put("connected", socket != null && socket.isConnected());
+                  res.put("address", addr);
+                  call.resolve(res);
+              }
+
+              private void closeQuiet() {
+                  try { if (out != null) out.close(); } catch (Exception e) { }
+                  try { if (socket != null) socket.close(); } catch (Exception e) { }
+                  out = null;
+                  socket = null;
+              }
+          }
+          JAVAEOF
+          cat > $D/MainActivity.java <<'JAVAEOF'
+          package com.possate.app;
+
+          import android.os.Bundle;
+          import com.getcapacitor.BridgeActivity;
+
+          public class MainActivity extends BridgeActivity {
+              @Override
+              public void onCreate(Bundle savedInstanceState) {
+                  registerPlugin(ClassicBtPlugin.class);
+                  super.onCreate(savedInstanceState);
+              }
+          }
+          JAVAEOF
+          ls -la $D
       - name: Firebase (notifikasi) bila kunci tersedia
         env:
           GS: ${{ secrets.GOOGLE_SERVICES_JSON }}
