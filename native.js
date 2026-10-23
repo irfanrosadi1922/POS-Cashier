@@ -3,7 +3,10 @@
 (function(){
   var C=window.Capacitor;
   if(!C||!C.isNativePlatform||!C.isNativePlatform())return;
-  var P=C.Plugins||{};
+  var P={};
+  ['KeepAwake','PushNotifications','BluetoothLe'].forEach(function(n){
+    try{P[n]=(C.Plugins&&C.Plugins[n])||(C.registerPlugin&&C.registerPlugin(n))||null}catch(e){P[n]=null}
+  });
   try{if(P.KeepAwake&&P.KeepAwake.keepAwake)P.KeepAwake.keepAwake()}catch(e){}
   /* notifikasi native (FCM) — aktif bila APK dibuat dengan google-services.json (window.POS_FCM) */
   if(P.PushNotifications&&window.POS_FCM){
@@ -26,7 +29,8 @@
       }
     };
   }
-  var BLE=P.BluetoothLe;if(!BLE)return;
+  var BLE=P.BluetoothLe;
+  if(!BLE){navigator.bluetooth={requestDevice:async function(){throw new Error('Plugin Bluetooth tidak ada di APK ini. Buat ulang APK dengan package.json terbaru.')},getDevices:async function(){return[]}};return}
   var ready=null,devs={};
   function init(){return ready||(ready=BLE.initialize({androidNeverForLocation:true}))}
   function hex(u){var s='';u=u instanceof Uint8Array?u:new Uint8Array(u.buffer||u);for(var i=0;i<u.length;i++)s+=(u[i]<16?'0':'')+u[i].toString(16);return s}
