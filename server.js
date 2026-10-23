@@ -79,6 +79,9 @@ CREATE TABLE IF NOT EXISTS co(id INTEGER PRIMARY KEY AUTOINCREMENT, tok TEXT UNI
 CREATE INDEX IF NOT EXISTS idx_co_status ON co(status);
 CREATE UNIQUE INDEX IF NOT EXISTS idx_co_idem ON co(idem) WHERE idem IS NOT NULL;
 CREATE TABLE IF NOT EXISTS kv(k TEXT PRIMARY KEY, v TEXT);
+CREATE TABLE IF NOT EXISTS att(id INTEGER PRIMARY KEY AUTOINCREMENT, uid INTEGER NOT NULL, uname TEXT, name TEXT, day TEXT, ts TEXT, type TEXT, shift_id TEXT DEFAULT '', shift_name TEXT DEFAULT '', sstart TEXT DEFAULT '', send TEXT DEFAULT '', status TEXT, mins INTEGER DEFAULT 0, lat REAL, lng REAL, acc REAL, dist INTEGER, photo TEXT DEFAULT '');
+CREATE INDEX IF NOT EXISTS idx_att_uid ON att(uid, id);
+CREATE INDEX IF NOT EXISTS idx_att_day ON att(day);
 CREATE TABLE IF NOT EXISTS users(id INTEGER PRIMARY KEY AUTOINCREMENT, username TEXT UNIQUE NOT NULL, name TEXT NOT NULL, role TEXT NOT NULL, perms TEXT NOT NULL DEFAULT '[]', salt TEXT NOT NULL, hash TEXT NOT NULL, active INTEGER NOT NULL DEFAULT 1, tv INTEGER NOT NULL DEFAULT 1, created_at TEXT, last_login TEXT);
 CREATE TABLE IF NOT EXISTS audit(id INTEGER PRIMARY KEY AUTOINCREMENT, t TEXT, uid INTEGER, uname TEXT, action TEXT, detail TEXT);
 CREATE TABLE IF NOT EXISTS tokseen(m TEXT PRIMARY KEY, seen INTEGER NOT NULL, exp INTEGER NOT NULL, rev INTEGER NOT NULL DEFAULT 0);
@@ -222,6 +225,7 @@ const STATIC = {
   '/sw.js': ['text/javascript', 'no-cache'],
   '/config.js': ['text/javascript', 'no-cache'],
   '/sbapi.js': ['text/javascript', 'no-cache'],
+  '/native.js': ['text/javascript', 'no-cache'],
   '/icon-192.png': ['image/png', 'public, max-age=86400'],
   '/icon-512.png': ['image/png', 'public, max-age=86400'],
 };
@@ -258,6 +262,111 @@ function pageHtml(file) {
 const isSingle = (u) => (u.single == null ? u.role !== 'owner' : !!u.single); // null = otomatis: karyawan ya, owner tidak
 const STORE_TZ = process.env.STORE_TZ || 'Asia/Jakarta';
 const dayStr = (d) => { try { return d.toLocaleDateString('sv-SE', { timeZone: STORE_TZ }); } catch (e) { return d.toISOString().slice(0, 10); } };
+
+/* ---------- absensi karyawan: waktu dari server (tidak bisa dipalsukan), shift dari owner ---------- */
+const attq = {
+  ins: db.prepare('INSERT INTO att(uid,uname,name,day,ts,type,shift_id,shift_name,sstart,send,status,mins,lat,lng,acc,dist,photo) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)'),
+  last: db.prepare('SELECT * FROM att WHERE uid=? ORDER BY id DESC LIMIT 1'),
+  byId: db.prepare('SELECT * FROM att WHERE id=?'),
+  range: db.prepare('SELECT id,uid,uname,name,day,ts,type,shift_id,shift_name,sstart,send,status,mins,lat,lng,acc,dist,(photo<>\'\') AS hp FROM att WHERE day>=? AND day<=? ORDER BY id DESC LIMIT 2000'),
+  rangeOwn: db.prepare('SELECT id,uid,uname,name,day,ts,type,shift_id,shift_name,sstart,send,status,mins,lat,lng,acc,dist,(photo<>\'\') AS hp FROM att WHERE uid=? AND day>=? AND day<=? ORDER BY id DESC LIMIT 500'),
+  oldPhoto: db.prepare("UPDATE att SET photo='' WHERE day<? AND photo<>''"),
+  oldRows: db.prepare('DELETE FROM att WHERE day<?'),
+};
+const attView = (r) => ({ id: r.id, uid: r.uid, uname: r.uname, name: r.name, day: r.day, t: r.ts, type: r.type, shiftId: r.shift_id, shift: r.shift_name, sstart: r.sstart, send: r.send, status: r.status, mins: r.mins, lat: r.lat, lng: r.lng, acc: r.acc, dist: r.dist, hp: !!r.hp });
+function attCfg() {
+  let s = {}; try { const d = getDoc().data; if (d && d.set && d.set.att && typeof d.set.att === 'object') s = d.set.att; } catch (e) {}
+  const hhmm = (v) => (/^([01]\d|2[0-3]):[0-5]\d$/.test(String(v)) ? String(v) : '');
+  return {
+    on: s.on === true, tz: String(s.tz || ''), lat: Number.isFinite(+s.lat) && s.lat !== null && s.lat !== '' ? +s.lat : null, lng: Number.isFinite(+s.lng) && s.lng !== null && s.lng !== '' ? +s.lng : null,
+    radius: Math.max(20, Math.min(5000, Math.round(+s.radius || 100))), strict: s.strict === true,
+    shifts: (Array.isArray(s.shifts) ? s.shifts : []).map((x) => ({ id: clean(x && x.id, 20), name: clean(x && x.name, 30), start: hhmm(x && x.start), end: hhmm(x && x.end), grace: Math.max(0, Math.min(120, Math.round(+(x && x.grace) || 0))) })).filter((x) => x.id && x.start && x.end),
+    assign: s.assign && typeof s.assign === 'object' ? s.assign : {},
+  };
+}
+function attTz(tz) { try { new Intl.DateTimeFormat('en', { timeZone: tz || STORE_TZ }); return tz || STORE_TZ; } catch (e) { return STORE_TZ; } }
+function attLocal(d, tz) { // hari (YYYY-MM-DD) + menit sejak tengah malam di zona waktu toko
+  const tzz = attTz(tz);
+  const parts = new Intl.DateTimeFormat('en-GB', { timeZone: tzz, hour12: false, year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' }).formatToParts(d);
+  const g = (t) => parts.find((x) => x.type === t).value;
+  return { day: g('year') + '-' + g('month') + '-' + g('day'), min: (+g('hour') % 24) * 60 + +g('minute') };
+}
+const attMin = (hhmm) => +hhmm.slice(0, 2) * 60 + +hhmm.slice(3);
+const attDiff = (a) => ((a % 1440) + 1440 + 720) % 1440 - 720; // selisih menit, dinormalkan ke -720..+719 (shift lewat tengah malam)
+function attDist(la1, ln1, la2, ln2) {
+  const R = 6371000, r = (x) => x * Math.PI / 180, dLa = r(la2 - la1), dLn = r(ln2 - ln1);
+  const a = Math.sin(dLa / 2) ** 2 + Math.cos(r(la1)) * Math.cos(r(la2)) * Math.sin(dLn / 2) ** 2;
+  return Math.round(2 * R * Math.asin(Math.min(1, Math.sqrt(a))));
+}
+const ATT_OPEN_MS = 18 * 3600e3; // absen masuk dianggap masih berlangsung maks. 18 jam
+function attState(uid) {
+  const l = attq.last.get(uid), open = !!(l && l.type === 'in' && Date.now() - new Date(l.ts).getTime() < ATT_OPEN_MS);
+  return { open, since: open ? l.ts : '', shiftId: open ? l.shift_id : '', last: l ? attView({ ...l, hp: !!l.photo }) : null };
+}
+function attDo(me, b) {
+  const cfg = attCfg();
+  if (!cfg.on) return { s: 403, b: { error: 'Absensi belum diaktifkan oleh owner' } };
+  const type = b.type === 'out' ? 'out' : b.type === 'in' ? 'in' : '';
+  if (!type) return { s: 400, b: { error: 'Jenis absen tidak valid' } };
+  const photo = String(b.photo || '');
+  if (!/^data:image\/jpeg;base64,[A-Za-z0-9+/=]+$/.test(photo) || photo.length > 160000) return { s: 400, b: { error: 'Foto selfie wajib diambil lewat kamera' } };
+  const lat = +b.lat, lng = +b.lng;
+  if (!(Math.abs(lat) <= 90 && Math.abs(lng) <= 180) || b.lat == null || b.lng == null || b.lat === '' || b.lng === '') return { s: 400, b: { error: 'Lokasi GPS wajib diaktifkan' } };
+  const st = attState(me.id);
+  if (type === 'in' && st.open) return { s: 409, b: { error: 'Anda sudah absen masuk. Absen pulang dulu.' } };
+  if (type === 'out' && !st.open) return { s: 409, b: { error: 'Anda belum absen masuk.' } };
+  let sh = null;
+  const sid = type === 'out' ? st.shiftId : (cfg.assign[me.username] || clean(b.shift, 20));
+  if (sid) sh = cfg.shifts.find((x) => x.id === sid) || null;
+  if (type === 'in' && !sh && cfg.shifts.length && !cfg.assign[me.username]) return { s: 400, b: { error: 'Pilih shift Anda dulu' } };
+  let dist = null;
+  if (cfg.lat != null && cfg.lng != null) {
+    dist = attDist(lat, lng, cfg.lat, cfg.lng);
+    if (cfg.strict && dist > cfg.radius) return { s: 403, b: { error: 'Anda berada ' + dist + ' m dari toko (maksimal ' + cfg.radius + ' m). Absen hanya bisa dari toko.' } };
+  }
+  const now = new Date(), lc = attLocal(now, cfg.tz);
+  let status = 'none', mins = 0;
+  if (sh) {
+    if (type === 'in') { const d = attDiff(lc.min - attMin(sh.start)); if (d > sh.grace) { status = 'late'; mins = d; } else status = 'ontime'; }
+    else { const d = attDiff(lc.min - attMin(sh.end)); if (d < 0) { status = 'early'; mins = -d; } else status = 'ok'; }
+  }
+  const ins = attq.ins.run(me.id, me.username, me.name, lc.day, now.toISOString(), type, sh ? sh.id : '', sh ? sh.name : '', sh ? sh.start : '', sh ? sh.end : '', status, mins, lat, lng, Math.round(+b.acc || 0), dist, photo);
+  if (Math.random() < 0.05) { const old = (n) => attLocal(new Date(Date.now() - n * 864e5), cfg.tz).day; attq.oldPhoto.run(old(60)); attq.oldRows.run(old(400)); }
+  return { s: 200, b: { rec: attView({ ...attq.byId.get(ins.lastInsertRowid), hp: 1 }), state: attState(me.id) } };
+}
+/* ----- Web Push (VAPID, tanpa isi pesan): perangkat kasir dibangunkan saat pesanan online masuk, meski aplikasi ditutup ----- */
+db.exec('CREATE TABLE IF NOT EXISTS push_subs(endpoint TEXT PRIMARY KEY, uid INTEGER NOT NULL, sub TEXT NOT NULL, created_at TEXT)');
+const pushq = {
+  all: db.prepare('SELECT * FROM push_subs'),
+  ins: db.prepare('INSERT INTO push_subs(endpoint,uid,sub,created_at) VALUES(?,?,?,?) ON CONFLICT(endpoint) DO UPDATE SET uid=excluded.uid, sub=excluded.sub'),
+  del: db.prepare('DELETE FROM push_subs WHERE endpoint=?'),
+  cnt: db.prepare('SELECT COUNT(*) AS n FROM push_subs WHERE uid=?'),
+};
+const vapid = (() => {
+  const kvg = db.prepare('SELECT v FROM kv WHERE k=?'), kvs = db.prepare('INSERT INTO kv(k,v) VALUES(?,?) ON CONFLICT(k) DO UPDATE SET v=excluded.v');
+  let o = null; try { const r = kvg.get('vapid'); if (r) o = JSON.parse(r.v); } catch (e) {}
+  if (!o) {
+    const { publicKey, privateKey } = crypto.generateKeyPairSync('ec', { namedCurve: 'P-256' });
+    const j = publicKey.export({ format: 'jwk' });
+    o = { priv: privateKey.export({ type: 'pkcs8', format: 'pem' }), pub: Buffer.concat([Buffer.from([4]), Buffer.from(j.x, 'base64url'), Buffer.from(j.y, 'base64url')]).toString('base64url') };
+    kvs.run('vapid', JSON.stringify(o));
+  }
+  return { key: crypto.createPrivateKey(o.priv), pub: o.pub };
+})();
+const b64u = (x) => Buffer.from(x).toString('base64url');
+function vapidAuth(endpoint) {
+  const head = b64u(JSON.stringify({ typ: 'JWT', alg: 'ES256' })), body = b64u(JSON.stringify({ aud: new URL(endpoint).origin, exp: Math.floor(Date.now() / 1000) + 12 * 3600, sub: 'mailto:admin@pos-sate.local' }));
+  const sig = crypto.sign('sha256', Buffer.from(head + '.' + body), { key: vapid.key, dsaEncoding: 'ieee-p1363' });
+  return 'vapid t=' + head + '.' + body + '.' + b64u(sig) + ', k=' + vapid.pub;
+}
+function pushNotify() {
+  for (const s of pushq.all.all()) {
+    const u = uq.byId.get(s.uid);
+    if (!u || !u.active || !can(u, 'co')) { pushq.del.run(s.endpoint); continue; }
+    fetch(s.endpoint, { method: 'POST', headers: { TTL: '300', Urgency: 'high', Authorization: vapidAuth(s.endpoint), 'Content-Length': '0' }, signal: AbortSignal.timeout(8000) })
+      .then((r) => { if (r.status === 404 || r.status === 410) pushq.del.run(s.endpoint); }).catch(() => {});
+  }
+}
 const coq = {
   ins: db.prepare('INSERT INTO co(tok,idem,day,num,name,tbl,type,note,lines,sub,tax,total,status,created_at,updated_at,pay) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)'),
   byIdem: db.prepare('SELECT * FROM co WHERE idem=?'),
@@ -280,7 +389,16 @@ const coq = {
 };
 function coSettings() {
   let o = {}; try { const r = coq.kvGet.get('co'); if (r) o = JSON.parse(r.v); } catch (e) {}
-  return { on: o.on !== false, msg: String(o.msg || '').slice(0, 200) };
+  return { on: o.on !== false, msg: String(o.msg || '').slice(0, 200), nt: ntClean(o.nt) };
+}
+function ntClean(j) {
+  const out = {};
+  if (!j || typeof j !== 'object') return out;
+  for (const ev of ['new', 'pay', 'cancel']) {
+    const c = j[ev];
+    if (c && typeof c === 'object') out[ev] = { on: c.on !== false, t: String(c.t || '').replace(/[\x00-\x1f]/g, '').slice(0, 80), b: String(c.b || '').replace(/[\x00-\x1f]/g, '').slice(0, 160) };
+  }
+  return out;
 }
 let coRev = Date.now();
 const waiters = new Set();
@@ -369,6 +487,7 @@ function createOrder(b, ip) {
   if (b.pay === 'duitnow') { if (!P.menu.pay.on) return [400, { error: 'Pembayaran online sedang tidak tersedia. Silakan bayar di kasir.' }]; pay = 'duitnow'; }
   const r = coq.ins.run(tok, key, day, num, name, clean(b.table, 12), type, clean(b.note, 200), JSON.stringify(lines), sub, tax, total, 'new', now.toISOString(), now.toISOString(), pay);
   coBump();
+  try { pushNotify(); } catch (e) {}
   return [200, { tok, ...custView(coq.byId.get(Number(r.lastInsertRowid))) }];
 }
 
@@ -423,7 +542,7 @@ const SEC = {
   'X-Content-Type-Options': 'nosniff',
   'Referrer-Policy': 'same-origin',
   'X-Frame-Options': 'SAMEORIGIN',
-  'Permissions-Policy': 'camera=(), microphone=(), geolocation=(self)',
+  'Permissions-Policy': 'camera=(self), microphone=(), geolocation=(self)',
 };
 function send(res, code, body, headers) {
   res.writeHead(code, { ...SEC, ...headers });
@@ -641,6 +760,42 @@ const server = http.createServer(async (req, res) => {
     }
     if (p === '/api/audit' && req.method === 'GET') { if (!isOwner) return forbid(); return json(res, 200, { log: uq.audList.all() }); }
 
+    /* ----- notifikasi push perangkat ----- */
+    if (p === '/api/push/key' && req.method === 'GET') return json(res, 200, { key: vapid.pub });
+    if (p === '/api/push/sub' && req.method === 'POST') {
+      if (!can(me, 'co')) return forbid();
+      const b = await rd(8 * 1024); const sb = b && b.subscription, ep = sb && String(sb.endpoint || '');
+      const devPush = process.env.PUSH_ALLOW_HTTP === '1';
+      let okEp = false; try { const eu = new URL(ep); okEp = devPush || (eu.protocol === 'https:' && !/^(localhost$|\[|\d+\.\d+\.\d+\.\d+$)/.test(eu.hostname)); } catch (e) {}
+      if (!ep || !okEp || ep.length > 1000 || !sb.keys) return json(res, 400, { error: 'langganan tidak valid' });
+      if (pushq.cnt.get(me.id).n >= 10 && !pushq.all.all().some((x) => x.endpoint === ep)) return json(res, 400, { error: 'terlalu banyak perangkat' });
+      pushq.ins.run(ep, me.id, JSON.stringify({ endpoint: ep, keys: sb.keys }), new Date().toISOString());
+      return json(res, 200, { ok: true });
+    }
+    if (p === '/api/push/sub' && req.method === 'DELETE') {
+      const b = await rd(8 * 1024); if (b && b.endpoint) pushq.del.run(String(b.endpoint));
+      return json(res, 200, { ok: true });
+    }
+
+    /* ----- absensi ----- */
+    if (p === '/api/att' && req.method === 'POST') {
+      const b = await rd(260 * 1024); if (!b) return json(res, 400, { error: 'bad json' });
+      const r = attDo(me, b);
+      if (r.s === 200) audit(me, r.b.rec.type === 'in' ? 'absen-masuk' : 'absen-pulang', (r.b.rec.shift || '-') + ' ' + r.b.rec.status + (r.b.rec.mins ? ' ' + r.b.rec.mins + 'mnt' : ''));
+      return json(res, r.s, r.b);
+    }
+    if (p === '/api/att' && req.method === 'GET') {
+      const cfg = attCfg(), nowD = attLocal(new Date(), cfg.tz).day, back = attLocal(new Date(Date.now() - 40 * 864e5), cfg.tz).day;
+      const fm = /^\d{4}-\d{2}-\d{2}$/, from = fm.test(u.searchParams.get('from') || '') ? u.searchParams.get('from') : back, to = fm.test(u.searchParams.get('to') || '') ? u.searchParams.get('to') : nowD;
+      const rows = (isOwner ? attq.range.all(from, to) : attq.rangeOwn.all(me.id, from, to)).map(attView);
+      return json(res, 200, { rows, me: attState(me.id), today: nowD, tz: attTz(cfg.tz) });
+    }
+    if (p === '/api/att/photo' && req.method === 'GET') {
+      const r = attq.byId.get(+u.searchParams.get('id') || 0);
+      if (!r || (!isOwner && r.uid !== me.id)) return json(res, 404, { error: 'tidak ada' });
+      return json(res, 200, { photo: r.photo });
+    }
+
     /* ----- kasir: pesanan pelanggan ----- */
     if (p.startsWith('/api/co') && !can(me, 'co')) return forbid('Anda tidak punya izin Pesanan Online');
     if (p === '/api/co' && req.method === 'GET') {
@@ -655,7 +810,7 @@ const server = http.createServer(async (req, res) => {
     if (p === '/api/co/settings' && req.method === 'PUT') {
       if (!can(me, 'set')) return forbid('Hanya owner atau pengguna dengan izin Pengaturan yang boleh membuka/menutup pemesanan');
       let b; try { b = JSON.parse(await readBody(req, 10 * 1024)); } catch (e) { return json(res, 400, { error: 'bad json' }); }
-      coq.kvSet.run('co', JSON.stringify({ on: !(b && b.on === false), msg: clean(b && b.msg, 200) }));
+      coq.kvSet.run('co', JSON.stringify({ on: !(b && b.on === false), msg: clean(b && b.msg, 200), nt: b && b.nt !== undefined ? ntClean(b.nt) : coSettings().nt }));
       coBump();
       return json(res, 200, coSettings());
     }

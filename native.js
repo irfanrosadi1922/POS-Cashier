@@ -5,15 +5,36 @@
   if(!C||!C.isNativePlatform||!C.isNativePlatform())return;
   var P={};
   function setNav(k,v){try{Object.defineProperty(navigator,k,{value:v,configurable:true,writable:true})}catch(e){try{navigator[k]=v}catch(e2){}}}
-  ['PushNotifications','BluetoothLe','ClassicBt'].forEach(function(n){
+  ['PushNotifications','LocalNotifications','BluetoothLe','ClassicBt'].forEach(function(n){
     try{P[n]=(C.Plugins&&C.Plugins[n])||(C.registerPlugin&&C.registerPlugin(n))||null}catch(e){P[n]=null}
   });
+
+  /* notifikasi sistem Android (WebView tidak punya Notification API) */
+  var CH={id:'orders',name:'Pesanan online',description:'Pesanan dan pembayaran dari pelanggan',importance:5,visibility:1,vibration:true,lights:true};
+  if(P.LocalNotifications){
+    var LN=P.LocalNotifications;
+    try{LN.createChannel(CH).catch(function(){})}catch(e){}
+    window.nativeNotify={
+      ask:async function(){try{var r=await LN.requestPermissions();return r.display==='granted'}catch(e){return false}},
+      show:async function(title,body){
+        try{
+          var p=await LN.checkPermissions();
+          if(p.display!=='granted'){p=await LN.requestPermissions();if(p.display!=='granted')return false}
+          await LN.schedule({notifications:[{id:Math.floor(Date.now()%2000000000),title:String(title),body:String(body),channelId:'orders'}]});
+          return true;
+        }catch(e){return false}
+      }
+    };
+  }
   /* notifikasi native (FCM) — aktif bila APK dibuat dengan google-services.json (window.POS_FCM) */
-  if(P.PushNotifications&&window.POS_FCM){
+  var fcmReady=(P.ClassicBt&&P.ClassicBt.hasFcm)?P.ClassicBt.hasFcm().then(function(r){return !!(r&&r.fcm)}).catch(function(){return !!window.POS_FCM}):Promise.resolve(!!window.POS_FCM);
+  if(P.PushNotifications){
     var PN=P.PushNotifications,cur='',hooked=false;
+    fcmReady.then(function(ok){if(ok)try{PN.createChannel(CH).catch(function(){})}catch(e){}});
     window.nativePush={
       async sync(api,want){
         try{
+          if(!(await fcmReady))return;
           if(!want){await this.off(api);return}
           var pr=await PN.requestPermissions();if(pr.receive!=='granted')return;
           if(!hooked){hooked=true;

@@ -35,7 +35,7 @@ Deno.serve(async (req) => {
       const r = await fetch(url, {
         method: 'POST', headers: { Authorization: 'Bearer ' + at, 'Content-Type': 'application/json' },
         body: JSON.stringify({ message: { token: t, notification: { title, body },
-          android: { priority: 'HIGH', notification: { sound: 'default' } } } }),
+          android: { priority: 'HIGH', notification: { sound: 'default', channel_id: 'orders' } } } }),
       });
       return r.status;
     }));

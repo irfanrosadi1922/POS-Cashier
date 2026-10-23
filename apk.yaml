@@ -17,6 +17,12 @@ jobs:
           mkdir www
           echo '{"appId":"com.possate.app","appName":"POS SATE","webDir":"www","backgroundColor":"#ffffff"}' > capacitor.config.json
           cp index.html dashboard.html order.html sw.js sbapi.js native.js config.js manifest.webmanifest icon-192.png icon-512.png www/
+          # alamat website publik untuk QR: variabel APP_URL > file CNAME > alamat GitHub Pages
+          PUB="${{ vars.APP_URL }}"
+          if [ -z "$PUB" ] && [ -f CNAME ]; then PUB="https://$(tr -d ' \r\n' < CNAME)/"; fi
+          if [ -z "$PUB" ]; then PUB="https://${GITHUB_REPOSITORY_OWNER}.github.io/${GITHUB_REPOSITORY#*/}/"; fi
+          echo "window.POS_PUBLIC_URL='$PUB';" >> www/native.js
+          echo "Alamat publik QR: $PUB"
           # Bila variabel APP_URL diisi, aplikasi membuka situs live (selalu terbaru)
           if [ -n "${{ vars.APP_URL }}" ]; then
             node -e "const c=require('./capacitor.config.json');c.server={url:'${{ vars.APP_URL }}',cleartext:false};require('fs').writeFileSync('capacitor.config.json',JSON.stringify(c,null,2))"
@@ -206,6 +212,14 @@ jobs:
               public void disconnect(PluginCall call) {
                   closeQuiet();
                   call.resolve();
+              }
+
+              @PluginMethod
+              public void hasFcm(PluginCall call) {
+                  int id = getContext().getResources().getIdentifier("google_app_id", "string", getContext().getPackageName());
+                  JSObject res = new JSObject();
+                  res.put("fcm", id != 0);
+                  call.resolve(res);
               }
 
               @PluginMethod

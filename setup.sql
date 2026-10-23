@@ -166,7 +166,8 @@ create or replace function pos.cust_view(r pos.co) returns jsonb language sql st
     'total', r.total, 'sub', r.sub, 'tax', r.tax, 'status', r.status, 'pay', r.pay, 'pst', r.pst, 'hp', r.proof <> '', 't', pos.iso(r.created_at)) $$;
 create or replace function pos.co_set() returns jsonb language sql stable as $$
   select jsonb_build_object('on', coalesce((select v ->> 'on' from pos.meta where k = 'co'), 'true') <> 'false',
-    'msg', left(coalesce((select v ->> 'msg' from pos.meta where k = 'co'), ''), 200)) $$;
+    'msg', left(coalesce((select v ->> 'msg' from pos.meta where k = 'co'), ''), 200),
+    'nt', coalesce((select v -> 'nt' from pos.meta where k = 'co'), '{}'::jsonb)) $$;
 
 -- ------------------------------------------------------------ penjaga tulis (karyawan)
 create or replace function pos.additive(a jsonb, b jsonb) returns boolean language plpgsql immutable as $$
@@ -326,6 +327,7 @@ begin
     values (tk, kk, v_day, '#' || lpad(n::text, 3, '0'), nm, pos.clean(b ->> 'table', 12), tp, pos.clean(b ->> 'note', 200), lines, sub, tx, tot, v_pay)
     returning * into r;
   if random() < 0.05 then delete from pos.co where status in ('done', 'cancelled') and updated_at < now() - interval '30 days'; end if;
+  perform pos.push_ev('new', r);
   perform pos.bump();
   return pos.r(200, jsonb_build_object('tok', tk) || pos.cust_view(r));
 end $$;
@@ -473,6 +475,7 @@ begin
       if v_proof <> '' or r.pst in (0, 3) then
         update pos.co set pst = 1, proof = case when v_proof <> '' then v_proof else proof end, updated_at = now() where id = r.id returning * into r;
         perform pos.bump();
+        perform pos.push_ev('pay', r);
       end if;
       return pos.r(200, pos.cust_view(r));
     end if;
@@ -482,6 +485,7 @@ begin
       if r.status <> 'new' then return pos.r(409, jsonb_build_object('error', 'Pesanan sudah diproses, hubungi kasir.', 'status', r.status)); end if;
       update pos.co set status = 'cancelled', updated_at = now() where id = r.id returning * into r;
       perform pos.bump();
+      perform pos.push_ev('cancel', r);
       return pos.r(200, pos.cust_view(r));
     end if;
     if m = 'GET' then return pos.r(200, pos.cust_view(r)); end if;
@@ -613,7 +617,8 @@ begin
   end if;
   if u = '/api/co/settings' and m = 'PUT' then
     if not pos.can(me, 'set') then return pos.r(403, '{"error":"Hanya owner atau pengguna dengan izin Pengaturan yang boleh membuka/menutup pemesanan"}'); end if;
-    insert into pos.meta(k, v) values ('co', jsonb_build_object('on', not (b ? 'on' and b -> 'on' = 'false'::jsonb), 'msg', pos.clean(b ->> 'msg', 200)))
+    insert into pos.meta(k, v) values ('co', jsonb_build_object('on', not (b ? 'on' and b -> 'on' = 'false'::jsonb), 'msg', pos.clean(b ->> 'msg', 200),
+      'nt', case when b ? 'nt' then pos.nt_clean(b -> 'nt') else coalesce((select m.v -> 'nt' from pos.meta m where m.k = 'co'), '{}'::jsonb) end))
       on conflict (k) do update set v = excluded.v;
     perform pos.bump();
     return pos.r(200, pos.co_set());
@@ -713,24 +718,47 @@ end $$;
 
 -- ------------------------------------------------------------ notifikasi pesanan online ke APK (opsional)
 create extension if not exists pg_net with schema extensions;
-create or replace function pos.push_new() returns trigger language plpgsql as $$
-declare cfg jsonb; toks jsonb;
+create or replace function pos.nt_clean(j jsonb) returns jsonb language plpgsql immutable as $$
+declare ev text; o jsonb := '{}'; c jsonb;
+begin
+  if jsonb_typeof(j) <> 'object' then return '{}'; end if;
+  foreach ev in array array['new', 'pay', 'cancel'] loop
+    c := j -> ev;
+    if jsonb_typeof(c) = 'object' then
+      o := o || jsonb_build_object(ev, jsonb_build_object('on', not (c ? 'on' and c -> 'on' = 'false'::jsonb),
+        't', left(regexp_replace(coalesce(c ->> 't', ''), '[[:cntrl:]]', '', 'g'), 80),
+        'b', left(regexp_replace(coalesce(c ->> 'b', ''), '[[:cntrl:]]', '', 'g'), 160)));
+    end if;
+  end loop;
+  return o;
+end $$;
+create or replace function pos.nt_fmt(tpl text, r pos.co) returns text language sql stable as $$
+  select btrim(regexp_replace(
+    replace(replace(replace(replace(replace(replace(tpl, '{no}', r.num), '{nama}', r.name),
+      '{meja}', case when r.tbl <> '' then 'Meja ' || r.tbl else '' end), '{total}', round(r.total, 2)::text), '{tipe}', r.type),
+      '{item}', coalesce((select string_agg((l ->> 'qty') || 'x ' || (l ->> 'name'), ', ') from jsonb_array_elements(r.lines) l), '')),
+    '\s+', ' ', 'g'), ' ·') $$;
+drop trigger if exists co_push on pos.co;
+drop function if exists pos.push_new();
+-- ev: 'new' (pesanan baru), 'pay' (bukti bayar masuk), 'cancel' (dibatalkan pelanggan)
+create or replace function pos.push_ev(ev text, r pos.co) returns void language plpgsql as $$
+declare cfg jsonb; toks jsonb; nt jsonb; t text; b text;
 begin
   select v into cfg from pos.meta where k = 'push';
-  if cfg is null then return new; end if;
+  if cfg is null then return; end if;
+  select v -> 'nt' -> ev into nt from pos.meta where k = 'co';
+  if jsonb_typeof(nt) = 'object' and nt ? 'on' and nt -> 'on' = 'false'::jsonb then return; end if;
   select coalesce(jsonb_agg(tok), '[]'::jsonb) into toks from pos.push_tokens;
-  if jsonb_array_length(toks) = 0 then return new; end if;
+  if jsonb_array_length(toks) = 0 then return; end if;
+  t := coalesce(nullif(nt ->> 't', ''), case ev when 'pay' then 'Pembayaran {no}' when 'cancel' then 'Dibatalkan {no}' else 'Pesanan online {no}' end);
+  b := coalesce(nullif(nt ->> 'b', ''), case ev when 'pay' then '{nama} mengirim bukti bayar · {total}' when 'cancel' then '{nama} membatalkan pesanan' else '{nama} {meja} · {tipe} · {total}' end);
   perform net.http_post(
     url := cfg ->> 'url',
     headers := jsonb_build_object('Content-Type', 'application/json', 'x-push-key', cfg ->> 'key'),
-    body := jsonb_build_object('tokens', toks, 'title', 'Pesanan online ' || new.num,
-      'body', new.name || case when new.tbl <> '' then ' · Meja ' || new.tbl else '' end || ' · ' || new.type));
-  return new;
+    body := jsonb_build_object('tokens', toks, 'title', pos.nt_fmt(t, r), 'body', pos.nt_fmt(b, r)));
 exception when others then
-  return new;   -- gagal kirim notifikasi tidak boleh menggagalkan pesanan
+  return;   -- gagal kirim notifikasi tidak boleh menggagalkan pesanan
 end $$;
-drop trigger if exists co_push on pos.co;
-create trigger co_push after insert on pos.co for each row execute function pos.push_new();
 -- Aktifkan:  select pos.admin_push('https://XXXX.supabase.co/functions/v1/notify-order', 'kunci-rahasia-Anda');
 drop function if exists pos.admin_push(text, text);
 create or replace function pos.admin_push(pu text, pk text) returns text language plpgsql as $$

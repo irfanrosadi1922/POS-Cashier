@@ -1376,16 +1376,79 @@ function bdSet(k,f,v){const c=S.edit.bd[k];if(!c)return;if(f==='q')c.q=Math.max(
 function bdAdd(){S.edit.bd.push({id:'',q:1});bdRender()}
 function bdDel(k){S.edit.bd.splice(k,1);bdRender()}
 function bdToggle(){const on=$('#fB').checked;if(on&&bdUsedBy(S.edit.id)){$('#fB').checked=false;toast('Item ini sudah jadi isi paket lain, tidak bisa dijadikan paket');return}$('#bdBox').hidden=!on;$('#stkRow').style.display=on?'none':'';if(on&&!S.edit.bd.length)S.edit.bd.push({id:'',q:1});bdRender()}
+/* ---------- pangkas (crop) gambar: dipakai untuk logo dan gambar menu ---------- */
+function cropImg(file,o){
+  const rd=new FileReader();
+  rd.onload=e=>{const im=new Image();im.onload=()=>cropUi(im,o);im.onerror=()=>toast('Gambar tidak valid');im.src=e.target.result};
+  rd.onerror=()=>toast('Gambar tidak bisa dibaca');rd.readAsDataURL(file);
+}
+function cropUi(im,o){
+  const old=document.getElementById('cropOv');if(old)old.remove();
+  const asp=(o.aspects||[['1:1',1]]).map(a=>a[1]==='img'?[a[0],im.width/im.height]:a);
+  const ov=document.createElement('div');ov.id='cropOv';
+  ov.style.cssText='position:fixed;inset:0;z-index:100000;background:#111;display:flex;flex-direction:column;color:#fff;font-family:system-ui,sans-serif;touch-action:none';
+  ov.innerHTML=`<div style="padding:14px 16px;font-weight:700;font-size:17px">${esc(o.title||'Pangkas gambar')}</div>
+  <div id="crStage" style="flex:1;position:relative;overflow:hidden;touch-action:none"><canvas id="crC" style="position:absolute;inset:0;width:100%;height:100%"></canvas></div>
+  <div style="padding:10px 16px 6px;display:flex;gap:8px;flex-wrap:wrap;justify-content:center" id="crAsp"></div>
+  <div style="padding:4px 20px;display:flex;align-items:center;gap:10px"><span style="font-size:13px;opacity:.7">Zoom</span><input id="crZ" type="range" min="1" max="4" step="0.01" value="1" style="flex:1"></div>
+  <div style="padding:10px 16px calc(14px + env(safe-area-inset-bottom));display:flex;gap:10px"><button id="crNo" type="button" style="flex:1;padding:14px;border:0;border-radius:14px;background:#333;color:#fff;font-size:16px">Batal</button><button id="crOk" type="button" style="flex:2;padding:14px;border:0;border-radius:14px;background:#ff6a00;color:#fff;font-weight:700;font-size:16px">Pakai gambar</button></div>`;
+  document.body.appendChild(ov);
+  const cv=ov.querySelector('#crC'),st=ov.querySelector('#crStage'),zr=ov.querySelector('#crZ'),ab=ov.querySelector('#crAsp');
+  let ai=0,W=0,H=0,fx=0,fy=0,fw=0,fh=0,base=1,z=1,ox=0,oy=0;
+  const clamp=()=>{const s=base*z,iw=im.width*s,ih=im.height*s;ox=Math.min(fx,Math.max(fx+fw-iw,ox));oy=Math.min(fy,Math.max(fy+fh-ih,oy))};
+  const frame=()=>{
+    const r=st.getBoundingClientRect();W=Math.max(50,r.width);H=Math.max(50,r.height);
+    const dpr=window.devicePixelRatio||1;cv.width=Math.round(W*dpr);cv.height=Math.round(H*dpr);
+    const a=asp[ai][1],pad=20;let w=W-pad*2,h=w/a;if(h>H-pad*2){h=H-pad*2;w=h*a}
+    fw=w;fh=h;fx=(W-w)/2;fy=(H-h)/2;base=Math.max(fw/im.width,fh/im.height);
+  };
+  const draw=()=>{
+    clamp();const x=cv.getContext('2d'),dpr=cv.width/W,s=base*z;
+    x.setTransform(dpr,0,0,dpr,0,0);x.fillStyle='#111';x.fillRect(0,0,W,H);
+    x.drawImage(im,ox,oy,im.width*s,im.height*s);
+    x.fillStyle='rgba(0,0,0,.6)';x.fillRect(0,0,W,fy);x.fillRect(0,fy+fh,W,H-fy-fh);x.fillRect(0,fy,fx,fh);x.fillRect(fx+fw,fy,W-fx-fw,fh);
+    x.strokeStyle='#fff';x.lineWidth=2;x.strokeRect(fx,fy,fw,fh);
+    x.strokeStyle='rgba(255,255,255,.35)';x.lineWidth=1;x.beginPath();
+    for(let i=1;i<3;i++){x.moveTo(fx+fw*i/3,fy);x.lineTo(fx+fw*i/3,fy+fh);x.moveTo(fx,fy+fh*i/3);x.lineTo(fx+fw,fy+fh*i/3)}x.stroke();
+  };
+  const center=()=>{z=1;zr.value=1;const s=base;ox=fx+(fw-im.width*s)/2;oy=fy+(fh-im.height*s)/2};
+  const setZ=(nz,cx,cy)=>{
+    nz=Math.min(4,Math.max(1,nz));const s0=base*z,s1=base*nz;
+    if(cx==null){cx=fx+fw/2;cy=fy+fh/2}
+    ox=cx-(cx-ox)*s1/s0;oy=cy-(cy-oy)*s1/s0;z=nz;zr.value=z;draw();
+  };
+  const chips=()=>{ab.innerHTML=asp.map((a,i)=>`<button type="button" data-i="${i}" style="padding:8px 14px;border:0;border-radius:999px;font-size:14px;background:${i===ai?'#ff6a00':'#333'};color:#fff">${esc(a[0])}</button>`).join('')};
+  ab.onclick=e=>{const b=e.target.closest('button');if(!b)return;ai=+b.dataset.i;frame();center();chips();draw()};
+  if(asp.length<2)ab.style.display='none';
+  zr.oninput=()=>setZ(+zr.value);
+  const P=new Map();let pd=0;
+  const pos=e=>{const r=st.getBoundingClientRect();return[e.clientX-r.left,e.clientY-r.top]};
+  st.onpointerdown=e=>{try{st.setPointerCapture(e.pointerId)}catch(x){}P.set(e.pointerId,pos(e));pd=0};
+  st.onpointermove=e=>{
+    if(!P.has(e.pointerId))return;const [nx,ny]=pos(e),[px,py]=P.get(e.pointerId);
+    if(P.size===1){ox+=nx-px;oy+=ny-py;P.set(e.pointerId,[nx,ny]);draw()}
+    else{
+      const o2=[...P.entries()].find(([k])=>k!==e.pointerId)[1],d0=Math.hypot(px-o2[0],py-o2[1]),d1=Math.hypot(nx-o2[0],ny-o2[1]);
+      P.set(e.pointerId,[nx,ny]);if(d0>0)setZ(z*d1/d0,(nx+o2[0])/2,(ny+o2[1])/2);
+    }
+  };
+  st.onpointerup=st.onpointercancel=e=>{P.delete(e.pointerId)};
+  st.onwheel=e=>{e.preventDefault();const [x,y]=pos(e);setZ(z*(e.deltaY<0?1.1:1/1.1),x,y)};
+  const close=()=>{window.removeEventListener('resize',rs);ov.remove()};
+  const rs=()=>{frame();center();draw()};window.addEventListener('resize',rs);
+  ov.querySelector('#crNo').onclick=close;
+  ov.querySelector('#crOk').onclick=()=>{
+    clamp();const s=base*z,sx=(fx-ox)/s,sy=(fy-oy)/s,sw=fw/s,sh=fh/s;
+    const k=Math.min(1,(o.max||480)/Math.max(sw,sh)),c=document.createElement('canvas');
+    c.width=Math.max(1,Math.round(sw*k));c.height=Math.max(1,Math.round(sh*k));
+    const x=c.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,c.width,c.height);x.drawImage(im,sx,sy,sw,sh,0,0,c.width,c.height);
+    const d=c.toDataURL('image/jpeg',o.q||.85);close();o.cb(d);
+  };
+  chips();frame();center();draw();
+}
 function pickImg(inp){
-  const f=inp.files[0];if(!f)return;
-  const r=new FileReader();
-  r.onload=e=>{const im=new Image();im.onload=()=>{
-    const M=480,k=Math.min(1,M/Math.max(im.width,im.height)),c=document.createElement('canvas');
-    c.width=Math.round(im.width*k);c.height=Math.round(im.height*k);
-    const x=c.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,c.width,c.height);x.drawImage(im,0,0,c.width,c.height);
-    S.edit.img=c.toDataURL('image/jpeg',.8);$('#pv').innerHTML=`<img src="${S.edit.img}">`;
-  };im.onerror=()=>toast('Gambar tidak valid');im.src=e.target.result};
-  r.readAsDataURL(f);
+  const f=inp.files[0];inp.value='';if(!f)return;
+  cropImg(f,{title:'Pangkas gambar menu',aspects:[['1:1',1],['4:3',4/3],['3:4',3/4]],max:480,q:.8,cb:d=>{S.edit.img=d;const pv=$('#pv');if(pv)pv.innerHTML=`<img src="${d}">`}});
 }
 function saveItem(){
   const name=$('#fN').value.trim(),price=rnd(+$('#fP').value);
@@ -1749,20 +1812,8 @@ function renderRc(){
   renderRcPrev();
 }
 function pickLogo(inp){
-  const f=inp.files[0];if(!f)return;
-  const rd=new FileReader();
-  rd.onload=e=>{
-    const im=new Image();
-    im.onload=()=>{
-      const k=Math.min(1,360/im.width),c=document.createElement('canvas');
-      c.width=Math.round(im.width*k);c.height=Math.round(im.height*k);
-      const x=c.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,c.width,c.height);x.drawImage(im,0,0,c.width,c.height);
-      setLogo(c.toDataURL('image/jpeg',.85));
-    };
-    im.onerror=()=>toast('Gambar tidak valid');
-    im.src=e.target.result;
-  };
-  rd.readAsDataURL(f);inp.value='';
+  const f=inp.files[0];inp.value='';if(!f)return;
+  cropImg(f,{title:'Pangkas logo',aspects:[['Bebas',"img"],['1:1',1],['2:1',2],['3:1',3]],max:360,q:.85,cb:d=>setLogo(d)});
 }
 function setLogo(d){db.set.logo=d;if(d)db.set.rc.showLogo=true;save();applyBrand();renderLogo();renderRc()}
 function setLogoApp(v){db.set.logoApp=v;save();applyBrand()}
@@ -2547,7 +2598,20 @@ const CO={rev:0,list:[],set:{on:true,msg:''},seen:new Set(),mine:new Set(),run:f
 function coPref(k,d){try{const p=JSON.parse(localStorage.getItem('pos_co')||'{}');return p[k]==null?d:p[k]}catch(e){return d}}
 function coSetPref(k,v){let p={};try{p=JSON.parse(localStorage.getItem('pos_co')||'{}')}catch(e){}p[k]=v;try{localStorage.setItem('pos_co',JSON.stringify(p))}catch(e){}}
 const coNew=()=>CO.list.filter(o=>o.status==='new');
-const coUrl=t=>new URL('order.html',location.href).href.split('#')[0]+(t?'?t='+encodeURIComponent(t):'');
+/* alamat publik untuk QR: pengaturan manual > alamat dari build APK > alamat halaman ini (bukan localhost) */
+function pubBase(){
+  let b=String(db.set.pubUrl||'').trim()||String(window.POS_PUBLIC_URL||'').trim();
+  if(b){
+    if(!/^https?:\/\//i.test(b))b='https://'+b;
+    b=b.split('#')[0].split('?')[0].replace(/order(\.html)?$/i,'');
+    if(!b.endsWith('/'))b+='/';
+    try{return new URL('order.html',b).href}catch(e){}
+  }
+  return new URL('order.html',location.href).href.split('#')[0];
+}
+const urlLocal=()=>{try{return /^(localhost|127\.|0\.0\.0\.0|\[::1\])/.test(new URL(pubBase()).hostname)||!/^https?:$/.test(new URL(pubBase()).protocol)}catch(e){return true}};
+const coUrl=t=>pubBase()+(t?'?t='+encodeURIComponent(t):'');
+function coSetPub(v){db.set.pubUrl=String(v||'').trim();save();coQrDraw()}
 function ago(t){const s=Math.max(0,(Date.now()-new Date(t))/1000|0);if(s<60)return'baru saja';if(s<3600)return Math.floor(s/60)+' mnt lalu';if(s<86400)return Math.floor(s/3600)+' jam lalu';return new Date(t).toLocaleDateString(dloc())}
 
 /* bunyi, notifikasi sistem, layar tetap menyala */
@@ -2563,12 +2627,61 @@ function coBeep(){
     o.connect(g);g.connect(a.destination);o.start(t+d);o.stop(t+d+.2);
   });
 }
-async function coNotify(title,body){
-  if(!coPref('notif',true)||!('Notification' in window)||Notification.permission!=='granted')return;
+async function coNotify(title,body,tag){
+  if(!coPref('notif',true))return;
+  if(window.nativeNotify){try{await nativeNotify.show(title,body)}catch(e){}return}
+  if(!('Notification' in window)||Notification.permission!=='granted')return;
   try{
-    const reg=navigator.serviceWorker&&await navigator.serviceWorker.getRegistration(),o={body,tag:'co',renotify:true,icon:'icon-192.png',badge:'icon-192.png',vibrate:[200,100,200]};
+    const reg=navigator.serviceWorker&&await navigator.serviceWorker.getRegistration(),o={body,tag:tag||'co',renotify:true,icon:'icon-192.png',badge:'icon-192.png',vibrate:[200,100,200]};
     if(reg&&reg.showNotification)await reg.showNotification(title,o);else new Notification(title,o);
   }catch(e){}
+}
+/* teks notifikasi (bisa diubah owner): kode {no} {nama} {meja} {total} {tipe} {item} */
+const NT_EV={
+  new:{l:'Pesanan baru masuk',t:'Pesanan online {no}',b:'{nama} {meja} · {tipe} · {total}'},
+  pay:{l:'Bukti pembayaran masuk',t:'Pembayaran {no}',b:'{nama} mengirim bukti bayar · {total}'},
+  cancel:{l:'Pesanan dibatalkan pelanggan',t:'Dibatalkan {no}',b:'{nama} membatalkan pesanan'}
+};
+function ntCfg(ev){const c=((CO.set&&CO.set.nt)||{})[ev]||{},d=NT_EV[ev];return{on:c.on!==false,t:c.t||d.t,b:c.b||d.b}}
+function ntFmt(tpl,o){
+  const m={no:o.num,nama:o.name,meja:o.tbl?'Meja '+o.tbl:'',total:money(o.total),tipe:tr(o.type),item:(o.lines||[]).map(l=>l.qty+'x '+l.name).join(', ')};
+  return String(tpl).replace(/\{(\w+)\}/g,(x,k)=>m[k]==null?x:m[k]).replace(/\s+/g,' ').replace(/^[\s·]+|[\s·]+$/g,'');
+}
+function coEvents(evs){
+  const act=evs.filter(([ev])=>ntCfg(ev).on);if(!act.length)return;
+  act.forEach(([ev,o])=>{
+    const c=ntCfg(ev),t=ntFmt(c.t,o),b=ntFmt(c.b,o);
+    toast(t+' — '+b);clearTimeout(toast.t);toast.t=setTimeout(()=>$('#toast').classList.remove('on'),7000);
+    if(document.hidden)coNotify(t,b,'co-'+ev+'-'+o.id);
+  });
+  CO.ring=0;coBeep();
+  try{if(coPref('vib',true)&&navigator.vibrate)navigator.vibrate([200,100,200])}catch(e){}
+}
+async function coSaveNt(){
+  const nt={};
+  for(const ev of Object.keys(NT_EV)){
+    const g=k=>$('#nt_'+ev+'_'+k);if(!g('on'))return;
+    nt[ev]={on:g('on').checked,t:g('t').value.trim(),b:g('b').value.trim()};
+  }
+  try{
+    const r=await api('/api/co/settings',{method:'PUT',body:JSON.stringify({on:!!(($('#coOn')||{checked:CO.set.on}).checked),msg:($('#coMsg')||{value:CO.set.msg||''}).value,nt})});
+    if(!r.ok)throw 0;CO.set=await r.json();toast('Pengaturan notifikasi disimpan');
+  }catch(e){toast('Gagal menyimpan notifikasi')}
+}
+function ntReset(){for(const ev of Object.keys(NT_EV)){$('#nt_'+ev+'_on').checked=true;$('#nt_'+ev+'_t').value='';$('#nt_'+ev+'_b').value=''}coSaveNt()}
+function ntTest(){
+  const o={num:'#012',name:'Budi',tbl:'5',type:'Dine In',total:45,lines:[{qty:2,name:'Sate Ayam'},{qty:1,name:'Es Teh'}]};
+  Object.keys(NT_EV).forEach((ev,i)=>setTimeout(()=>{const c=ntCfg(ev),t=ntFmt(c.t,o),b=ntFmt(c.b,o);toast(t+' — '+b);coNotify(t,b,'test-'+ev)},i*1500));
+  coBeep();
+}
+function ntForm(){
+  const row=ev=>{const d=NT_EV[ev],c=ntCfg(ev),cur=((CO.set&&CO.set.nt)||{})[ev]||{};
+    return`<div class="ntr" style="margin:10px 0"><label class="tgl"><input type="checkbox" id="nt_${ev}_on" ${c.on?'checked':''} onchange="coSaveNt()"><span>${d.l}</span></label>
+    <input class="fi" id="nt_${ev}_t" value="${esc(cur.t||'')}" placeholder="${esc(d.t)}" maxlength="80" onchange="coSaveNt()" aria-label="Judul">
+    <input class="fi" id="nt_${ev}_b" value="${esc(cur.b||'')}" placeholder="${esc(d.b)}" maxlength="160" onchange="coSaveNt()" aria-label="Isi" style="margin-top:6px"></div>`};
+  return`<h3 style="margin-top:18px">Notifikasi</h3>${Object.keys(NT_EV).map(row).join('')}
+  <p class="hint">Kosongkan kolom untuk memakai teks bawaan. Kode: {no} {nama} {meja} {total} {tipe} {item}</p>
+  <div class="cob"><button class="btn sec" onclick="ntTest()"><i class="ic" data-ic="bell"></i>Tes notifikasi</button><button class="btn sec" onclick="ntReset()">Kembalikan bawaan</button></div>`;
 }
 /* langganan push ke server: pesanan online masuk membangunkan perangkat ini walau aplikasi ditutup */
 const b64ToU8=b=>{const p='='.repeat((4-b.length%4)%4),r=atob((b+p).replace(/-/g,'+').replace(/_/g,'/'));return Uint8Array.from(r,c=>c.charCodeAt(0))};
@@ -2588,7 +2701,8 @@ async function coPushSync(){
 }
 async function coSetNotif(on){
   if(on){
-    if(!('Notification' in window)){toast('Browser ini tidak mendukung notifikasi sistem');on=false}
+    if(window.nativeNotify){if(!(await nativeNotify.ask())){toast('Izin notifikasi ditolak. Aktifkan di pengaturan HP.');on=false}}
+    else if(!('Notification' in window)){toast('Browser ini tidak mendukung notifikasi sistem');on=false}
     else{const p=Notification.permission==='granted'?'granted':await Notification.requestPermission();if(p!=='granted'){toast('Izin notifikasi ditolak. Aktifkan di pengaturan browser.');on=false}}
   }
   coSetPref('notif',on);coPushSync();renderCo(true);
@@ -2633,14 +2747,12 @@ function coApply(j){
   if(S.view==='set'&&!(document.activeElement&&document.activeElement.closest&&document.activeElement.closest('#coForm')))renderCoSet();
   const fresh=CO.list.filter(o=>o.status==='new'&&!CO.seen.has(o.id));
   fresh.forEach(o=>CO.seen.add(o.id));
-  CO.list.forEach(o=>{const p=prev.get(o.id);if(p&&p.status!=='cancelled'&&o.status==='cancelled'&&!CO.mine.has(o.id))toast('Pesanan '+o.num+' ('+o.name+') dibatalkan pelanggan')});
-  if(fresh.length){
-    const names=fresh.map(o=>o.name+(o.tbl?' (Meja '+o.tbl+')':'')).join(', ');
-    toast('Pesanan baru: '+names);clearTimeout(toast.t);toast.t=setTimeout(()=>$('#toast').classList.remove('on'),7000);
-    CO.ring=0;coBeep();
-    try{if(navigator.vibrate)navigator.vibrate([200,100,200])}catch(e){}
-    if(document.hidden)coNotify('Pesanan baru '+fresh[0].num,names+' · '+money(fresh.reduce((s,o)=>s+o.total,0)));
-  }
+  const evs=fresh.map(o=>['new',o]);
+  CO.list.forEach(o=>{const p=prev.get(o.id);if(!p||CO.mine.has(o.id))return;
+    if(p.pst!==1&&o.pst===1)evs.push(['pay',o]);
+    if(p.status!=='cancelled'&&o.status==='cancelled')evs.push(['cancel',o]);
+  });
+  coEvents(evs);
   coBadge();
   if(S.view==='co')renderCo(false);
   coAutoPrint();
@@ -2782,6 +2894,9 @@ function coQr(){
   openModal(`<h3>QR Pesanan</h3><div class="qrbox" id="qrBox"></div>
   <label class="fl">Nomor meja (opsional, pesanan otomatis tahu mejanya)</label>
   <input class="fi" id="qrT" value="${esc(S.coT||'')}" maxlength="12" oninput="coQrDraw()" placeholder="mis. 5">
+  <label class="fl">Alamat website pelanggan (untuk QR)</label>
+  <input class="fi" id="qrPub" value="${esc(db.set.pubUrl||window.POS_PUBLIC_URL||'')}" placeholder="https://namaanda.com/" inputmode="url" autocapitalize="none" onchange="coSetPub(this.value)">
+  <p class="hint" id="qrWarn" style="color:#d33;display:none">Alamat QR masih localhost, pelanggan tidak bisa membukanya. Isi alamat website Anda di atas.</p>
   <p class="hint" id="qrU" style="word-break:break-all"></p>
   <button class="btn" onclick="coQrPrint()"><i class="ic" data-ic="print"></i>Cetak kartu QR</button>
   <button class="btn sec" onclick="coQrPng()"><i class="ic" data-ic="download"></i>Unduh gambar (PNG)</button>
@@ -2789,7 +2904,7 @@ function coQr(){
   <button class="btn sec" onclick="closeModal()">Tutup</button>`);
   coQrDraw();
 }
-function coQrDraw(){const t=($('#qrT').value||'').trim();S.coT=t;const u=coUrl(t);$('#qrBox').innerHTML=qrSvg(u,260);$('#qrU').textContent=u}
+function coQrDraw(){const t=($('#qrT').value||'').trim();S.coT=t;const u=coUrl(t);$('#qrBox').innerHTML=qrSvg(u,260);$('#qrU').textContent=u;const w=$('#qrWarn');if(w)w.style.display=urlLocal()?'':'none'}
 function coQrPrint(){
   const t=S.coT||'',u=coUrl(t);
   $('#pageStyle').textContent='@media print{@page{size:auto;margin:8mm}}';
@@ -2822,7 +2937,7 @@ function renderCo(full){
   const st=CO.set||{on:true,msg:''};
   if(full||!$('#coTop').innerHTML){
     const ck=(k,d,l,fn)=>`<label class="tgl"><input type="checkbox" ${coPref(k,d)?'checked':''} onchange="${fn||`coSetPref('${k}',this.checked)`}"><span>${l}</span></label>`;
-    $('#coTop').innerHTML=`<div class="tgls">${ck('auto',true,'Cetak tiket otomatis')}${ck('sound',true,'Bunyi saat pesanan masuk')}${ck('notif',true,'Notifikasi sistem',"coSetNotif(this.checked)")}${ck('awake',true,'Layar tetap menyala',"coSetAwake(this.checked)")}</div>
+    $('#coTop').innerHTML=`<div class="tgls">${ck('auto',true,'Cetak tiket otomatis')}${ck('sound',true,'Bunyi saat pesanan masuk')}${ck('vib',true,'Getar saat pesanan masuk')}${ck('notif',true,'Notifikasi sistem',"coSetNotif(this.checked)")}${ck('awake',true,'Layar tetap menyala',"coSetAwake(this.checked)")}</div>
     <div class="cob"><button class="btn sec" onclick="coBeep()"><i class="ic" data-ic="bell"></i>Tes bunyi</button><button class="btn sec" onclick="coTestPrint()"><i class="ic" data-ic="print"></i>Tes tiket</button><button class="btn sec" onclick="prnConnect().then(()=>renderCo(false))"><i class="ic" data-ic="plug"></i>Sambungkan printer</button></div>`;
   }
   const gear=$('#coGear');if(gear)gear.hidden=!can('set');
@@ -2917,7 +3032,7 @@ function renderCoSet(){
     <label class="fl">Pesan saat ditutup (tampil ke pelanggan)</label>
     <input class="fi" id="coMsg" value="${esc(st.msg||'')}" maxlength="200" placeholder="mis. Dapur tutup, silakan pesan ke kasir" onchange="coSetOpen($('#coOn').checked)">
     <div class="cob"><button class="btn" onclick="coQr()"><i class="ic" data-ic="qr"></i>Tampilkan / Cetak QR</button><button class="btn sec" onclick="coCopy()"><i class="ic" data-ic="copy"></i>Salin tautan</button></div>
-`;
+${ntForm()}`;
 }
 function coStart(){
   if(!CL.on)return;
