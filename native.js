@@ -4,10 +4,9 @@
   var C=window.Capacitor;
   if(!C||!C.isNativePlatform||!C.isNativePlatform())return;
   var P={};
-  ['KeepAwake','PushNotifications','BluetoothLe'].forEach(function(n){
+  ['PushNotifications','BluetoothLe'].forEach(function(n){
     try{P[n]=(C.Plugins&&C.Plugins[n])||(C.registerPlugin&&C.registerPlugin(n))||null}catch(e){P[n]=null}
   });
-  try{if(P.KeepAwake&&P.KeepAwake.keepAwake)P.KeepAwake.keepAwake()}catch(e){}
   /* notifikasi native (FCM) — aktif bila APK dibuat dengan google-services.json (window.POS_FCM) */
   if(P.PushNotifications&&window.POS_FCM){
     var PN=P.PushNotifications,cur='',hooked=false;
