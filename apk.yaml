@@ -6,6 +6,8 @@ on:
 jobs:
   apk:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -340,3 +342,9 @@ jobs:
         with:
           name: POS-SATE-apk
           path: out/*
+      - name: Terbitkan APK di Releases
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release delete apk-terbaru --cleanup-tag --yes || true
+          gh release create apk-terbaru out/POS-SATE.apk --title "POS SATE (APK terbaru)" --notes "Unduh POS-SATE.apk lalu pasang di HP Android. Dibuat otomatis dari commit ${GITHUB_SHA::7}."
