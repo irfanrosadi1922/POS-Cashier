@@ -50,7 +50,12 @@ jobs:
           import android.bluetooth.BluetoothAdapter;
           import android.bluetooth.BluetoothDevice;
           import android.bluetooth.BluetoothSocket;
+          import android.content.ContentResolver;
+          import android.content.ContentValues;
+          import android.net.Uri;
           import android.os.Build;
+          import android.os.Environment;
+          import android.provider.MediaStore;
           import android.util.Base64;
 
           import com.getcapacitor.JSArray;
@@ -63,6 +68,8 @@ jobs:
           import com.getcapacitor.annotation.Permission;
           import com.getcapacitor.annotation.PermissionCallback;
 
+          import java.io.File;
+          import java.io.FileOutputStream;
           import java.io.OutputStream;
           import java.util.Set;
           import java.util.UUID;
@@ -212,6 +219,49 @@ jobs:
               public void disconnect(PluginCall call) {
                   closeQuiet();
                   call.resolve();
+              }
+
+              /* simpan gambar PNG ke galeri / album (Pictures/POS SATE) */
+              @PluginMethod
+              public void saveImage(PluginCall call) {
+                  try {
+                      String b64 = call.getString("data", "");
+                      String name = call.getString("name", "qr.png");
+                      if (b64 == null || b64.isEmpty()) { call.reject("Data gambar kosong"); return; }
+                      byte[] bytes = Base64.decode(b64, Base64.DEFAULT);
+                      String dir = "POS SATE";
+                      if (Build.VERSION.SDK_INT >= 29) {
+                          ContentResolver cr = getContext().getContentResolver();
+                          ContentValues v = new ContentValues();
+                          v.put(MediaStore.MediaColumns.DISPLAY_NAME, name);
+                          v.put(MediaStore.MediaColumns.MIME_TYPE, "image/png");
+                          v.put(MediaStore.MediaColumns.RELATIVE_PATH, Environment.DIRECTORY_PICTURES + "/" + dir);
+                          v.put(MediaStore.MediaColumns.IS_PENDING, 1);
+                          Uri u = cr.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, v);
+                          if (u == null) { call.reject("Gagal membuat berkas gambar"); return; }
+                          OutputStream os = cr.openOutputStream(u);
+                          if (os == null) { call.reject("Gagal membuka berkas gambar"); return; }
+                          try { os.write(bytes); os.flush(); } finally { os.close(); }
+                          ContentValues d = new ContentValues();
+                          d.put(MediaStore.MediaColumns.IS_PENDING, 0);
+                          cr.update(u, d, null, null);
+                      } else {
+                          File f = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES), dir);
+                          if (!f.exists()) f.mkdirs();
+                          File out = new File(f, name);
+                          FileOutputStream os = new FileOutputStream(out);
+                          try { os.write(bytes); os.flush(); } finally { os.close(); }
+                          ContentValues v = new ContentValues();
+                          v.put(MediaStore.Images.Media.DATA, out.getAbsolutePath());
+                          v.put(MediaStore.Images.Media.MIME_TYPE, "image/png");
+                          getContext().getContentResolver().insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, v);
+                      }
+                      JSObject res = new JSObject();
+                      res.put("saved", true);
+                      call.resolve(res);
+                  } catch (Exception e) {
+                      call.reject("Gagal menyimpan gambar: " + e.getMessage());
+                  }
               }
 
               @PluginMethod

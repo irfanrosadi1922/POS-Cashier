@@ -1060,7 +1060,7 @@ function qrRaster(text,dots){
     return imgToRaster(c.toDataURL('image/png'),dots,W);
   }catch(e){return Promise.resolve([])}
 }
-async function buildEscPos(o){
+async function buildEscPos(o,model){
   const s=db.set,p=s.prn,r=s.rc,small=r.font==='small',large=r.font==='large';
   const dots=s.paper==='58'?384:576,cols=s.paper==='58'?(small?42:32):(small?64:48);
   const base=(small?1:0)|(large?0x10:0),out=[];
@@ -1069,7 +1069,7 @@ async function buildEscPos(o){
   const mode=x=>add([0x1b,0x21,base|x]);
   const align=a=>add([0x1b,0x61,a==='center'?1:a==='right'?2:0]);
   add([0x1b,0x40,0x1b,0x4d,small?1:0]);
-  for(const e of receiptModel(o)){
+  for(const e of (model||receiptModel(o))){
     if(e.t==='logo'){
       align('center');
       add(await imgToRaster(db.set.logo,dots,Math.min(r.logoW,dots)));
@@ -2905,22 +2905,65 @@ function coQr(){
   coQrDraw();
 }
 function coQrDraw(){const t=($('#qrT').value||'').trim();S.coT=t;const u=coUrl(t);$('#qrBox').innerHTML=qrSvg(u,260);$('#qrU').textContent=u;const w=$('#qrWarn');if(w)w.style.display=urlLocal()?'':'none'}
-function coQrPrint(){
-  const t=S.coT||'',u=coUrl(t);
-  $('#pageStyle').textContent='@media print{@page{size:auto;margin:8mm}}';
-  openModal(`<h3>Kartu QR</h3><div class="rc-wrap"><div id="receipt" class="rcpt" style="text-align:center;font-size:14px;width:auto;max-width:340px;margin:auto;font-family:system-ui,sans-serif">
-  <b style="font-size:22px">${esc(db.set.store)}</b><div style="margin:6px 0 2px">Scan untuk memesan</div>${qrSvg(u,260)}
-  ${t?`<div style="font-size:28px;font-weight:800">MEJA ${esc(t)}</div>`:''}<div style="font-size:11px;margin-top:4px;word-break:break-all">${esc(u)}</div></div></div>
-  <button class="btn" onclick="window.print()"><i class="ic" data-ic="print"></i>Cetak</button><button class="btn sec" onclick="coQr()">Kembali</button>`);
+function qrModel(t,u){
+  const m=[{t:'text',x:db.set.store||'',a:'center',b:1,big:1},{t:'text',x:'Scan untuk memesan',a:'center'},{t:'qr',x:u}];
+  if(t)m.push({t:'text',x:'MEJA '+t,a:'center',huge:3});
+  m.push({t:'text',x:'',a:'center'});
+  return m;
 }
-function coQrPng(){
+function coQrPrint(){
+  const t=S.coT||'',u=coUrl(t),p=db.set.prn,pw=db.set.paper==='58'?'58':'80';
+  openModal(`<h3>Kartu QR</h3><div class="rc-wrap"><div id="receipt" class="rcpt qrcard" style="text-align:center;font-size:14px;width:auto;max-width:340px;margin:auto;font-family:system-ui,sans-serif">
+  <b style="font-size:22px">${esc(db.set.store)}</b><div style="margin:6px 0 2px">Scan untuk memesan</div><div class="qrimg">${qrSvg(u,260)}</div>
+  ${t?`<div style="font-size:28px;font-weight:800">MEJA ${esc(t)}</div>`:''}<div style="font-size:11px;margin-top:4px;word-break:break-all">${esc(u)}</div></div></div>
+  <button class="btn" onclick="coQrThermal()"><i class="ic" data-ic="print"></i>Cetak ke printer struk (${pw} mm)</button>
+  <button class="btn sec" onclick="coQrSheet('a6')"><i class="ic" data-ic="print"></i>Cetak lewat printer lain (kertas biasa/PDF)</button>
+  <button class="btn sec" onclick="coQrPng()"><i class="ic" data-ic="download"></i>Simpan gambar (PNG)</button>
+  <button class="btn sec" onclick="coQr()">Kembali</button>`);
+}
+/* printer struk: Bluetooth/serial/RawBT langsung ESC/POS; mode dialog browser memakai lebar kertas struk */
+async function coQrThermal(){
+  const t=S.coT||'',u=coUrl(t),p=db.set.prn;
+  if(p.mode==='browser'){
+    $('#pageStyle').textContent=`@media print{@page{size:${db.set.paper}mm auto;margin:0}.qrcard{width:${db.set.paper}mm!important;max-width:none!important;padding:3mm!important;box-sizing:border-box}.qrcard .qrimg svg{width:100%!important;height:auto!important}}`;
+    window.print();return;
+  }
+  try{
+    const data=await buildEscPos(null,qrModel(t,u));
+    if(p.mode==='ble')await sendBLE(data);else if(p.mode==='serial')await sendSerial(data);else sendRawBT(data);
+    toast('Kartu QR dikirim ke printer');
+  }catch(e){console.error(e);toast(e&&e.name==='NotFoundError'?'Pemilihan printer dibatalkan':'Gagal cetak: '+((e&&e.message)||e))}
+  updatePrnStatus();
+}
+/* printer lain (A4/A5/A6, PDF, Wi-Fi): kartu di tengah halaman, QR besar */
+function coQrSheet(sz){
+  $('#pageStyle').textContent=`@media print{@page{size:${sz||'a6'};margin:8mm}.qrcard{width:100%!important;max-width:none!important;font-size:18px!important}.qrcard .qrimg svg{width:70%!important;height:auto!important}}`;
+  window.print();
+}
+function coQrCanvas(){
   const t=S.coT||'',u=coUrl(t),M=qrMatrix(u),n=M.length,sc=Math.max(4,Math.floor(900/(n+8))),W=(n+8)*sc,H=W+260,c=document.createElement('canvas');
   c.width=W;c.height=H;const x=c.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,W,H);x.fillStyle='#000';
   for(let r=0;r<n;r++)for(let q=0;q<n;q++)if(M[r][q])x.fillRect((q+4)*sc,(r+4)*sc+90,sc,sc);
   x.textAlign='center';x.fillStyle='#111';x.font='bold 60px sans-serif';x.fillText(db.set.store||'POS SATE',W/2,70,W-40);
   x.font='38px sans-serif';x.fillText('Scan untuk memesan',W/2,W+135);
   if(t){x.font='bold 70px sans-serif';x.fillText('MEJA '+t,W/2,W+225,W-40)}
-  c.toBlob(b=>{const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='qr-pesan'+(t?'-meja-'+t:'')+'.png';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),4000)});
+  return c;
+}
+/* simpan PNG: APK -> album (Pictures/POS SATE); browser HP -> menu bagikan/simpan; lainnya -> unduh */
+async function coQrPng(){
+  const t=S.coT||'',name='qr-pesan'+(t?'-meja-'+t.replace(/[^\w-]/g,''):'')+'.png',c=coQrCanvas();
+  const blob=await new Promise(r=>c.toBlob(r,'image/png'));
+  if(!blob){toast('Gagal membuat gambar');return}
+  if(window.nativeSaveImage){
+    try{await nativeSaveImage(c.toDataURL('image/png').split(',')[1],name);toast('Gambar disimpan di album (Pictures/POS SATE)');return}
+    catch(e){console.error(e);toast('Gagal menyimpan: '+((e&&e.message)||e));return}
+  }
+  try{
+    const f=new File([blob],name,{type:'image/png'});
+    if(navigator.canShare&&navigator.canShare({files:[f]})){await navigator.share({files:[f],title:name});return}
+  }catch(e){if(e&&e.name==='AbortError')return}
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;document.body.appendChild(a);a.click();a.remove();
+  setTimeout(()=>URL.revokeObjectURL(a.href),8000);toast('Gambar diunduh');
 }
 async function coCopy(){
   const u=coUrl(S.coT||'');

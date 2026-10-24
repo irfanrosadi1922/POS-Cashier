@@ -27,6 +27,7 @@
     };
   }
   /* notifikasi native (FCM) — aktif bila APK dibuat dengan google-services.json (window.POS_FCM) */
+  window.nativeSaveImage=function(b64,name){return P.ClassicBt.saveImage({data:b64,name:name})};
   var fcmReady=(P.ClassicBt&&P.ClassicBt.hasFcm)?P.ClassicBt.hasFcm().then(function(r){return !!(r&&r.fcm)}).catch(function(){return !!window.POS_FCM}):Promise.resolve(!!window.POS_FCM);
   if(P.PushNotifications){
     var PN=P.PushNotifications,cur='',hooked=false;
